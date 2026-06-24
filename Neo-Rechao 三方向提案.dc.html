@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;700;900&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    @keyframes glowPulse {
+      0%,100%{text-shadow:0 0 12px rgba(255,122,0,.9),0 0 30px rgba(255,100,0,.5)}
+      50%{text-shadow:0 0 24px rgba(255,155,0,1),0 0 60px rgba(255,100,0,.7),0 0 100px rgba(255,60,0,.3)}
+    }
+    @keyframes borderGlow {
+      0%,100%{box-shadow:0 0 16px rgba(255,122,0,.5),inset 0 0 12px rgba(255,122,0,.06)}
+      50%{box-shadow:0 0 36px rgba(255,122,0,.85),inset 0 0 22px rgba(255,122,0,.13)}
+    }
+    @keyframes flicker {
+      0%,88%,92%,96%,100%{opacity:1}
+      89%,93%{opacity:.8}
+    }
+    @keyframes slowDrift {
+      0%,100%{transform:translateY(0px)}
+      50%{transform:translateY(-5px)}
+    }
+  </style>
+</helmet>
+
+<!-- Canvas header -->
+<div style="position:absolute;left:80px;top:22px">
+  <div style="font:600 11px/1 'Noto Sans TC',system-ui;color:rgba(240,195,110,.75);letter-spacing:.2em;text-transform:uppercase">Neo-Rechao 新熱炒運動 2026 · 三方向視覺提案</div>
+  <div style="font:300 10px/1 'Noto Sans TC',system-ui;color:rgba(200,160,80,.45);margin-top:6px;letter-spacing:.1em">台北大稻埕・萬華艋舺剝皮寮 · 2026.12 · 200–1000 人</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FRAME A  文青感性版 · 磨石子暖光
+══════════════════════════════════════════ -->
+<div style="position:absolute;left:80px;top:80px;width:500px">
+  <div data-drags-parent="1" style="position:absolute;top:-26px;left:0;display:flex;align-items:center;gap:8px">
+    <span style="background:rgba(240,195,110,.92);color:#1a0d04;font:700 10px/1 'Noto Sans TC',system-ui;padding:3px 9px;letter-spacing:.12em">方向 A</span>
+    <span style="font:400 11px/1 'Noto Sans TC',system-ui;color:rgba(220,175,90,.75)">文青感性版 · 磨石子暖光</span>
+  </div>
+  <div style="border-radius:4px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.04);height:950px">
+    <div style="position:relative;height:100%;background-color:#1C110A;background-image:radial-gradient(circle at 12% 22%,rgba(210,158,70,.5) 2.5px,transparent 2.5px),radial-gradient(circle at 44% 68%,rgba(185,135,58,.44) 1.5px,transparent 1.5px),radial-gradient(circle at 76% 15%,rgba(242,200,95,.54) 3px,transparent 3px),radial-gradient(circle at 88% 58%,rgba(162,112,48,.4) 1px,transparent 1px),radial-gradient(circle at 30% 88%,rgba(200,152,66,.56) 2px,transparent 2px),radial-gradient(circle at 62% 42%,rgba(225,178,82,.46) 1.5px,transparent 1.5px),radial-gradient(circle at 93% 80%,rgba(192,142,62,.5) 2px,transparent 2px),radial-gradient(circle at 7% 62%,rgba(232,185,100,.4) 1px,transparent 1px),radial-gradient(circle at 52% 28%,rgba(170,124,52,.44) 2.5px,transparent 2.5px),radial-gradient(circle at 18% 50%,rgba(218,168,78,.38) 1.5px,transparent 1.5px);background-size:38px 38px">
+
+      <!-- top-right ambient glow -->
+      <div style="position:absolute;top:-80px;right:-60px;width:280px;height:280px;background:radial-gradient(circle,rgba(232,133,58,.13) 0%,transparent 70%);pointer-events:none"></div>
+
+      <!-- NAV -->
+      <div style="position:relative;display:flex;justify-content:space-between;align-items:center;padding:22px 28px;z-index:10;border-bottom:1px solid rgba(232,133,58,.12)">
+        <div style="font:900 14px/1 'Noto Serif TC',serif;color:#F2EDE6;letter-spacing:.06em">
+          新熱炒 <span style="font:300 11px/1 'Noto Sans TC',sans-serif;color:rgba(232,133,58,.85);letter-spacing:.14em">Neo-Rechao</span>
+        </div>
+        <div style="display:flex;gap:20px;align-items:center">
+          <span style="font:400 10px/1 'Noto Sans TC',sans-serif;color:rgba(242,225,195,.55);letter-spacing:.1em">活動</span>
+          <span style="font:400 10px/1 'Noto Sans TC',sans-serif;color:rgba(242,225,195,.55);letter-spacing:.1em">陣容</span>
+          <span style="font:400 10px/1 'Noto Sans TC',sans-serif;color:rgba(242,225,195,.55);letter-spacing:.1em">地點</span>
+          <div style="border:1px solid rgba(232,133,58,.5);padding:7px 14px">
+            <span style="font:600 10px/1 'Noto Sans TC',sans-serif;color:#E8853A;letter-spacing:.12em">購票</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- HERO -->
+      <div style="position:relative;padding:50px 28px 32px;z-index:10">
+        <div style="font:400 9px/1 'Noto Sans TC',sans-serif;color:rgba(232,133,58,.78);letter-spacing:.32em;text-transform:uppercase;margin-bottom:22px">Cultural Movement · 文化運動</div>
+        <div style="font:900 64px/.92 'Noto Serif TC',serif;color:#F2EDE6;letter-spacing:-.01em;margin-bottom:0">新熱炒</div>
+        <div style="font:900 64px/.92 'Noto Serif TC',serif;color:#F2EDE6;letter-spacing:-.01em;margin-bottom:10px">運動</div>
+        <div style="font:300 22px/1.2 'Noto Serif TC',serif;color:rgba(232,133,58,.88);margin-bottom:28px;letter-spacing:.07em">Neo-Rechao</div>
+        <div style="width:44px;height:2px;background:linear-gradient(to right,#E8853A,rgba(232,133,58,.15));margin-bottom:22px"></div>
+        <p style="font:300 12px/2 'Noto Sans TC',sans-serif;color:rgba(242,225,195,.62);max-width:320px;margin:0 0 36px">
+          翻轉傳統台式熱炒文化，注入年輕世代的音樂與潮流元素，<br>打造屬於這個世代的台灣味。
+        </p>
+        <div style="display:flex;gap:14px;align-items:center">
+          <div style="background:#E8853A;color:#1C110A;font:700 11px/1 'Noto Sans TC',sans-serif;padding:13px 26px;letter-spacing:.12em">探索運動</div>
+          <div style="font:400 11px/1 'Noto Sans TC',sans-serif;color:rgba(232,133,58,.7);letter-spacing:.08em">了解更多 →</div>
+        </div>
+      </div>
+
+      <!-- Iron window flower decorative strip -->
+      <div style="padding:0 28px 6px;position:relative;z-index:10">
+        <svg viewBox="0 0 444 48" style="width:100%;height:48px;display:block" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#E8853A" stroke-width="1.2" fill="none" opacity=".34">
+            <polygon points="27.5,2 50.5,24 27.5,46 4.5,24"/><polygon points="27.5,11 38.5,24 27.5,37 16.5,24"/><circle cx="27.5" cy="24" r="4"/>
+            <polygon points="82.5,2 105.5,24 82.5,46 59.5,24"/><polygon points="82.5,11 93.5,24 82.5,37 71.5,24"/><circle cx="82.5" cy="24" r="4"/>
+            <polygon points="137.5,2 160.5,24 137.5,46 114.5,24"/><polygon points="137.5,11 148.5,24 137.5,37 126.5,24"/><circle cx="137.5" cy="24" r="4"/>
+            <polygon points="192.5,2 215.5,24 192.5,46 169.5,24"/><polygon points="192.5,11 203.5,24 192.5,37 181.5,24"/><circle cx="192.5" cy="24" r="4"/>
+            <polygon points="247.5,2 270.5,24 247.5,46 224.5,24"/><polygon points="247.5,11 258.5,24 247.5,37 236.5,24"/><circle cx="247.5" cy="24" r="4"/>
+            <polygon points="302.5,2 325.5,24 302.5,46 279.5,24"/><polygon points="302.5,11 313.5,24 302.5,37 291.5,24"/><circle cx="302.5" cy="24" r="4"/>
+            <polygon points="357.5,2 380.5,24 357.5,46 334.5,24"/><polygon points="357.5,11 368.5,24 357.5,37 346.5,24"/><circle cx="357.5" cy="24" r="4"/>
+            <polygon points="412.5,2 435.5,24 412.5,46 389.5,24"/><polygon points="412.5,11 423.5,24 412.5,37 401.5,24"/><circle cx="412.5" cy="24" r="4"/>
+            <line x1=".5" y1="24" x2="4.5" y2="24"/><line x1="50.5" y1="24" x2="59.5" y2="24"/><line x1="105.5" y1="24" x2="114.5" y2="24"/><line x1="160.5" y1="24" x2="169.5" y2="24"/><line x1="215.5" y1="24" x2="224.5" y2="24"/><line x1="270.5" y1="24" x2="279.5" y2="24"/><line x1="325.5" y1="24" x2="334.5" y2="24"/><line x1="380.5" y1="24" x2="389.5" y2="24"/><line x1="435.5" y1="24" x2="443.5" y2="24"/>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Programs preview -->
+      <div style="position:relative;z-index:10;border-top:1px solid rgba(232,133,58,.13);padding:26px 28px 22px">
+        <div style="font:400 9px/1 'Noto Sans TC',sans-serif;color:rgba(232,133,58,.68);letter-spacing:.24em;text-transform:uppercase;margin-bottom:18px">Programs · 計畫項目</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div style="border:1px solid rgba(232,133,58,.18);padding:18px 16px">
+            <div style="font:700 13px/1.4 'Noto Serif TC',serif;color:#F2EDE6;margin-bottom:6px">音樂祭旗艦館</div>
+            <div style="font:300 10px/1.7 'Noto Sans TC',sans-serif;color:rgba(242,225,195,.48)">TTL Neo-Rechao · 浪人祭 · 大港</div>
+          </div>
+          <div style="border:1px solid rgba(232,133,58,.18);padding:18px 16px">
+            <div style="font:700 13px/1.4 'Noto Serif TC',serif;color:#F2EDE6;margin-bottom:6px">流動熱炒車</div>
+            <div style="font:300 10px/1.7 'Noto Sans TC',sans-serif;color:rgba(242,225,195,.48)">Mobile Rechao · 電子花車 · 六都</div>
+          </div>
+        </div>
+        <div style="margin-top:26px;text-align:center">
+          <div style="font:700 24px/1 'Noto Serif TC',serif;color:rgba(232,133,58,.84);letter-spacing:.06em">越在地，越國際</div>
+          <div style="font:300 9px/1 'Noto Sans TC',sans-serif;color:rgba(242,225,195,.3);letter-spacing:.2em;margin-top:8px;text-transform:uppercase">The more local, the more global</div>
+        </div>
+      </div>
+
+      <!-- Date bar -->
+      <div style="position:relative;z-index:10;border-top:1px solid rgba(232,133,58,.1);padding:16px 28px;display:flex;justify-content:space-between;align-items:center">
+        <div style="font:300 10px/1 'Noto Sans TC',sans-serif;color:rgba(242,225,195,.35);letter-spacing:.18em">2026.12 · TAIPEI</div>
+        <div style="font:400 10px/1 'Noto Sans TC',sans-serif;color:rgba(232,133,58,.55);letter-spacing:.12em">大稻埕 · 剝皮寮</div>
+      </div>
+
+      <!-- Fade -->
+      <div style="position:absolute;bottom:0;left:0;right:0;height:90px;background:linear-gradient(to bottom,transparent,#1C110A);z-index:20;pointer-events:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FRAME B  夜市霓虹版 · 燈火通明
+══════════════════════════════════════════ -->
+<div style="position:absolute;left:660px;top:80px;width:500px">
+  <div data-drags-parent="1" style="position:absolute;top:-26px;left:0;display:flex;align-items:center;gap:8px">
+    <span style="background:rgba(255,122,0,.92);color:#000;font:700 10px/1 'Noto Sans TC',system-ui;padding:3px 9px;letter-spacing:.12em">方向 B</span>
+    <span style="font:400 11px/1 'Noto Sans TC',system-ui;color:rgba(220,175,90,.75)">夜市霓虹版 · 燈火通明</span>
+  </div>
+  <div style="border-radius:4px;overflow:hidden;box-shadow:0 12px 48px rgba(255,90,0,.14),0 8px 32px rgba(0,0,0,.85);height:950px">
+    <div style="position:relative;height:100%;background:#050505">
+
+      <!-- Scanlines -->
+      <div style="position:absolute;inset:0;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:2"></div>
+
+      <!-- Ambient glows -->
+      <div style="position:absolute;bottom:-80px;left:-80px;width:360px;height:360px;background:radial-gradient(circle,rgba(255,70,0,.12) 0%,transparent 70%);pointer-events:none"></div>
+      <div style="position:absolute;top:80px;right:-60px;width:240px;height:240px;background:radial-gradient(circle,rgba(255,120,0,.08) 0%,transparent 70%);pointer-events:none"></div>
+      <div style="position:absolute;top:420px;left:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(255,60,0,.07) 0%,transparent 70%);pointer-events:none"></div>
+
+      <!-- NAV -->
+      <div style="position:relative;display:flex;justify-content:space-between;align-items:center;padding:22px 28px;z-index:10">
+        <div style="font:900 16px/1 'Noto Sans TC',sans-serif;color:#fff;letter-spacing:.04em;animation:flicker 9s 2s infinite">
+          新<span style="color:#FF7A00;text-shadow:0 0 10px rgba(255,122,0,.9)">熱</span>炒
+        </div>
+        <div style="display:flex;gap:18px;align-items:center">
+          <span style="font:300 10px/1 'Noto Sans TC',sans-serif;color:rgba(255,255,255,.45);letter-spacing:.1em">PROGRAMS</span>
+          <span style="font:300 10px/1 'Noto Sans TC',sans-serif;color:rgba(255,255,255,.45);letter-spacing:.1em">LINEUP</span>
+          <span style="font:300 10px/1 'Noto Sans TC',sans-serif;color:rgba(255,255,255,.45);letter-spacing:.1em">MAP</span>
+          <div style="border:1px solid #FF7A00;padding:7px 14px;box-shadow:0 0 12px rgba(255,122,0,.35),inset 0 0 8px rgba(255,122,0,.06)">
+            <span style="font:600 10px/1 'Noto Sans TC',sans-serif;color:#FF7A00;letter-spacing:.1em">購票</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- HERO -->
+      <div style="position:relative;text-align:center;padding:30px 28px 0;z-index:10">
+        <div style="font:300 9px/1 'Noto Sans TC',sans-serif;color:rgba(255,122,0,.72);letter-spacing:.52em;margin-bottom:32px;animation:flicker 14s .5s infinite">── CULTURAL MOVEMENT ──</div>
+
+        <div style="font:900 78px/.88 'Noto Sans TC',sans-serif;color:#fff;letter-spacing:-.02em;text-shadow:0 0 40px rgba(255,255,255,.12)">新熱炒</div>
+        <div style="font:100 40px/1.1 'Noto Sans TC',sans-serif;color:#FF7A00;letter-spacing:.2em;margin:4px 0;animation:glowPulse 3s ease-in-out infinite">Neo-Rechao</div>
+        <div style="font:900 26px/1 'Noto Sans TC',sans-serif;color:rgba(255,255,255,.18);letter-spacing:.14em;margin-bottom:46px">運動</div>
+
+        <!-- Neon box tagline -->
+        <div style="display:inline-block;border:2px solid #FF7A00;padding:18px 46px;margin-bottom:38px;animation:borderGlow 2.5s ease-in-out infinite">
+          <span style="font:700 28px/1 'Noto Serif TC',serif;color:#FF7A00;letter-spacing:.07em;animation:glowPulse 2.5s ease-in-out infinite">越在地，越國際</span>
+        </div>
+
+        <p style="font:300 11px/2.1 'Noto Sans TC',sans-serif;color:rgba(255,255,255,.42);max-width:340px;margin:0 auto 34px">翻轉傳統台式熱炒文化，注入年輕世代的音樂與潮流元素</p>
+
+        <div style="display:flex;justify-content:center;gap:14px">
+          <div style="background:#FF7A00;color:#000;font:700 11px/1 'Noto Sans TC',sans-serif;padding:13px 34px;letter-spacing:.12em;box-shadow:0 0 22px rgba(255,122,0,.55)">立即報名</div>
+          <div style="border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);font:300 11px/1 'Noto Sans TC',sans-serif;padding:13px 22px;letter-spacing:.08em">活動詳情</div>
+        </div>
+      </div>
+
+      <!-- Orange divider line -->
+      <div style="margin:38px 0 0;height:1px;background:linear-gradient(to right,transparent,#FF7A00,transparent);box-shadow:0 0 8px rgba(255,122,0,.4);position:relative;z-index:10"></div>
+
+      <!-- Programs -->
+      <div style="position:relative;z-index:10;padding:22px 28px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="border:1px solid rgba(255,122,0,.2);padding:16px;background:rgba(255,122,0,.04)">
+            <div style="width:6px;height:6px;background:#FF7A00;border-radius:50%;margin-bottom:10px;box-shadow:0 0 8px rgba(255,122,0,.9)"></div>
+            <div style="font:700 12px/1.4 'Noto Sans TC',sans-serif;color:#FF7A00;margin-bottom:6px;letter-spacing:.04em">音樂祭旗艦館</div>
+            <div style="font:300 10px/1.7 'Noto Sans TC',sans-serif;color:rgba(255,255,255,.38)">TTL Neo-Rechao · 霓虹燈管 · 磨石子地貼</div>
+          </div>
+          <div style="border:1px solid rgba(255,122,0,.2);padding:16px;background:rgba(255,122,0,.04)">
+            <div style="width:6px;height:6px;background:#FF7A00;border-radius:50%;margin-bottom:10px;box-shadow:0 0 8px rgba(255,122,0,.9)"></div>
+            <div style="font:700 12px/1.4 'Noto Sans TC',sans-serif;color:#FF7A00;margin-bottom:6px;letter-spacing:.04em">流動熱炒車</div>
+            <div style="font:300 10px/1.7 'Noto Sans TC',sans-serif;color:rgba(255,255,255,.38)">Mobile Rechao · 電子花車 · 巡迴六都</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;border:1px solid rgba(255,255,255,.06);padding:14px 16px;display:flex;justify-content:space-between;align-items:center">
+          <div style="font:300 10px/1 'Noto Sans TC',sans-serif;color:rgba(255,255,255,.3);letter-spacing:.18em">2026.12 · TAIPEI</div>
+          <div style="font:400 10px/1 'Noto Sans TC',sans-serif;color:rgba(255,122,0,.6);letter-spacing:.12em">大稻埕 · 剝皮寮</div>
+        </div>
+      </div>
+
+      <!-- Fade -->
+      <div style="position:absolute;bottom:0;left:0;right:0;height:100px;background:linear-gradient(to bottom,transparent,#050505);z-index:20;pointer-events:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     FRAME C  衝突混搭版 · 在地撞色
+══════════════════════════════════════════ -->
+<div style="position:absolute;left:1240px;top:80px;width:500px">
+  <div data-drags-parent="1" style="position:absolute;top:-26px;left:0;display:flex;align-items:center;gap:8px">
+    <span style="background:rgba(185,28,28,.92);color:#fff;font:700 10px/1 'Noto Sans TC',system-ui;padding:3px 9px;letter-spacing:.12em">方向 C</span>
+    <span style="font:400 11px/1 'Noto Sans TC',system-ui;color:rgba(220,175,90,.75)">衝突混搭版 · 在地撞色</span>
+  </div>
+  <div style="border-radius:4px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.7);height:950px">
+    <div style="position:relative;height:100%;background-color:#EFE7D6;background-image:radial-gradient(circle at 11% 21%,rgba(140,70,28,.28) 2.5px,transparent 2.5px),radial-gradient(circle at 43% 67%,rgba(175,88,34,.22) 1.5px,transparent 1.5px),radial-gradient(circle at 75% 14%,rgba(200,100,36,.32) 3px,transparent 3px),radial-gradient(circle at 87% 57%,rgba(118,58,20,.2) 1px,transparent 1px),radial-gradient(circle at 29% 87%,rgba(158,78,28,.28) 2px,transparent 2px),radial-gradient(circle at 61% 41%,rgba(188,94,38,.24) 1.5px,transparent 1.5px),radial-gradient(circle at 6% 61%,rgba(208,104,40,.2) 1px,transparent 1px),radial-gradient(circle at 50% 27%,rgba(148,74,26,.22) 2px,transparent 2px);background-size:38px 38px">
+
+      <!-- Red top bar -->
+      <div style="position:absolute;top:0;left:0;right:0;height:6px;background:#B91C1C;z-index:5"></div>
+
+      <!-- NAV -->
+      <div style="position:relative;display:flex;justify-content:space-between;align-items:center;padding:18px 28px 16px;margin-top:6px;z-index:10;border-bottom:2.5px solid #1A1008">
+        <div style="display:flex;align-items:baseline;gap:5px">
+          <span style="font:900 18px/1 'Noto Serif TC',serif;color:#1A1008;letter-spacing:.02em">新熱炒</span>
+          <span style="font:500 9px/1 'Noto Sans TC',sans-serif;color:#B91C1C;letter-spacing:.2em;text-transform:uppercase">運動</span>
+        </div>
+        <div style="display:flex;gap:18px;align-items:center">
+          <span style="font:400 10px/1 'Noto Sans TC',sans-serif;color:rgba(26,16,8,.52);letter-spacing:.08em">計畫</span>
+          <span style="font:400 10px/1 'Noto Sans TC',sans-serif;color:rgba(26,16,8,.52);letter-spacing:.08em">陣容</span>
+          <span style="font:400 10px/1 'Noto Sans TC',sans-serif;color:rgba(26,16,8,.52);letter-spacing:.08em">地圖</span>
+          <div style="background:#B91C1C;padding:8px 14px">
+            <span style="font:700 10px/1 'Noto Sans TC',sans-serif;color:#EFE7D6;letter-spacing:.12em">購票</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- BIG RED HERO BLOCK -->
+      <div style="position:relative;background:#B91C1C;padding:34px 28px 30px;overflow:hidden">
+        <!-- Iron flower on red -->
+        <div style="position:absolute;inset:0;opacity:.07">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="iron-red" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+                <polygon points="30,3 57,30 30,57 3,30" fill="none" stroke="#EFE7D6" stroke-width="2"/>
+                <polygon points="30,13 47,30 30,47 13,30" fill="none" stroke="#EFE7D6" stroke-width="1.5"/>
+                <circle cx="30" cy="30" r="6" fill="none" stroke="#EFE7D6" stroke-width="1.5"/>
+                <circle cx="30" cy="30" r="2.5" fill="#EFE7D6"/>
+                <line x1="3" y1="30" x2="13" y2="30" stroke="#EFE7D6" stroke-width="1.5"/>
+                <line x1="47" y1="30" x2="57" y2="30" stroke="#EFE7D6" stroke-width="1.5"/>
+                <line x1="30" y1="3" x2="30" y2="13" stroke="#EFE7D6" stroke-width="1.5"/>
+                <line x1="30" y1="47" x2="30" y2="57" stroke="#EFE7D6" stroke-width="1.5"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#iron-red)"/>
+          </svg>
+        </div>
+        <div style="position:relative">
+          <div style="font:400 9px/1 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.6);letter-spacing:.38em;text-transform:uppercase;margin-bottom:14px">Cultural Movement</div>
+          <div style="font:900 68px/.87 'Noto Serif TC',serif;color:#EFE7D6;letter-spacing:-.01em">新熱炒</div>
+          <div style="font:900 68px/.87 'Noto Serif TC',serif;color:#EFE7D6;letter-spacing:-.01em">運動</div>
+        </div>
+      </div>
+
+      <!-- Orange band tagline -->
+      <div style="background:#E85320;padding:14px 28px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font:700 23px/1 'Noto Serif TC',serif;color:#EFE7D6;letter-spacing:.06em">越在地，越國際</div>
+        <div style="font:400 9px/1 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.72);letter-spacing:.24em;text-transform:uppercase">Neo-Rechao</div>
+      </div>
+
+      <!-- Dark content -->
+      <div style="background:#1A1008;padding:28px 28px 24px;position:relative;overflow:hidden">
+        <!-- corner iron flower -->
+        <div style="position:absolute;right:-10px;bottom:-10px;width:120px;height:120px;opacity:.07">
+          <svg width="120" height="120" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="iron-dark" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+                <polygon points="30,3 57,30 30,57 3,30" fill="none" stroke="#E8853A" stroke-width="2"/>
+                <polygon points="30,13 47,30 30,47 13,30" fill="none" stroke="#E8853A" stroke-width="1.5"/>
+                <circle cx="30" cy="30" r="6" fill="none" stroke="#E8853A" stroke-width="1.5"/>
+              </pattern>
+            </defs>
+            <rect width="120" height="120" fill="url(#iron-dark)"/>
+          </svg>
+        </div>
+        <p style="font:300 12px/2.1 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.68);margin:0 0 24px;max-width:380px;position:relative">
+          翻轉傳統台式熱炒文化，注入年輕世代的音樂與潮流元素，打造屬於這個世代的台灣味。
+        </p>
+        <div style="display:flex;gap:12px;position:relative">
+          <div style="background:#E85320;color:#EFE7D6;font:700 11px/1 'Noto Sans TC',sans-serif;padding:13px 28px;letter-spacing:.12em">立即探索</div>
+          <div style="border:1.5px solid rgba(239,231,214,.22);color:rgba(239,231,214,.55);font:300 11px/1 'Noto Sans TC',sans-serif;padding:13px 20px;letter-spacing:.08em">活動資訊</div>
+        </div>
+      </div>
+
+      <!-- Light programs section -->
+      <div style="background:#EFE7D6;padding:24px 28px;position:relative;overflow:hidden">
+        <div style="position:absolute;inset:0;opacity:.09">
+          <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="iron-light" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+                <polygon points="30,3 57,30 30,57 3,30" fill="none" stroke="#B91C1C" stroke-width="2"/>
+                <polygon points="30,13 47,30 30,47 13,30" fill="none" stroke="#B91C1C" stroke-width="1.5"/>
+                <circle cx="30" cy="30" r="6" fill="none" stroke="#B91C1C" stroke-width="1.5"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#iron-light)"/>
+          </svg>
+        </div>
+        <div style="font:400 9px/1 'Noto Sans TC',sans-serif;color:#B91C1C;letter-spacing:.24em;text-transform:uppercase;margin-bottom:18px;position:relative">計畫項目 Programs</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative">
+          <div style="background:#1A1008;padding:18px 16px">
+            <div style="font:700 13px/1.4 'Noto Serif TC',serif;color:#EFE7D6;margin-bottom:6px">音樂祭旗艦館</div>
+            <div style="font:300 10px/1.7 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.52)">TTL Neo-Rechao</div>
+          </div>
+          <div style="background:#B91C1C;padding:18px 16px">
+            <div style="font:700 13px/1.4 'Noto Serif TC',serif;color:#EFE7D6;margin-bottom:6px">流動熱炒車</div>
+            <div style="font:300 10px/1.7 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.72)">Mobile Rechao</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer stamp bar -->
+      <div style="background:#1A1008;padding:18px 28px;display:flex;justify-content:space-between;align-items:center;border-top:3px solid #B91C1C">
+        <div>
+          <div style="font:700 17px/1 'Noto Serif TC',serif;color:#E85320;letter-spacing:.06em">2026.12</div>
+          <div style="font:300 10px/1.6 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.42);margin-top:4px">台北大稻埕・萬華剝皮寮</div>
+        </div>
+        <div style="border:2px solid #E85320;padding:8px 16px">
+          <div style="font:900 10px/1 'Noto Sans TC',sans-serif;color:#E85320;letter-spacing:.16em">TAIPEI 2026</div>
+        </div>
+      </div>
+
+      <!-- Fade -->
+      <div style="position:absolute;bottom:0;left:0;right:0;height:80px;background:linear-gradient(to bottom,transparent,#1A1008);z-index:20;pointer-events:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Annotation post-its -->
+<div style="position:absolute;left:80px;top:1060px;width:460px;background:#fef4a8;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.14);transform:rotate(-.4deg)">
+  <div style="font:700 10px/1 system-ui;color:#7a6800;letter-spacing:.1em;margin-bottom:6px;text-transform:uppercase">方向 A · 設計邏輯</div>
+  <div style="font:400 11px/1.7 system-ui;color:#5a4c00">暖色磨石子底 + 鐵窗花線飾 = 台灣老宅的精緻感。Noto Serif TC 重字重作大字報，配清爽留白—感性但不雜亂。目標：文青、攝影控、文化媒體。</div>
+</div>
+
+<div style="position:absolute;left:660px;top:1060px;width:460px;background:#ffe8cc;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.14);transform:rotate(.3deg)">
+  <div style="font:700 10px/1 system-ui;color:#7a3800;letter-spacing:.1em;margin-bottom:6px;text-transform:uppercase">方向 B · 設計邏輯</div>
+  <div style="font:400 11px/1.7 system-ui;color:#5a2a00">純黑底 + 橘紅霓虹光暈 = 台灣夜市的電能感。Scan line 質感致敬老電視。「越在地越國際」直接做成霓虹招牌—最高辨識度。目標：音樂祭受眾、年輕潮人。</div>
+</div>
+
+<div style="position:absolute;left:1240px;top:1060px;width:460px;background:#ffd6d6;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.14);transform:rotate(-.5deg)">
+  <div style="font:700 10px/1 system-ui;color:#7a0000;letter-spacing:.1em;margin-bottom:6px;text-transform:uppercase">方向 C · 設計邏輯</div>
+  <div style="font:400 11px/1.7 system-ui;color:#5a0000">米白磨石子紙感 + 烈紅 × 橘紅撞色 = 老台灣招牌的色彩衝突美學。深色 × 淺色區塊交替，讓內容像貼紙層疊—最具視覺節奏。目標：品牌主視覺、媒體曝光。</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1820, &quot;height&quot;: 1200}}">
+class Component extends DCLogic {}
+</script>
+</body>
+</html>
