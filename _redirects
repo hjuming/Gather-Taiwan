@@ -1,3 +1,5 @@
-# Cloudflare Pages redirects for neo-rechao.wedopr.com
-# Redirect root to activity website
-/Neo-Rechao%20%E6%B4%BB%E5%8B%95%E7%B6%B2%E7%AB%99.dc.html /index.html 301
+# Cloudflare Pages redirects for Taiwan Gathering Movement.
+# Keep the root page available; do not hard-redirect neo-rechao.wedopr.com yet.
+/Neo-Rechao /neo-rechao 301
+/Neo-Rechao/ /neo-rechao 301
+/Neo-Rechao%20%E6%B4%BB%E5%8B%95%E7%B6%B2%E7%AB%99.dc.html /neo-rechao 301

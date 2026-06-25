@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /.git/
 
-Sitemap: https://neo-rechao.wedopr.com/sitemap.xml
+Sitemap: https://gathering.wedopr.com/sitemap.xml

@@ -2,10 +2,24 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://neo-rechao.wedopr.com/</loc>
+    <loc>https://gathering.wedopr.com/</loc>
     <lastmod>2026-06-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://neo-rechao.wedopr.com/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://gathering.wedopr.com/"/>
+  </url>
+  <url>
+    <loc>https://gathering.wedopr.com/neo-rechao</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://gathering.wedopr.com/neo-rechao"/>
+  </url>
+  <url>
+    <loc>https://gathering.wedopr.com/moonlight-bbq</loc>
+    <lastmod>2026-06-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://gathering.wedopr.com/moonlight-bbq"/>
   </url>
 </urlset>
