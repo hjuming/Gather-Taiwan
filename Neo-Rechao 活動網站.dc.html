@@ -10,15 +10,15 @@
 <meta name="keywords" content="新熱炒運動,Neo-Rechao,台灣音樂祭,大稻埕,中秋節活動,夾子電動大樂隊,閃亮三姐妹,美秀集團,茄子蛋,落日飛車,台客,2026台灣活動,音樂節">
 <meta name="author" content="WEDO International Marketing Group">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://hjuming.github.io/neo-rechao/Neo-Rechao%20%E6%B4%BB%E5%8B%95%E7%B6%B2%E7%AB%99.dc.html">
+<link rel="canonical" href="https://neo-rechao.wedopr.com/">
 
 <!-- ═══ Open Graph (Facebook / LINE / Threads) ═══ -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Neo-Rechao 新熱炒運動">
 <meta property="og:title" content="Neo-Rechao 新熱炒運動 — 越在地，越國際">
 <meta property="og:description" content="2026.9.25 中秋節｜台北大稻埕碼頭首發。熱炒 × 辦桌 × 音樂會，夾子電動大樂隊、閃亮三姐妹、美秀集團、茄子蛋、落日飛車聯合呈獻。翻轉這個世代的台灣味。">
-<meta property="og:url" content="https://hjuming.github.io/neo-rechao/">
-<meta property="og:image" content="https://hjuming.github.io/neo-rechao/uploads/og-image.png">
+<meta property="og:url" content="https://neo-rechao.wedopr.com/">
+<meta property="og:image" content="https://neo-rechao.wedopr.com/uploads/og-image.png">
 <meta property="og:image:width" content="2554">
 <meta property="og:image:height" content="1464">
 <meta property="og:image:alt" content="Neo-Rechao 新熱炒運動 — 2026 台北大稻埕碼頭">
@@ -28,7 +28,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Neo-Rechao 新熱炒運動 — 越在地，越國際">
 <meta name="twitter:description" content="2026.9.25 中秋節｜台北大稻埕碼頭首發。熱炒 × 辦桌 × 音樂會，夾子電動大樂隊、閃亮三姐妹、美秀集團、茄子蛋、落日飛車聯合呈獻。">
-<meta name="twitter:image" content="https://hjuming.github.io/neo-rechao/uploads/og-image.png">
+<meta name="twitter:image" content="https://neo-rechao.wedopr.com/uploads/og-image.png">
 <meta name="twitter:image:alt" content="Neo-Rechao 新熱炒運動 活動視覺">
 
 <!-- ═══ JSON-LD Structured Data ═══ -->
@@ -39,8 +39,8 @@
   "name": "Neo-Rechao 新熱炒運動",
   "alternateName": "新熱炒運動音樂祭",
   "description": "翻轉傳統台式熱炒文化，注入年輕世代的音樂與潮流元素。熱炒、辦桌、音樂會三合一文化體驗。",
-  "url": "https://hjuming.github.io/neo-rechao/",
-  "image": "https://hjuming.github.io/neo-rechao/uploads/og-image.png",
+  "url": "https://neo-rechao.wedopr.com/",
+  "image": "https://neo-rechao.wedopr.com/uploads/og-image.png",
   "startDate": "2026-09-25T18:00",
   "endDate": "2026-09-25T23:59",
   "eventStatus": "https://schema.org/EventScheduled",
@@ -83,7 +83,6 @@
 <body>
 <x-dc>
 <helmet>
-  <title>Neo-Rechao 新熱炒運動 — 越在地，越國際｜2026.9.25 台北大稻埕</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;700;900&amp;family=Noto+Sans+TC:wght@300;400;500;700;900&amp;display=swap" rel="stylesheet">
@@ -104,19 +103,50 @@
     @keyframes borderGlow{0%,100%{box-shadow:0 0 16px rgba(255,122,0,.5),inset 0 0 12px rgba(255,122,0,.06)}50%{box-shadow:0 0 36px rgba(255,122,0,.85),inset 0 0 22px rgba(255,122,0,.13)}}
     @keyframes flicker{0%,88%,92%,96%,100%{opacity:1}89%,93%{opacity:.8}}
     @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+    /* ── Mobile Nav & Responsive ── */
+    .nav-toggle{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;z-index:1100;background:none;border:none}
+    .nav-toggle span{display:block;width:24px;height:2px;background:#EFE7D6;transition:all .3s}
+    .nav-toggle.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+    .nav-toggle.open span:nth-child(2){opacity:0}
+    .nav-toggle.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+    .nav-links{display:flex;gap:32px;align-items:center}
+    @media(max-width:768px){
+      .nav-toggle{display:flex}
+      .nav-links{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(20,10,4,.97);flex-direction:column;justify-content:center;align-items:center;gap:40px;z-index:1050;transform:translateX(100%);transition:transform .35s ease}
+      .nav-links.open{transform:translateX(0)}
+      .nav-links a{font-size:18px!important}
+      #main-nav{padding:0 24px!important}
+      #hero .iron-red{padding:40px 24px 32px!important}
+      #about{padding:60px 24px!important}
+      #rechao-culture [style*="padding:40px 80px"]{padding:28px 24px!important;grid-template-columns:1fr!important}
+      #festival [style*="width:100%"]{grid-template-columns:1fr!important;padding:60px 24px!important}
+      #lineup{padding:60px 24px!important}
+      #mobile [style*="padding:100px 80px"]{padding:60px 24px!important;grid-template-columns:1fr!important}
+      #schedule{padding:60px 24px 80px!important}
+      #ugc{padding:60px 24px!important}
+      #tickets{padding:60px 24px!important}
+      footer{padding:40px 24px 32px!important}
+      footer [style*="grid-template-columns:2fr"]{grid-template-columns:1fr 1fr!important;gap:28px!important}
+    }
+    @media(max-width:480px){
+      footer [style*="grid-template-columns:2fr"]{grid-template-columns:1fr!important}
+    }
   </style>
 </helmet>
 
 <!-- ══ NAV ══ -->
-<nav style="position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 64px;transition:background .4s,border-color .4s;background:{{ navBg }};border-bottom:{{ navBorder }}">
+<nav id="main-nav" style="position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 64px;transition:background .4s,border-color .4s;background:{{ navBg }};border-bottom:{{ navBorder }}">
   <a href="#hero" style="font:900 16px/1 'Noto Serif TC',serif;color:#EFE7D6;letter-spacing:.04em">
     新熱炒 <span style="font:300 11px/1 'Noto Sans TC',sans-serif;color:rgba(232,133,58,.85);letter-spacing:.14em">Neo-Rechao</span>
   </a>
-  <div style="display:flex;gap:32px;align-items:center">
+  <button id="nav-toggle-btn" class="nav-toggle" aria-label="開啟選單" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <div id="nav-links" class="nav-links">
     <a href="#festival" style="font:300 11px/1 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.62);letter-spacing:.08em">音樂祭</a>
     <a href="#mobile" style="font:300 11px/1 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.62);letter-spacing:.08em">熱炒車</a>
     <a href="#schedule" style="font:300 11px/1 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.62);letter-spacing:.08em">六都巡迴</a>
-    <a href="#tickets" style="font:700 11px/1 'Noto Sans TC',sans-serif;color:#E85320;border:1px solid rgba(232,85,32,.5);padding:9px 20px;letter-spacing:.1em;transition:all .25s" style-hover="background:#E85320;color:#EFE7D6;border-color:#E85320">購票</a>
+    <a href="#tickets" style="font:700 11px/1 'Noto Sans TC',sans-serif;color:#E85320;border:1px solid rgba(232,85,32,.5);padding:9px 20px;letter-spacing:.1em;transition:all .25s">購票</a>
   </div>
 </nav>
 
@@ -740,6 +770,24 @@ class Component extends DCLogic {
       obs.observe(el);
     });
     this._obs = obs;
+
+    // Mobile hamburger
+    const _btn = document.getElementById('nav-toggle-btn');
+    const _links = document.getElementById('nav-links');
+    if (_btn && _links) {
+      _btn.addEventListener('click', () => {
+        const o = _links.classList.toggle('open');
+        _btn.classList.toggle('open', o);
+        _btn.setAttribute('aria-expanded', o);
+      });
+      _links.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+          _links.classList.remove('open');
+          _btn.classList.remove('open');
+          _btn.setAttribute('aria-expanded', 'false');
+        });
+      });
+    }
   }
 
   componentWillUnmount() {
