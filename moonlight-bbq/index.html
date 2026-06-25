@@ -133,6 +133,28 @@
   .partner h3{color:var(--moon);font-family:"Noto Serif TC",serif}
   .partner p{margin-top:10px;font-size:14px}
   .music-box{margin-top:28px;padding:26px;border:1px solid rgba(255,248,237,.22);background:rgba(255,248,237,.05)}
+  .invite-note{margin-top:18px;padding:14px 16px;border:1px solid rgba(232,83,32,.42);color:var(--moon);font-size:13px;font-weight:900;line-height:1.55;letter-spacing:.06em}
+  .invite-kicker{margin:28px 0 14px;font-size:10px;font-weight:900;line-height:1.2;letter-spacing:.18em;text-transform:uppercase;color:rgba(232,83,32,.72)}
+  .invite-feature-grid,.invite-main-grid,.invite-list-grid{display:grid;gap:4px}
+  .invite-feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .invite-main-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .invite-list-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .invite-card,.invite-list-item{border:1px solid rgba(232,83,32,.26);background:rgba(255,248,237,.04);overflow:hidden}
+  .invite-image{position:relative;aspect-ratio:4/3;overflow:hidden;border-bottom:1px solid rgba(232,83,32,.18)}
+  .invite-image img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.68) saturate(1.02)}
+  .invite-image-top img{object-position:center top}
+  .invite-overlay{position:absolute;left:0;right:0;bottom:0;padding:12px 14px;background:linear-gradient(to top,rgba(5,5,5,.95),transparent)}
+  .invite-name{font-family:"Noto Serif TC",serif;font-size:16px;font-weight:900;line-height:1.15;color:var(--paper)}
+  .invite-feature-grid .invite-name{font-size:22px}
+  .invite-en{margin-top:5px;font-size:10px;font-weight:500;line-height:1.2;color:rgba(232,83,32,.78);letter-spacing:.08em}
+  .invite-meta{padding:13px 14px}
+  .invite-label{margin-bottom:6px;font-size:11px;font-weight:900;line-height:1.2;color:var(--ember)}
+  .invite-desc{font-size:12px;line-height:1.6;color:rgba(255,248,237,.52)}
+  .invite-list-item{display:flex;align-items:center;min-width:0}
+  .invite-thumb{width:88px;min-height:88px;flex:0 0 auto;overflow:hidden}
+  .invite-thumb img{width:100%;height:100%;object-fit:cover;display:block;filter:brightness(.76) saturate(1.02)}
+  .invite-list-copy{padding:13px 14px;min-width:0}
+  .invite-list-copy .invite-name{font-family:"Noto Sans TC",sans-serif;font-size:14px}
   .notice{padding:24px;border:1px solid var(--line);background:#fffdf7}
   .faq{display:grid;gap:1px;margin-top:28px;background:var(--line);border:1px solid var(--line)}
   .faq div{background:#fffdf7;padding:22px}
@@ -163,6 +185,10 @@
     .formula-grid div{min-height:116px}
     .module{grid-template-columns:1fr}
     .module strong{border-right:0;border-bottom:1px solid var(--line)}
+    .invite-feature-grid,.invite-main-grid,.invite-list-grid{grid-template-columns:1fr}
+    .invite-list-item{align-items:stretch}
+    .invite-thumb{width:92px;min-height:92px}
+    .invite-feature-grid .invite-name{font-size:20px}
     footer .wrap{display:block}
     footer .wrap div+div{margin-top:14px}
     .mobile-sticky{position:fixed;left:50%;bottom:0;z-index:40;display:grid;grid-template-columns:1fr 1fr;gap:8px;width:calc(100vw - 24px);max-width:390px;padding:10px 0 calc(10px + env(safe-area-inset-bottom));background:rgba(26,16,8,.96);transform:translate(-50%,12px);opacity:0;pointer-events:none;transition:.2s}
@@ -281,10 +307,110 @@
       <div>
         <div class="eyebrow">Invitation Direction</div>
         <h2>規劃邀請方向</h2>
+        <div class="invite-note">規劃示意名單，不代表正式邀請。</div>
       </div>
       <div>
         <div class="music-box">
           <p>台灣搖滾、獨立樂團、DJ 與現場音樂內容為規劃邀請方向；實際演出團體將依後續邀約、檔期與合作條件確認。</p>
+        </div>
+        <div class="invite-kicker">Reference Direction · 可能邀請類型</div>
+        <div class="invite-feature-grid">
+          <div class="invite-card">
+            <div class="invite-image invite-image-top">
+              <img src="../uploads/夾子電動大樂隊.jpg" alt="夾子電動大樂隊規劃示意">
+              <div class="invite-overlay">
+                <div class="invite-name">夾子電動大樂隊</div>
+                <div class="invite-en">The Clippers Band</div>
+              </div>
+            </div>
+            <div class="invite-meta">
+              <div class="invite-label">規劃示意</div>
+              <div class="invite-desc">綜藝搖滾 · 電子花車 · 那卡西</div>
+            </div>
+          </div>
+          <div class="invite-card">
+            <div class="invite-image invite-image-top">
+              <img src="../uploads/閃亮三姐妹.jpg" alt="閃亮三姐妹規劃示意">
+              <div class="invite-overlay">
+                <div class="invite-name">閃亮三姐妹</div>
+                <div class="invite-en">Shining Sisters</div>
+              </div>
+            </div>
+            <div class="invite-meta">
+              <div class="invite-label">規劃示意</div>
+              <div class="invite-desc">台客電音 · 電子花車家族</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="invite-kicker">Main Direction · 主要內容方向</div>
+        <div class="invite-main-grid">
+          <div class="invite-card">
+            <div class="invite-image">
+              <img src="../uploads/美秀集團.jpg" alt="美秀集團規劃示意">
+              <div class="invite-overlay">
+                <div class="invite-name">美秀集團</div>
+                <div class="invite-en">Mxsh Group</div>
+              </div>
+            </div>
+            <div class="invite-meta"><div class="invite-label">規劃示意</div><div class="invite-desc">賽博台客 · 歌廳秀電搖</div></div>
+          </div>
+          <div class="invite-card">
+            <div class="invite-image">
+              <img src="../uploads/茄子蛋.jpg" alt="茄子蛋規劃示意">
+              <div class="invite-overlay">
+                <div class="invite-name">茄子蛋</div>
+                <div class="invite-en">EggPlantEgg</div>
+              </div>
+            </div>
+            <div class="invite-meta"><div class="invite-label">規劃示意</div><div class="invite-desc">台語情歌 · 浪子回頭</div></div>
+          </div>
+          <div class="invite-card">
+            <div class="invite-image">
+              <img src="../uploads/落日飛車.jpg" alt="落日飛車規劃示意">
+              <div class="invite-overlay">
+                <div class="invite-name">落日飛車</div>
+                <div class="invite-en">Sunset Rollercoaster</div>
+              </div>
+            </div>
+            <div class="invite-meta"><div class="invite-label">規劃示意</div><div class="invite-desc">City Pop · 夜間城市感</div></div>
+          </div>
+        </div>
+
+        <div class="invite-kicker">Additional Direction · 延伸邀請方向</div>
+        <div class="invite-list-grid">
+          <div class="invite-list-item">
+            <div class="invite-thumb"><img src="../uploads/阿跨面 Akuma-72ea7ff9.jpg" alt="阿跨面 Akuma 規劃示意"></div>
+            <div class="invite-list-copy"><div class="invite-name">阿跨面 Akuma</div><div class="invite-desc">台語饒舌 · 宮廟街頭</div></div>
+          </div>
+          <div class="invite-list-item">
+            <div class="invite-thumb"><img src="../uploads/百合花 Lily Flower.jpg" alt="百合花 Lily Flower 規劃示意"></div>
+            <div class="invite-list-copy"><div class="invite-name">百合花 Lily Flower</div><div class="invite-desc">南管北管 · 後搖滾電子</div></div>
+          </div>
+          <div class="invite-list-item">
+            <div class="invite-thumb"><img src="../uploads/李竺芯-c4b415f2.jpg" alt="李竺芯規劃示意"></div>
+            <div class="invite-list-copy"><div class="invite-name">李竺芯</div><div class="invite-desc">台語語言實驗 · 金曲入圍</div></div>
+          </div>
+          <div class="invite-list-item">
+            <div class="invite-thumb"><img src="../uploads/163braces-aff17e5f.jpg" alt="163braces 規劃示意"></div>
+            <div class="invite-list-copy"><div class="invite-name">163braces</div><div class="invite-desc">網路世代 · 金曲新人</div></div>
+          </div>
+          <div class="invite-list-item">
+            <div class="invite-thumb"><img src="../uploads/someshiit 山姆-50db47b2.jpg" alt="someshiit 山姆規劃示意"></div>
+            <div class="invite-list-copy"><div class="invite-name">someshiit 山姆</div><div class="invite-desc">詩意都市憂鬱 · 金曲入圍</div></div>
+          </div>
+          <div class="invite-list-item">
+            <div class="invite-thumb"><img src="../uploads/王ADEN-529583fe.jpg" alt="王ADEN 規劃示意"></div>
+            <div class="invite-list-copy"><div class="invite-name">王ADEN</div><div class="invite-desc">R&amp;B · 靈魂樂 · 金曲新人</div></div>
+          </div>
+          <div class="invite-list-item">
+            <div class="invite-thumb"><img src="../uploads/陳泳希 JUD-195bf804.jpg" alt="陳泳希 JUD 規劃示意"></div>
+            <div class="invite-list-copy"><div class="invite-name">陳泳希 JUD</div><div class="invite-desc">空靈嗓音 · 金曲新人</div></div>
+          </div>
+          <div class="invite-list-item">
+            <div class="invite-thumb"><img src="../uploads/派偉俊 Patrick Brasca-c37fdff9.jpg" alt="派偉俊 Patrick Brasca 規劃示意"></div>
+            <div class="invite-list-copy"><div class="invite-name">派偉俊 Patrick Brasca</div><div class="invite-desc">混血多語 · 數位平台新星</div></div>
+          </div>
         </div>
       </div>
     </div>
