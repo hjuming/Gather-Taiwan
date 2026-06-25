@@ -120,11 +120,12 @@
       #tickets{padding:60px 24px!important}
       footer{padding:40px 24px 32px!important}
       footer [style*="grid-template-columns:2fr"]{grid-template-columns:1fr 1fr!important;gap:28px!important}
-      .mobile-sticky-cta{position:fixed!important;left:50%!important;right:auto!important;bottom:0!important;transform:translateX(-50%);width:calc(100dvw - 24px)!important;max-width:360px!important;overflow:hidden;z-index:1200;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:rgba(20,10,4,.96);border-top:1px solid rgba(232,133,58,.25);padding:10px 0 calc(10px + env(safe-area-inset-bottom));gap:8px}
+      .mobile-sticky-cta{position:fixed!important;left:50%!important;right:auto!important;bottom:0!important;transform:translate(-50%,12px);width:calc(100dvw - 24px)!important;max-width:360px!important;overflow:hidden;z-index:1200;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:rgba(20,10,4,.96);border-top:1px solid rgba(232,133,58,.25);padding:10px 0 calc(10px + env(safe-area-inset-bottom));gap:8px;opacity:0;pointer-events:none;transition:opacity .22s ease,transform .22s ease}
+      .mobile-sticky-cta.is-visible{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
       .mobile-sticky-cta a{display:flex;align-items:center;justify-content:center;min-width:0;min-height:44px;font:700 13px/1 'Noto Sans TC',sans-serif;letter-spacing:.04em;white-space:nowrap}
       .mobile-sticky-cta a:first-child{background:#E85320;color:#fff}
       .mobile-sticky-cta a:last-child{border:1px solid rgba(239,231,214,.28);color:#EFE7D6}
-      body{padding-bottom:70px}
+      body{padding-bottom:92px}
     }
     @media(max-width:480px){
       footer [style*="grid-template-columns:2fr"]{grid-template-columns:1fr!important}
@@ -151,8 +152,8 @@
       #hero>div:nth-of-type(1){padding:42px 20px 32px!important}
       #hero>div:nth-of-type(1)>div:first-child{font-size:9px!important;line-height:1.7!important;letter-spacing:.26em!important;margin-bottom:16px!important}
       #hero>div:nth-of-type(1)>div:nth-child(3),
-      #hero>div:nth-of-type(1)>div:nth-child(4),
-      #hero>div:nth-of-type(1)>div:nth-child(5){font-size:clamp(50px,17vw,70px)!important;line-height:.9!important;letter-spacing:0!important}
+      #hero>div:nth-of-type(1)>div:nth-child(4){font-size:clamp(58px,19vw,76px)!important;line-height:.9!important;letter-spacing:0!important}
+      #hero>div:nth-of-type(1)>div:nth-child(5){font-size:17px!important;line-height:1.45!important;letter-spacing:.04em!important;margin-top:16px!important;max-width:300px!important}
       #hero>div:nth-of-type(2){padding:15px 20px!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:8px!important}
       #hero>div:nth-of-type(2)>div:first-child{font-size:25px!important;line-height:1.18!important;letter-spacing:.02em!important}
       #hero>div:nth-of-type(2)>div:last-child{font-size:8px!important;line-height:1.4!important;letter-spacing:.18em!important;max-width:240px!important}
@@ -247,8 +248,7 @@
 
     @media(max-width:390px){
       #hero>div:nth-of-type(1)>div:nth-child(3),
-      #hero>div:nth-of-type(1)>div:nth-child(4),
-      #hero>div:nth-of-type(1)>div:nth-child(5){font-size:48px!important}
+      #hero>div:nth-of-type(1)>div:nth-child(4){font-size:56px!important}
       #tickets [style*="font:900 100px"]{font-size:52px!important}
       #ugc [style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}
     }
@@ -311,8 +311,8 @@
 
       #hero>div:nth-of-type(1){padding:36px 20px 28px!important}
       #hero>div:nth-of-type(1)>div:nth-child(3),
-      #hero>div:nth-of-type(1)>div:nth-child(4),
-      #hero>div:nth-of-type(1)>div:nth-child(5){font-size:clamp(50px,17vw,70px)!important;line-height:.92!important}
+      #hero>div:nth-of-type(1)>div:nth-child(4){font-size:clamp(58px,19vw,76px)!important;line-height:.92!important}
+      #hero>div:nth-of-type(1)>div:nth-child(5){font-size:17px!important;line-height:1.45!important;letter-spacing:.04em!important;color:rgba(239,231,214,.82)!important}
       #hero>div:nth-of-type(3),
       #about,
       #sponsor,
@@ -473,9 +473,9 @@
   <div style="flex:0 0 auto;background:#B91C1C;padding:52px 80px 46px;position:relative;overflow:hidden" class="iron-red">
     <div data-reveal="up" style="font:400 10px/1 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.68);letter-spacing:.26em;text-transform:uppercase;margin-bottom:14px">Launch Project 001 · Neo-Rechao Taipei Pilot</div>
     <div data-reveal="up" data-delay="40" style="display:inline-block;border:1px solid rgba(239,231,214,.55);color:#EFE7D6;font:700 12px/1 'Noto Sans TC',sans-serif;letter-spacing:.16em;padding:9px 14px;margin-bottom:20px">Sponsor Partnership Brief</div>
-    <div data-reveal="up" data-delay="80" style="font:900 86px/.92 'Noto Serif TC',serif;color:#EFE7D6;letter-spacing:-.01em">把台灣熱炒</div>
-    <div data-reveal="up" data-delay="140" style="font:900 86px/.92 'Noto Serif TC',serif;color:#EFE7D6;letter-spacing:-.01em">變成城市</div>
-    <div data-reveal="up" data-delay="180" style="font:900 86px/.92 'Noto Serif TC',serif;color:#EFE7D6;letter-spacing:-.01em">文化 IP</div>
+    <div data-reveal="up" data-delay="80" style="font:900 92px/.92 'Noto Serif TC',serif;color:#EFE7D6;letter-spacing:-.01em">新熱炒</div>
+    <div data-reveal="up" data-delay="140" style="font:900 92px/.92 'Noto Serif TC',serif;color:#EFE7D6;letter-spacing:-.01em">運動</div>
+    <div data-reveal="up" data-delay="180" style="font:700 24px/1.35 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.82);letter-spacing:.08em;margin-top:18px">把台灣熱炒變成城市文化 IP</div>
   </div>
   <!-- Orange band -->
   <div style="flex:0 0 auto;background:#E85320;padding:18px 80px;display:flex;align-items:center;justify-content:space-between">
@@ -939,7 +939,7 @@
       </div>
       <!-- Description + CTAs -->
       <div style="margin-top:24px;border-top:1px solid rgba(26,16,8,.1);padding-top:24px">
-        <p style="font:300 13px/2.1 'Noto Sans TC',sans-serif;color:rgba(26,16,8,.62);margin:0 0 20px">作為概念體驗載具，流動熱炒車可能延伸至商圈、河岸、品牌活動與地方文化場域。實際動線、城市安排與裝置內容，將依場域條件與合作夥伴確認。</p>
+        <p style="font:300 13px/2.1 'Noto Sans TC',sans-serif;color:rgba(26,16,8,.62);margin:0 0 20px">作為概念體驗載具，移動式城市文化裝置可能延伸至商圈、河岸、品牌活動與地方文化場域。實際動線、城市安排與裝置內容，將依場域條件與合作夥伴確認。</p>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <div style="background:#B91C1C;color:#EFE7D6;font:700 11px/1 'Noto Sans TC',sans-serif;padding:13px 24px;letter-spacing:.1em">討論品牌合作</div>
 
@@ -1114,8 +1114,8 @@
         <div style="font:300 12px/1.9 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.62)">頁面中的藝人與內容方向皆為規劃邀請與風格參考，不代表已確認陣容或正式公布名單。</div>
       </div>
       <div data-reveal="up" data-delay="160" style="background:rgba(239,231,214,.04);border-top:1px solid rgba(232,133,58,.22);padding:22px">
-        <div style="font:700 14px/1.4 'Noto Serif TC',serif;color:#E8853A;margin-bottom:8px">這是售票頁嗎？</div>
-        <div style="font:300 12px/1.9 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.62)">不是。本頁不提供付款、購票或正式報名；主要用途是主辦、贊助、場域與品牌合作洽談。</div>
+        <div style="font:700 14px/1.4 'Noto Serif TC',serif;color:#E8853A;margin-bottom:8px">這是付費交易入口嗎？</div>
+        <div style="font:300 12px/1.9 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.62)">不是。本頁不提供付款、付費交易或正式報名；主要用途是主辦、贊助、場域與品牌合作洽談。</div>
       </div>
       <div data-reveal="up" data-delay="240" style="background:rgba(239,231,214,.04);border-top:1px solid rgba(232,133,58,.22);padding:22px">
         <div style="font:700 14px/1.4 'Noto Serif TC',serif;color:#E8853A;margin-bottom:8px">結構化資料如何處理？</div>
@@ -1159,7 +1159,7 @@
       </div>
     </div>
     <div style="border-top:1px solid rgba(232,133,58,.12);padding-top:24px;margin-bottom:18px">
-      <p style="font:300 11px/1.9 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.52);margin:0;max-width:920px">本頁為 Neo-Rechao Taipei Pilot 企劃籌備與招商溝通頁。活動日期、場地、邀請來賓、票價與節目內容皆為暫定，實際資訊以後續正式公告為準。本頁不構成售票頁或正式活動公告。</p>
+      <p style="font:300 11px/1.9 'Noto Sans TC',sans-serif;color:rgba(239,231,214,.52);margin:0;max-width:920px">本頁為 Neo-Rechao Taipei Pilot 企劃籌備與招商溝通頁。活動日期、場地、邀請來賓、票價與節目內容皆為暫定，實際資訊以後續正式公告為準。本頁不構成付費交易入口或正式活動公告。</p>
     </div>
     <div style="border-top:1px solid rgba(232,133,58,.12);padding-top:24px;text-align:center">
       <div style="font:700 12px/1 'Noto Serif TC',serif;color:rgba(232,133,58,.55);letter-spacing:.06em">越在地，越國際</div>
@@ -1183,11 +1183,23 @@ class Component extends DCLogic {
   state = { navScrolled: false };
 
   componentDidMount() {
+    const stickyCta = document.querySelector('.mobile-sticky-cta');
+    this._syncStickyCta = () => {
+      if (!stickyCta) return;
+      const about = document.getElementById('about');
+      const triggerY = about ? about.offsetTop + 320 : 720;
+      const isMobile = window.matchMedia('(max-width: 900px)').matches;
+      stickyCta.classList.toggle('is-visible', isMobile && window.scrollY > triggerY);
+    };
+
     // Nav scroll
     window.addEventListener('scroll', this._onScroll = () => {
       const s = window.scrollY > 60;
       if (s !== this.state.navScrolled) this.setState({ navScrolled: s });
+      this._syncStickyCta();
     });
+    window.addEventListener('resize', this._syncStickyCta);
+    this._syncStickyCta();
 
     // Scroll reveal via IntersectionObserver
     const obs = new IntersectionObserver((entries) => {
@@ -1233,6 +1245,7 @@ class Component extends DCLogic {
 
   componentWillUnmount() {
     window.removeEventListener('scroll', this._onScroll);
+    window.removeEventListener('resize', this._syncStickyCta);
     if (this._obs) this._obs.disconnect();
   }
 
