@@ -51,7 +51,7 @@
   ],
   "mainEntity": {
     "@type": "ItemList",
-    "name": "聚場台灣目前聚場入口",
+    "name": "聚場台灣目前聚場",
     "itemListElement": [
       {"@type":"ListItem","position":1,"name":"聚場地圖 Gathering Map","url":"https://gather.wedopr.com/gatherings/"},
       {"@type":"ListItem","position":2,"name":"新熱炒運動 Neo-Rechao","url":"https://gather.wedopr.com/neo-rechao/"},
@@ -197,7 +197,7 @@
     .wrap{width:min(100% - 36px,640px)}
     .section{padding:66px 0}
     .nav-toggle{display:flex;flex:0 0 42px;position:relative;z-index:90;flex-direction:column;justify-content:center;margin-left:auto}
-    .nav-links{position:fixed;inset:68px 0 auto auto;z-index:80;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;width:min(75vw,420px);max-height:calc(100dvh - 84px);overflow:auto;padding:24px 28px 28px;background:#fbf6ea;border-left:1px solid rgba(27,23,18,.14);border-bottom:1px solid rgba(27,23,18,.14);box-shadow:-24px 24px 80px rgba(27,23,18,.32);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility .18s ease}
+    .nav-links{position:fixed;inset:68px 0 auto auto;z-index:80;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;width:clamp(300px,75vw,420px);max-height:calc(100dvh - 84px);overflow:auto;padding:24px 28px 28px;background:#fbf6ea;border-left:1px solid rgba(27,23,18,.14);border-bottom:1px solid rgba(27,23,18,.14);box-shadow:-24px 24px 80px rgba(27,23,18,.32);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility .18s ease}
     .nav-links.open{opacity:1;visibility:visible;pointer-events:auto}
     .nav-links a{padding:18px 0;border-bottom:1px solid var(--line);font-size:16px;color:var(--ink)}
     .nav-links a.home-link{display:block}
@@ -231,8 +231,8 @@
 <nav class="nav" aria-label="主要導覽">
   <div class="wrap nav-inner">
     <a class="brand" href="#hero">聚場台灣<span>Gather Taiwan</span></a>
-    <button class="nav-toggle" type="button" aria-label="開啟選單" aria-expanded="false"><span></span><span></span><span></span></button>
-    <div class="nav-links" id="nav-links">
+    <button class="nav-toggle" type="button" aria-label="開啟選單" aria-expanded="false" aria-controls="nav-links"><span></span><span></span><span></span></button>
+    <div class="nav-links" id="nav-links" aria-hidden="true">
       <a href="#what">聚場台灣</a>
       <a href="#map">全年概覽</a>
       <a href="/gatherings/">聚場地圖</a>
@@ -258,10 +258,10 @@
         </div>
       </div>
       <figure class="hero-media">
-        <img src="uploads/gather-home-hero-documentary-v1.jpg" width="1200" height="630" decoding="async" fetchpriority="high" alt="巷口暖燈下人們自然相聚的旅人實拍感示意圖">
+        <img src="uploads/gather-home-hero-documentary-v1.jpg" width="1200" height="630" decoding="async" fetchpriority="high" alt="巷口暖燈下人們自然相聚的旅人實拍感氣氛影像">
         <figcaption>
           <strong style="font-family:'Noto Serif TC',serif">巷口一盞燈</strong>
-          <div class="quiet" style="color:rgba(251,246,234,.72);margin-top:6px">示意圖</div>
+          <div class="quiet" style="color:rgba(251,246,234,.72);margin-top:6px">氣氛影像</div>
         </figcaption>
       </figure>
     </div>
@@ -301,9 +301,9 @@
           <div class="eyebrow">一年十二個月</div>
           <h2 class="section-title">一年十二個月，<br>台灣都有相聚的理由。</h2>
         </div>
-        <p class="lead">春天走春，夏夜吃冰，中秋開烤，冬天圍爐。先留下幾個最有記憶點的入口；完整的主題、城市和季節線索，會在聚場地圖慢慢展開。</p>
+        <p class="lead">春天走春，夏夜吃冰，中秋開烤，冬天圍爐。先從幾個最有記憶點的聚場開始；完整的主題、城市和季節線索，會在聚場地圖慢慢展開。</p>
       </div>
-      <div class="season-grid" aria-label="聚場台灣全年相聚入口">
+      <div class="season-grid" aria-label="聚場台灣全年相聚場景">
         <article class="season-card">
           <small>Spring / 春</small>
           <b>市場早餐、春茶席、潤餅桌</b>
@@ -396,7 +396,7 @@
         <div class="place-card"><b>港邊</b><p class="quiet">海風與魚市的晚餐。冰塊、魚籃、港燈與海鮮桌。</p></div>
         <div class="place-card"><b>河濱</b><p class="quiet">月光與朋友的長桌。適合季節相聚與城市夜晚。</p></div>
         <div class="place-card"><b>老街</b><p class="quiet">店家、居民、糕餅與回家的路，會把記憶留住。</p></div>
-        <div class="place-card"><b>文化園區</b><p class="quiet">讓故事、音樂、影像與品牌共創有被整理的空間。</p></div>
+        <div class="place-card"><b>文化園區</b><p class="quiet">讓故事、音樂、影像與品牌合作有自然發生的空間。</p></div>
       </div>
     </div>
   </section>
@@ -404,11 +404,11 @@
   <section id="gatherings" class="section">
     <div class="wrap">
       <div class="eyebrow">正在成形</div>
-      <h2 class="section-title">正在成形的兩個<br>聚場入口</h2>
+      <h2 class="section-title">正在成形的兩個<br>聚場</h2>
       <p class="lead">先走進兩個最清楚的聚場：月光開烤與新熱炒運動。更多城市與節氣故事，會陸續在這裡出現。</p>
       <div class="gathering-grid">
         <article class="gathering-card">
-          <img src="uploads/gather-neo-rechao-cheers-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="熱炒桌邊朋友碰杯的第一視角示意圖">
+          <img src="uploads/gather-neo-rechao-cheers-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="熱炒桌邊朋友碰杯的第一視角氣氛影像">
           <div class="gathering-copy">
             <div>
               <span class="status">旗艦聚場 / 合作邀請中</span>
@@ -419,7 +419,7 @@
           </div>
         </article>
         <article class="gathering-card">
-          <img src="uploads/gather-moonlight-charcoal-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="中秋烤肉炭火與桌邊手勢的第一視角示意圖">
+          <img src="uploads/gather-moonlight-charcoal-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="中秋烤肉炭火與桌邊手勢的第一視角氣氛影像">
           <div class="gathering-copy">
             <div>
               <span class="status">季節聚場 / 合作邀請中</span>
@@ -440,15 +440,15 @@
       <p class="lead">每一場相聚，都會留下自己的聲音、味道與表情。這些故事，會讓更多人記得台灣人相聚的樣子。</p>
       <div class="story-grid">
         <article class="story-card">
-          <img src="uploads/gather-market-morning-documentary-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="早餐店鐵板與桌邊早餐的旅人實拍感示意圖">
-          <div><b>島嶼早餐</b><p class="quiet">市場、早餐店、飯糰、蛋餅與一座城市醒來的聲音。示意圖</p></div>
+          <img src="uploads/gather-market-morning-documentary-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="早餐店鐵板與桌邊早餐的旅人實拍感氣氛影像">
+          <div><b>島嶼早餐</b><p class="quiet">市場、早餐店、飯糰、蛋餅與一座城市醒來的聲音。氣氛影像</p></div>
         </article>
         <article class="story-card">
-          <img src="uploads/gather-winter-table-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="冬季鍋物熱氣與桌邊手勢的自然紀實示意圖">
+          <img src="uploads/gather-winter-table-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="冬季鍋物熱氣與桌邊手勢的自然紀實氣氛影像">
           <div><b>冬天的鍋</b><p class="quiet">羊肉爐、薑母鴨、火鍋與湯圓，讓人把一年收束在同一張桌邊。</p></div>
         </article>
         <article class="story-card">
-          <img src="uploads/gather-harbor-dinner-documentary-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="港邊晚餐濕地反光與桌邊片刻的示意圖">
+          <img src="uploads/gather-harbor-dinner-documentary-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="港邊晚餐濕地反光與桌邊片刻的氣氛影像">
           <div><b>港邊晚餐</b><p class="quiet">基隆、旗津、安平或台東海線，都有自己的海風與餐桌故事。</p></div>
         </article>
       </div>
@@ -475,7 +475,7 @@
       <div class="eyebrow" style="color:rgba(251,246,234,.72)">Join the Gathering</div>
       <h2 class="section-title">一起相招</h2>
       <p class="lead">如果你是品牌、店家、場地方、音樂人、攝影師或地方故事採集者，歡迎先和我們聊聊。聚場台灣從一張桌開始，和你一起留下台灣人相聚的味道、聲音與故事。</p>
-      <div class="join-actions" aria-label="聚場台灣合作聯繫入口">
+      <div class="join-actions" aria-label="聚場台灣合作聯繫">
         <a class="btn" style="background:var(--paper);color:var(--brick)" href="/contact/">洽談合作</a>
         <a class="btn btn-ghost" style="color:var(--paper);border-color:rgba(251,246,234,.42)" href="/moonlight-bbq/">先看月光開烤</a>
       </div>
@@ -520,15 +520,16 @@
   const toggle = document.querySelector(".nav-toggle");
   const links = document.querySelector("#nav-links");
   const sticky = document.querySelector("#mobile-sticky");
-  const closeNav = () => {
-    links?.classList.remove("open");
-    document.body.classList.remove("nav-open");
-    toggle?.setAttribute("aria-expanded", "false");
-  };
-  toggle?.addEventListener("click", () => {
-    const open = links.classList.toggle("open");
+  const setNavOpen = (open) => {
+    links?.classList.toggle("open", open);
     document.body.classList.toggle("nav-open", open);
-    toggle.setAttribute("aria-expanded", String(open));
+    toggle?.setAttribute("aria-expanded", String(open));
+    toggle?.setAttribute("aria-label", open ? "關閉選單" : "開啟選單");
+    links?.setAttribute("aria-hidden", String(!open));
+  };
+  const closeNav = () => setNavOpen(false);
+  toggle?.addEventListener("click", () => {
+    setNavOpen(!links?.classList.contains("open"));
   });
   links?.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", closeNav);

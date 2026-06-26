@@ -43,7 +43,6 @@
     "url": "https://gather.wedopr.com/moonlight-bbq/",
     "inLanguage": "zh-Hant-TW",
     "primaryImageOfPage": "https://gather.wedopr.com/uploads/moonlight-bbq-og-table-detail-test-v2.png",
-    "breadcrumb": {"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"聚場台灣","item":"https://gather.wedopr.com/"},{"@type":"ListItem","position":2,"name":"月光開烤","item":"https://gather.wedopr.com/moonlight-bbq/"}]},
     "image": "https://gather.wedopr.com/uploads/moonlight-bbq-og-table-detail-test-v2.png",
     "mainEntity": {
       "@type": "CreativeWork",
@@ -162,7 +161,7 @@
   @media(max-width:900px){body.nav-open::before{content:"";position:fixed;inset:68px 0 0;z-index:70;background:rgba(27,23,18,.38);backdrop-filter:blur(2px)}
     .wrap{width:min(100% - 36px,640px)}
     .nav-toggle{display:flex;flex:0 0 42px;position:relative;z-index:90;flex-direction:column;justify-content:center;margin-left:auto}
-    .nav-links{position:fixed;inset:68px 0 auto auto;z-index:80;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;width:min(75vw,420px);max-height:calc(100dvh - 84px);overflow:auto;padding:24px 28px 28px;background:#fbf6ea;border-left:1px solid rgba(27,23,18,.14);border-bottom:1px solid rgba(27,23,18,.14);box-shadow:-24px 24px 80px rgba(27,23,18,.32);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility .18s ease}
+    .nav-links{position:fixed;inset:68px 0 auto auto;z-index:80;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;width:clamp(300px,75vw,420px);max-height:calc(100dvh - 84px);overflow:auto;padding:24px 28px 28px;background:#fbf6ea;border-left:1px solid rgba(27,23,18,.14);border-bottom:1px solid rgba(27,23,18,.14);box-shadow:-24px 24px 80px rgba(27,23,18,.32);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility .18s ease}
     .nav-links.open{opacity:1;visibility:visible;pointer-events:auto}
     .nav-links a{padding:18px 0;border-bottom:1px solid var(--line);font-size:16px;color:var(--ink)}
     .nav-links a:last-child{color:var(--ink);border-color:var(--line);background:transparent}
@@ -197,8 +196,8 @@
 <nav class="nav" aria-label="主要導覽">
   <div class="wrap nav-inner">
     <a class="brand" href="/">聚場台灣<span>Gather Taiwan</span></a>
-    <button class="nav-toggle" type="button" aria-label="開啟選單" aria-expanded="false"><span></span><span></span><span></span></button>
-    <div class="nav-links" id="nav-links">
+    <button class="nav-toggle" type="button" aria-label="開啟選單" aria-expanded="false" aria-controls="nav-links"><span></span><span></span><span></span></button>
+    <div class="nav-links" id="nav-links" aria-hidden="true">
       <a href="/">回到聚場台灣</a>
       <a href="#concept">文化主張</a>
       <a href="#food-culture">美食文化</a>
@@ -224,10 +223,10 @@
         </div>
       </div>
       <figure class="hero-media">
-        <img src="../uploads/gather-moonlight-charcoal-v1.jpg" width="1448" height="1086" decoding="async" fetchpriority="high" alt="中秋烤肉炭火與桌邊手勢的第一視角示意圖">
+        <img src="../uploads/gather-moonlight-charcoal-v1.jpg" width="1448" height="1086" decoding="async" fetchpriority="high" alt="中秋烤肉炭火與桌邊手勢的第一視角氣氛影像">
         <figcaption>
           <strong style="font-family:'Noto Serif TC',serif">Moonlight / Table / Charcoal Aroma</strong>
-          <span class="visual-label">示意圖</span>
+          <span class="visual-label">氣氛影像</span>
         </figcaption>
       </figure>
     </div>
@@ -290,7 +289,7 @@
       <div>
         <p class="lead">月光開烤不只看烤爐，也看大家怎麼分食、等待、遞夾子、留一口給晚到的人。柚子、月餅、茶、烤物與桌邊的暖光，會一起構成這場中秋記憶。</p>
         <div class="snapshot-grid" style="margin-top:26px">
-          <div class="snapshot"><b>柚子與月餅</b><p>節氣的入口，讓人一看就知道這是中秋。</p></div>
+          <div class="snapshot"><b>柚子與月餅</b><p>中秋的記號，讓人一看就想起那個晚上。</p></div>
           <div class="snapshot"><b>一起分著烤</b><p>等待食物熟的時間，正好讓話慢慢開始。</p></div>
           <div class="snapshot"><b>清爽飲品</b><p>讓夜晚有溫度，也保留適合家庭與朋友的輕鬆感。</p></div>
           <div class="snapshot"><b>收拾與清潔</b><p>把好吃、好玩、乾淨離場一起納入體驗。</p></div>
@@ -311,7 +310,7 @@
         <div class="module"><strong>月光開桌</strong><p>以桌與人作為核心，讓中秋夜晚回到相招、坐下、分享食物的文化感。</p></div>
         <div class="module"><strong>炭香與暖光</strong><p>以烤肉的氣味、等待與分享，帶出中秋夜晚最有共感的記憶。</p></div>
         <div class="module"><strong>台灣聲音氛圍</strong><p>以台灣音樂與聲音設計陪伴桌邊聊天，讓聚場有自己的夜晚節奏。</p></div>
-        <div class="module"><strong>減量與撤場設計</strong><p>將垃圾分類、清運、減塑、可重複使用物件與撤場流程納入企劃前提。</p></div>
+        <div class="module"><strong>乾淨收尾</strong><p>把垃圾分類、清運、減塑和可重複使用物件，變成現場自然的一部分。</p></div>
       </div>
     </div>
   </section>
@@ -339,16 +338,16 @@
       <h2>像一段中秋記憶，<br>有月光，也有桌邊的人。</h2>
       <div class="mood-grid">
         <article class="mood">
-          <img src="../uploads/gather-moon-viewing-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="朋友一起抬頭賞月的第一視角示意圖">
-          <div><b>月光</b><p>示意圖</p></div>
+          <img src="../uploads/gather-moon-viewing-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="朋友一起抬頭賞月的第一視角氣氛影像">
+          <div><b>月光</b><p>氣氛影像</p></div>
         </article>
         <article class="mood">
-          <img src="../uploads/gather-moonlight-charcoal-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="中秋烤肉炭火與桌邊手勢的示意圖">
-          <div><b>炭香</b><p>示意圖</p></div>
+          <img src="../uploads/gather-moonlight-charcoal-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="中秋烤肉炭火與桌邊手勢的氣氛影像">
+          <div><b>炭香</b><p>氣氛影像</p></div>
         </article>
         <article class="mood">
-          <img src="../uploads/gather-local-banquet-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="地方辦桌紅布與上菜手勢的示意圖">
-          <div><b>一起開桌</b><p>示意圖</p></div>
+          <img src="../uploads/gather-local-banquet-v1.jpg" width="1448" height="1086" loading="lazy" decoding="async" alt="地方辦桌紅布與上菜手勢的氣氛影像">
+          <div><b>一起開桌</b><p>氣氛影像</p></div>
         </article>
       </div>
     </div>
@@ -362,7 +361,7 @@
         <p class="lead">品牌可以一起把中秋的味道、桌邊的互動與城市夜晚，做成會被記住的文化體驗。</p>
       </div>
       <div class="partner-grid">
-        <div class="partner"><b>食材 / 飲品</b><p>討論節慶型飲食體驗、地方食材與品牌共創。</p></div>
+        <div class="partner"><b>食材 / 飲品</b><p>把食材、飲品和中秋記憶放進同一張桌。</p></div>
         <div class="partner"><b>設備 / 體驗</b><p>討論桌面、器材、暖光與現場體驗的共創方式。</p></div>
         <div class="partner"><b>地方文化</b><p>討論城市記憶、節慶文化與減量設計。</p></div>
       </div>
@@ -415,15 +414,16 @@
   const toggle = document.querySelector(".nav-toggle");
   const links = document.querySelector("#nav-links");
   const sticky = document.querySelector("#mobile-sticky");
-  const closeNav = () => {
-    links?.classList.remove("open");
-    document.body.classList.remove("nav-open");
-    toggle?.setAttribute("aria-expanded", "false");
-  };
-  toggle?.addEventListener("click", () => {
-    const open = links.classList.toggle("open");
+  const setNavOpen = (open) => {
+    links?.classList.toggle("open", open);
     document.body.classList.toggle("nav-open", open);
-    toggle.setAttribute("aria-expanded", String(open));
+    toggle?.setAttribute("aria-expanded", String(open));
+    toggle?.setAttribute("aria-label", open ? "關閉選單" : "開啟選單");
+    links?.setAttribute("aria-hidden", String(!open));
+  };
+  const closeNav = () => setNavOpen(false);
+  toggle?.addEventListener("click", () => {
+    setNavOpen(!links?.classList.contains("open"));
   });
   links?.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", closeNav);
