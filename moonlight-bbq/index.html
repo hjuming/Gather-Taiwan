@@ -163,7 +163,7 @@
   @media(max-width:900px){body.nav-open::before{content:"";position:fixed;inset:68px 0 0;z-index:70;background:rgba(27,23,18,.38);backdrop-filter:blur(2px)}
     .wrap{width:min(100% - 36px,640px)}
     .nav-toggle{display:flex;flex:0 0 42px;position:relative;z-index:90;flex-direction:column;justify-content:center;margin-left:auto}
-    .nav-links{position:fixed;inset:68px 0 auto;z-index:80;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;max-height:calc(100dvh - 84px);overflow:auto;padding:24px 28px 28px;background:#fbf6ea;border-bottom:1px solid rgba(27,23,18,.14);box-shadow:0 24px 80px rgba(27,23,18,.32);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility .18s ease}
+    .nav-links{position:fixed;inset:68px 0 auto auto;z-index:80;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;width:min(75vw,420px);max-height:calc(100dvh - 84px);overflow:auto;padding:24px 28px 28px;background:#fbf6ea;border-left:1px solid rgba(27,23,18,.14);border-bottom:1px solid rgba(27,23,18,.14);box-shadow:-24px 24px 80px rgba(27,23,18,.32);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility .18s ease}
     .nav-links.open{opacity:1;visibility:visible;pointer-events:auto}
     .nav-links a{padding:18px 0;border-bottom:1px solid var(--line);font-size:16px;color:var(--ink)}
     .nav-links a:last-child{color:var(--ink);border-color:var(--line);background:transparent}
@@ -416,17 +416,26 @@
   const toggle = document.querySelector(".nav-toggle");
   const links = document.querySelector("#nav-links");
   const sticky = document.querySelector("#mobile-sticky");
+  const closeNav = () => {
+    links?.classList.remove("open");
+    document.body.classList.remove("nav-open");
+    toggle?.setAttribute("aria-expanded", "false");
+  };
   toggle?.addEventListener("click", () => {
     const open = links.classList.toggle("open");
     document.body.classList.toggle("nav-open", open);
     toggle.setAttribute("aria-expanded", String(open));
   });
   links?.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", () => {
-      links.classList.remove("open");
-      document.body.classList.remove("nav-open");
-      toggle?.setAttribute("aria-expanded", "false");
-    });
+    link.addEventListener("click", closeNav);
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (!document.body.classList.contains("nav-open")) return;
+    if (links?.contains(event.target) || toggle?.contains(event.target)) return;
+    closeNav();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeNav();
   });
   const syncSticky = () => {
     if (!sticky) return;
