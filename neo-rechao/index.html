@@ -13,12 +13,12 @@
 <meta name="apple-mobile-web-app-title" content="聚場台灣">
 <meta name="geo.region" content="TW">
 <meta name="geo.placename" content="Taiwan">
-<link rel="canonical" href="https://gather.wedopr.com/neo-rechao">
+<link rel="canonical" href="https://gather.wedopr.com/neo-rechao/">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="聚場台灣 Gather Taiwan">
 <meta property="og:title" content="新熱炒運動 Neo-Rechao｜城市夜晚的熱炒桌">
 <meta property="og:description" content="把熱炒桌上的人情味、音樂與城市夜晚，轉化為台灣相聚文化的旗艦 Gathering。">
-<meta property="og:url" content="https://gather.wedopr.com/neo-rechao">
+<meta property="og:url" content="https://gather.wedopr.com/neo-rechao/">
 <meta property="og:image" content="https://gather.wedopr.com/uploads/gather-neo-rechao-og-test-v1.png">
 <meta property="og:image:secure_url" content="https://gather.wedopr.com/uploads/gather-neo-rechao-og-test-v1.png">
 <meta property="og:image:type" content="image/png">
@@ -39,10 +39,10 @@
     "@type": "WebPage",
     "name": "新熱炒運動 Neo-Rechao",
     "description": "新熱炒運動 Neo-Rechao 是聚場台灣 Gather Taiwan 的旗艦聚場方向，把熱炒桌上的人情味、音樂與城市夜晚，轉化為台灣相聚文化。",
-    "url": "https://gather.wedopr.com/neo-rechao",
+    "url": "https://gather.wedopr.com/neo-rechao/",
     "inLanguage": "zh-Hant-TW",
     "primaryImageOfPage": "https://gather.wedopr.com/uploads/gather-neo-rechao-og-test-v1.png",
-    "breadcrumb": {"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"聚場台灣","item":"https://gather.wedopr.com/"},{"@type":"ListItem","position":2,"name":"新熱炒運動 Neo-Rechao","item":"https://gather.wedopr.com/neo-rechao"}]},
+    "breadcrumb": {"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"聚場台灣","item":"https://gather.wedopr.com/"},{"@type":"ListItem","position":2,"name":"新熱炒運動 Neo-Rechao","item":"https://gather.wedopr.com/neo-rechao/"}]},
     "image": "https://gather.wedopr.com/uploads/gather-neo-rechao-og-test-v1.png",
     "mainEntity": {
       "@type": "CreativeWork",
@@ -161,10 +161,10 @@
   footer .wrap{display:flex;justify-content:space-between;gap:22px}
   footer a{color:var(--brass);font-weight:900}
   .mobile-sticky{display:none}
-  @media(max-width:900px){
+  @media(max-width:900px){body.nav-open::before{content:"";position:fixed;inset:68px 0 0;z-index:70;background:rgba(27,23,18,.38);backdrop-filter:blur(2px)}
     .wrap{width:min(100% - 36px,640px)}
-    .nav-toggle{display:block}
-    .nav-links{position:fixed;inset:68px 0 0;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;padding:24px 28px;background:var(--rice);box-shadow:0 24px 80px rgba(27,23,18,.28);opacity:0;visibility:hidden;pointer-events:none;transition:.18s}
+    .nav-toggle{display:flex;flex:0 0 42px;position:relative;z-index:90;flex-direction:column;justify-content:center;margin-left:auto}
+    .nav-links{position:fixed;inset:68px 0 auto;z-index:80;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;max-height:calc(100dvh - 84px);overflow:auto;padding:24px 28px 28px;background:#fbf6ea;border-bottom:1px solid rgba(27,23,18,.14);box-shadow:0 24px 80px rgba(27,23,18,.32);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility .18s ease}
     .nav-links.open{opacity:1;visibility:visible;pointer-events:auto}
     .nav-links a{padding:18px 0;border-bottom:1px solid var(--line);font-size:16px;color:var(--ink)}
     .nav-links a:last-child{color:var(--ink);border-color:var(--line);background:transparent}
@@ -428,11 +428,13 @@
   const sticky = document.querySelector("#mobile-sticky");
   toggle?.addEventListener("click", () => {
     const open = links.classList.toggle("open");
+    document.body.classList.toggle("nav-open", open);
     toggle.setAttribute("aria-expanded", String(open));
   });
   links?.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", () => {
       links.classList.remove("open");
+      document.body.classList.remove("nav-open");
       toggle?.setAttribute("aria-expanded", "false");
     });
   });

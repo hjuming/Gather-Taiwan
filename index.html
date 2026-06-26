@@ -19,18 +19,18 @@
 <meta property="og:title" content="聚場台灣 Gather Taiwan｜讓相聚，成為文化">
 <meta property="og:description" content="一張台灣相聚文化的全年地圖，把桌、人、地方與故事轉化為可被參與、傳承與分享的文化體驗。">
 <meta property="og:url" content="https://gather.wedopr.com/">
-<meta property="og:image" content="https://gather.wedopr.com/uploads/gather-platform-og-v2-natural.png">
-<meta property="og:image:secure_url" content="https://gather.wedopr.com/uploads/gather-platform-og-v2-natural.png">
-<meta property="og:image:type" content="image/png">
+<meta property="og:image" content="https://gather.wedopr.com/uploads/gather-home-hero-documentary-v1.jpg">
+<meta property="og:image:secure_url" content="https://gather.wedopr.com/uploads/gather-home-hero-documentary-v1.jpg">
+<meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="聚場台灣 Gather Taiwan 桌與人圍成的相聚意象">
+<meta property="og:image:alt" content="聚場台灣 Gather Taiwan 巷口暖燈下的自然相聚片刻">
 <meta property="og:locale" content="zh_TW">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="聚場台灣 Gather Taiwan｜讓相聚，成為文化">
 <meta name="twitter:description" content="聚場台灣是一個關於桌、人、地方與記憶的文化平台。">
-<meta name="twitter:image" content="https://gather.wedopr.com/uploads/gather-platform-og-v2-natural.png">
-<meta name="twitter:image:alt" content="Gather Taiwan culture platform concept visual">
+<meta name="twitter:image" content="https://gather.wedopr.com/uploads/gather-home-hero-documentary-v1.jpg">
+<meta name="twitter:image:alt" content="Gather Taiwan documentary gathering moment">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <script type="application/ld+json">
 {
@@ -40,8 +40,8 @@
   "description": "聚場台灣 Gather Taiwan 是一張台灣相聚文化的全年地圖，致力於把台灣人的相聚文化轉化為可被參與、傳承與分享的文化體驗。",
   "url": "https://gather.wedopr.com/",
   "inLanguage": "zh-Hant-TW",
-  "primaryImageOfPage": "https://gather.wedopr.com/uploads/gather-platform-og-v2-natural.png",
-  "image": "https://gather.wedopr.com/uploads/gather-platform-og-v2-natural.png",
+  "primaryImageOfPage": "https://gather.wedopr.com/uploads/gather-home-hero-documentary-v1.jpg",
+  "image": "https://gather.wedopr.com/uploads/gather-home-hero-documentary-v1.jpg",
   "about": [
     "台灣相聚文化",
     "Culture Platform",
@@ -53,22 +53,22 @@
     "@type": "ItemList",
     "name": "聚場台灣目前聚場入口",
     "itemListElement": [
-      {"@type":"ListItem","position":1,"name":"聚場地圖 Gathering Map","url":"https://gather.wedopr.com/gatherings"},
-      {"@type":"ListItem","position":2,"name":"新熱炒運動 Neo-Rechao","url":"https://gather.wedopr.com/neo-rechao"},
-      {"@type":"ListItem","position":3,"name":"月光開烤 Mid-Autumn BBQ","url":"https://gather.wedopr.com/moonlight-bbq"}
+      {"@type":"ListItem","position":1,"name":"聚場地圖 Gathering Map","url":"https://gather.wedopr.com/gatherings/"},
+      {"@type":"ListItem","position":2,"name":"新熱炒運動 Neo-Rechao","url":"https://gather.wedopr.com/neo-rechao/"},
+      {"@type":"ListItem","position":3,"name":"月光開烤 Mid-Autumn BBQ","url":"https://gather.wedopr.com/moonlight-bbq/"}
     ]
   },
   "hasPart": [
     {
       "@type": "CreativeWork",
       "name": "新熱炒運動 Neo-Rechao",
-      "url": "https://gather.wedopr.com/neo-rechao",
+      "url": "https://gather.wedopr.com/neo-rechao/",
       "creativeWorkStatus": "Draft"
     },
     {
       "@type": "CreativeWork",
       "name": "月光開烤 Mid-Autumn BBQ Gathering",
-      "url": "https://gather.wedopr.com/moonlight-bbq",
+      "url": "https://gather.wedopr.com/moonlight-bbq/",
       "creativeWorkStatus": "Draft"
     }
   ]
@@ -193,11 +193,11 @@
   .footer-inner{display:flex;justify-content:space-between;gap:24px;font-size:13px;line-height:1.7}
   .footer-inner a{color:var(--brass);font-weight:900}
   .mobile-sticky{display:none}
-  @media(max-width:900px){
+  @media(max-width:900px){body.nav-open::before{content:"";position:fixed;inset:68px 0 0;z-index:70;background:rgba(27,23,18,.38);backdrop-filter:blur(2px)}
     .wrap{width:min(100% - 36px,640px)}
     .section{padding:66px 0}
-    .nav-toggle{display:block}
-    .nav-links{position:fixed;inset:68px 0 0;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;padding:24px 28px;background:var(--rice);box-shadow:0 24px 80px rgba(27,23,18,.22);opacity:0;visibility:hidden;pointer-events:none;transition:.18s}
+    .nav-toggle{display:flex;flex:0 0 42px;position:relative;z-index:90;flex-direction:column;justify-content:center;margin-left:auto}
+    .nav-links{position:fixed;inset:68px 0 auto;z-index:80;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;max-height:calc(100dvh - 84px);overflow:auto;padding:24px 28px 28px;background:#fbf6ea;border-bottom:1px solid rgba(27,23,18,.14);box-shadow:0 24px 80px rgba(27,23,18,.32);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility .18s ease}
     .nav-links.open{opacity:1;visibility:visible;pointer-events:auto}
     .nav-links a{padding:18px 0;border-bottom:1px solid var(--line);font-size:16px;color:var(--ink)}
     .nav-links a.home-link{display:block}
@@ -258,9 +258,9 @@
         </div>
       </div>
       <figure class="hero-media">
-        <img src="uploads/gather-home-hero-long-table.png" width="1920" height="1080" decoding="async" fetchpriority="high" alt="台灣夜晚長桌與人們自然相聚的概念視覺">
+        <img src="uploads/gather-home-hero-documentary-v1.jpg" width="1200" height="630" decoding="async" fetchpriority="high" alt="巷口暖燈下人們自然相聚的旅人實拍感示意圖">
         <figcaption>
-          <strong style="font-family:'Noto Serif TC',serif">Table as Culture</strong>
+          <strong style="font-family:'Noto Serif TC',serif">巷口一盞燈</strong>
           <div class="quiet" style="color:rgba(251,246,234,.72);margin-top:6px">示意圖</div>
         </figcaption>
       </figure>
@@ -415,7 +415,7 @@
               <h3>新熱炒運動<br>Neo-Rechao</h3>
               <p class="quiet">把熱炒桌上的人情味、音樂與城市夜晚，轉化為台灣相聚文化的旗艦聚場。</p>
             </div>
-            <a class="btn btn-primary" href="/neo-rechao">走進新熱炒</a>
+            <a class="btn btn-primary" href="/neo-rechao/">走進新熱炒</a>
           </div>
         </article>
         <article class="gathering-card">
@@ -426,7 +426,7 @@
               <h3>月光開烤<br>Mid-Autumn BBQ</h3>
               <p class="quiet">把中秋烤肉這個台灣人熟悉的相聚儀式，轉化為一場城市夜晚的文化聚場。</p>
             </div>
-            <a class="btn btn-primary" href="/moonlight-bbq">走進月光開烤</a>
+            <a class="btn btn-primary" href="/moonlight-bbq/">走進月光開烤</a>
           </div>
         </article>
       </div>
@@ -477,7 +477,7 @@
       <p class="lead">如果你是品牌、店家、場地方、音樂人、攝影師或地方故事採集者，歡迎先和我們聊聊。聚場台灣會從一張桌開始，慢慢長成台灣相聚文化的長期工程。</p>
       <div class="email-prototype" aria-label="聚場台灣合作聯繫入口">
         <a class="btn" style="background:var(--paper);color:var(--brick)" href="mailto:contact@wedopr.com?subject=Gather%20Taiwan%20一起加入">洽談合作方向</a>
-        <a class="btn btn-ghost" style="color:var(--paper);border-color:rgba(251,246,234,.42)" href="/moonlight-bbq">先看月光開烤</a>
+        <a class="btn btn-ghost" style="color:var(--paper);border-color:rgba(251,246,234,.42)" href="/moonlight-bbq/">先看月光開烤</a>
       </div>
     </div>
   </section>
@@ -503,7 +503,7 @@
       相招，聚一場。
     </div>
     <div>
-      <a href="/gatherings/">聚場地圖</a> · <a href="/neo-rechao">新熱炒運動</a> · <a href="/moonlight-bbq">月光開烤</a><br>
+      <a href="/gatherings/">聚場地圖</a> · <a href="/neo-rechao/">新熱炒運動</a> · <a href="/moonlight-bbq/">月光開烤</a><br>
       Gather Taiwan 仍在籌備中；活動、場地、合作與執行方式，會在確認後正式公布。<br>
       頁面圖片為氣氛示意，用來描繪我們想靠近的相聚感。<br>
       © 2026 Gather Taiwan. <a href="https://www.wedopr.com/">WEDO International Marketing Group.</a>
@@ -522,11 +522,13 @@
   const sticky = document.querySelector("#mobile-sticky");
   toggle?.addEventListener("click", () => {
     const open = links.classList.toggle("open");
+    document.body.classList.toggle("nav-open", open);
     toggle.setAttribute("aria-expanded", String(open));
   });
   links?.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", () => {
       links.classList.remove("open");
+      document.body.classList.remove("nav-open");
       toggle?.setAttribute("aria-expanded", "false");
     });
   });
