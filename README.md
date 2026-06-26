@@ -11,8 +11,10 @@
 | Route | Role |
 | --- | --- |
 | `/` | Gather Taiwan 首頁，說明文化平台定位、相聚文化、Gatherings、Stories 與合作方向 |
+| `/gatherings` | 聚場地圖中層頁，整理不同季節、城市、食物與地方故事的聚場入口 |
 | `/neo-rechao` | Signature Gathering proposal page · 新熱炒運動 |
 | `/moonlight-bbq` | Season Gathering proposal page · 月光開烤 |
+| `/contact` | 聯絡我們頁面，承接品牌、場地、食物、音樂、影像與地方故事合作訊息 |
 
 ## Content Boundary
 
@@ -31,8 +33,10 @@
 ## Canonical
 
 - Home: `https://gather.wedopr.com/`
+- Gathering Map: `https://gather.wedopr.com/gatherings`
 - Signature Gathering: `https://gather.wedopr.com/neo-rechao`
 - Season Gathering: `https://gather.wedopr.com/moonlight-bbq`
+- Contact: `https://gather.wedopr.com/contact`
 
 ## Redirects
 
@@ -42,6 +46,7 @@
 
 - Static HTML / CSS / JavaScript
 - Cloudflare Pages
+- Contact form uses a Cloudflare Pages Function at `/api/contact` and EmailJS environment variables (`EMAILJS_*` or `VITE_EMAILJS_*`); secrets stay in the deployment environment
 - Structured data uses safe platform / creative work types only
 - `uploads/` stores active public visual assets
 - High-misread-risk legacy assets should stay in Knowledge OS or a local non-public archive, not in the public website repo

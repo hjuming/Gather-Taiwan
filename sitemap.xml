@@ -29,4 +29,11 @@
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="zh-TW" href="https://gather.wedopr.com/moonlight-bbq/"/>
   </url>
+  <url>
+    <loc>https://gather.wedopr.com/contact/</loc>
+    <lastmod>2026-06-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://gather.wedopr.com/contact/"/>
+  </url>
 </urlset>
