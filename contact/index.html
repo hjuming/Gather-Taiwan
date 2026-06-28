@@ -88,14 +88,14 @@
   .tagline{margin:18px 0 0;font-size:25px;line-height:1.42;font-weight:900;color:rgba(251,246,234,.88)}
   .hero-text{margin:24px 0 0;max-width:560px;font-size:17px;line-height:1.9;color:rgba(251,246,234,.74)}
   .hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
-  .hero-media{position:relative;overflow:hidden;margin:0;min-height:520px;background:#000}
-  .hero-media img{width:100%;height:100%;object-fit:cover;filter:brightness(.86) saturate(.92)}
+  .hero-media{position:relative;overflow:hidden;margin:0;aspect-ratio:1/1;background:#000}
+  .hero-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:brightness(.86) saturate(.92)}
   .hero-media figcaption{position:absolute;left:0;right:0;bottom:0;padding:24px;background:linear-gradient(to top,rgba(27,23,18,.86),transparent);color:rgba(251,246,234,.82)}
   .contact-band{background:var(--brick);color:var(--paper)}
   .contact-layout{display:grid;grid-template-columns:.82fr 1.18fr;gap:54px;align-items:start}
   .contact-band .section-title,.contact-band .lead{color:var(--paper)}
   .contact-band .quiet{color:rgba(251,246,234,.76)}
-  .contact-card{padding:34px;background:rgba(27,23,18,.2);border:1px solid rgba(251,246,234,.2)}
+  .contact-card{padding:34px;background:#2b211a;border:1px solid rgba(251,246,234,.24);box-shadow:0 28px 80px rgba(27,23,18,.24)}
   .gt-contact-form{display:grid;gap:12px;width:min(720px,100%);margin:0;text-align:left}
   .gt-contact-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
   .gt-contact-field,.gt-contact-form textarea,.gt-contact-form select{width:100%;min-height:48px;border:1px solid rgba(251,246,234,.34);background:rgba(251,246,234,.94);color:#1b1712;border-radius:0;padding:13px 14px;font:700 14px/1.4 "Noto Sans TC",sans-serif}
@@ -109,7 +109,10 @@
   .gt-contact-note.is-success{color:#f4d18a}
   .gt-contact-note.is-error{color:#ffd5cb}
   .role-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
-  .role{padding:24px;background:var(--paper);min-height:148px}
+  .role{position:relative;overflow:hidden;padding:24px;background:var(--paper);min-height:148px}
+  .role::before{content:"";position:absolute;inset:0;background-image:var(--role-image);background-size:cover;background-position:center;filter:grayscale(.14) saturate(.58) blur(1.2px);opacity:.18;transform:scale(1.05);mix-blend-mode:multiply}
+  .role::after{content:"";position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,250,240,.98),rgba(255,250,240,.9) 64%,rgba(232,221,202,.72))}
+  .role>*{position:relative;z-index:1}
   .role b{display:block;margin-bottom:10px;font-family:"Noto Serif TC",serif;font-size:22px;color:var(--brick)}
   footer{padding:44px 0;background:var(--charcoal);color:rgba(251,246,234,.7)}
   .footer-inner{display:flex;justify-content:space-between;gap:24px;font-size:13px;line-height:1.7}
@@ -119,7 +122,7 @@
     .wrap{width:min(100% - 36px,640px)}
     .section{padding:66px 0}
     .nav-toggle{display:flex;flex:0 0 42px;position:relative;z-index:90;flex-direction:column;justify-content:center;margin-left:auto}
-    .nav-links{position:fixed;inset:68px 0 auto auto;z-index:80;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;width:clamp(300px,75vw,420px);max-height:calc(100dvh - 84px);overflow:auto;padding:24px 28px 28px;background:#fbf6ea;border-left:1px solid rgba(27,23,18,.14);border-bottom:1px solid rgba(27,23,18,.14);box-shadow:-24px 24px 80px rgba(27,23,18,.32);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility .18s ease}
+    .nav-links{position:fixed;inset:68px 0 auto auto;z-index:80;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;width:clamp(320px,75vw,520px);max-height:calc(100dvh - 84px);overflow:auto;padding:24px 28px 28px;background:#fbf6ea;border-left:1px solid rgba(27,23,18,.14);border-bottom:1px solid rgba(27,23,18,.14);box-shadow:-24px 24px 80px rgba(27,23,18,.32);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease,visibility .18s ease}
     .nav-links.open{opacity:1;visibility:visible;pointer-events:auto}
     .nav-links a{padding:18px 0;border-bottom:1px solid var(--line);font-size:16px;color:var(--ink)}
     .drawer-note{display:block;margin-top:18px;font-size:13px;line-height:1.7;color:var(--muted)}
@@ -127,7 +130,7 @@
     .hero-grid{padding:46px 0 48px}
     h1{font-size:clamp(48px,15vw,72px)}
     .tagline{font-size:20px}
-    .hero-media{min-height:320px}
+    .hero-media{aspect-ratio:16/9;min-height:0}
     .gt-contact-grid{grid-template-columns:1fr}
     .gt-contact-actions{display:grid}
     .role-grid{grid-template-columns:1fr}
@@ -172,8 +175,8 @@
         </div>
       </div>
       <figure class="hero-media">
-        <img src="/uploads/gather-local-banquet-v1.jpg" width="1448" height="1086" decoding="async" fetchpriority="high" alt="地方辦桌紅布與上菜手勢的氣氛影像">
-        <figcaption><strong style="font-family:'Noto Serif TC',serif">桌邊 / 伙伴 / 下一場</strong><div class="quiet" style="color:rgba(251,246,234,.72);margin-top:6px">氣氛影像</div></figcaption>
+        <img src="/uploads/gather-contact-co-creator-og-v1.jpg" width="1731" height="909" decoding="async" fetchpriority="high" alt="桌邊筆記、茶杯與合作對話的氣氛影像">
+        <figcaption><strong style="font-family:'Noto Serif TC',serif">桌邊 / 夥伴 / 下一場</strong><div class="quiet" style="color:rgba(251,246,234,.72);margin-top:6px">氣氛影像</div></figcaption>
       </figure>
     </div>
   </section>
@@ -182,11 +185,11 @@
     <div class="wrap">
       <div class="eyebrow">誰適合找我們</div>
       <h2 class="section-title">一起把相聚，<br>做成可以被記住的事。</h2>
-      <p class="lead">聚場台灣不是只找贊助，也不是只找場地。我們想找的是能一起把文化、食物、聲音、畫面和地方故事做出來的人。</p>
+      <p class="lead">你可以帶著一個很小的開始來。可能是一間店、一塊場地、一個食材品牌、一位音樂人、一段地方記憶，或一張你覺得很有台灣味的桌。</p>
       <div class="role-grid" style="margin-top:36px">
-        <div class="role"><b>品牌與食材</b><p class="quiet">讓產品進入真實桌邊，而不是只出現在背板上。</p></div>
-        <div class="role"><b>店家與場地方</b><p class="quiet">一起找到適合人坐下、分食、聊天與留下記憶的地方。</p></div>
-        <div class="role"><b>音樂與影像</b><p class="quiet">把現場最有感情的一瞬間，變成日後還會被想起的記錄。</p></div>
+        <div class="role" style="--role-image:url('/uploads/gather-story-local-banquet-v1.jpg')"><b>品牌與食材</b><p class="quiet">讓產品走進真實桌邊，陪一群人留下味道、話題與記憶。</p></div>
+        <div class="role" style="--role-image:url('/uploads/gather-story-harbor-dinner-v1.jpg')"><b>店家與場地方</b><p class="quiet">一起找到適合人坐下、分食、聊天與留下記憶的地方。</p></div>
+        <div class="role" style="--role-image:url('/uploads/gather-contact-music-image-tools-v1.jpg')"><b>音樂與影像</b><p class="quiet">把現場最有感情的一瞬間，變成日後還會被想起的記錄。</p></div>
       </div>
     </div>
   </section>
@@ -194,19 +197,19 @@
   <section class="section contact-band" id="form">
     <div class="wrap contact-layout">
       <div>
-        <div class="eyebrow" style="color:rgba(251,246,234,.72)">Start Here</div>
+        <div class="eyebrow" style="color:rgba(251,246,234,.72)">先從這裡</div>
         <h2 class="section-title">先留下你的想法。</h2>
-        <p class="lead">不用寫得很完整。告訴我們你是誰、想一起做什麼，或你帶來的地方、食物、場地、聲音與故事。我們收到後，會用 Email 回覆，約下一步討論。</p>
-        <p class="quiet" style="margin-top:18px">送出後，我們會用 Email 回覆，約下一步討論。</p>
+        <p class="lead">不用寫得很完整。告訴我們你是誰、想一起做什麼，或你帶來的地方、食物、場地、聲音與故事。我們收到後，會用電子信箱回覆，約下一步討論。</p>
+        <p class="quiet" style="margin-top:18px">送出後，我們會用電子信箱回覆，約下一步討論。</p>
       </div>
       <div class="contact-card">
         <form class="gt-contact-form" data-contact-form>
           <input type="hidden" name="page" value="Gather Taiwan Contact">
           <div class="gt-contact-grid">
             <input class="gt-contact-field" name="name" autocomplete="name" required placeholder="你的名字">
-            <input class="gt-contact-field" name="email" type="email" autocomplete="email" required placeholder="Email">
-            <input class="gt-contact-field" name="phone" autocomplete="tel" placeholder="電話或 Line（可不填）">
-            <select name="role" required aria-label="合作方向">
+            <input class="gt-contact-field" name="email" type="email" autocomplete="email" required placeholder="電子信箱">
+            <input class="gt-contact-field" name="phone" autocomplete="tel" placeholder="電話或 LINE（可不填）">
+            <select name="role" required aria-label="合作類型">
               <option value="" selected disabled>你想一起做什麼</option>
               <option value="品牌合作">品牌合作</option>
               <option value="店家或場地方">店家或場地方</option>
@@ -219,7 +222,7 @@
           <textarea name="message" required placeholder="簡單說說你想一起做什麼，或你手上有哪些地方、食物、品牌、影像、音樂與故事。"></textarea>
           <div class="gt-contact-actions">
             <button class="gt-contact-submit" type="submit">送出訊息</button>
-            <p class="gt-contact-note" data-contact-status>送出後，我們會用 Email 回覆。</p>
+            <p class="gt-contact-note" data-contact-status>送出後，我們會用電子信箱回覆。</p>
           </div>
         </form>
       </div>
@@ -230,7 +233,7 @@
     <div class="wrap">
       <div class="eyebrow">開始之前</div>
       <h2 class="section-title">先聊一張桌，<br>再決定下一步。</h2>
-      <p class="lead">Gather Taiwan 正在邀請合作夥伴加入；活動資訊、場地與執行細節確認後，會正式公布。頁面圖片為氣氛示意，用來描繪我們想靠近的相聚感。</p>
+      <p class="lead">Gather Taiwan 目前正在整理合作想法與聚場可能性。下一次公開邀請、地點與參與方式，會在準備好後分享。頁面圖片用來傳達相聚氛圍，實際內容以後續公開資訊為準。</p>
     </div>
   </section>
 </main>
@@ -260,7 +263,7 @@
         const submit = form.querySelector("[type='submit']");
         const data = Object.fromEntries(new FormData(form).entries());
         submit?.setAttribute("disabled", "disabled");
-        setStatus(form, "正在送出...");
+        setStatus(form, "正在送出訊息...");
         try {
           const response = await fetch("/api/contact", {
             method: "POST",
@@ -272,7 +275,7 @@
             throw new Error(payload.error || "訊息暫時送不出去，請稍後再試。");
           }
           form.reset();
-          setStatus(form, "收到了，我們會用 Email 回覆，約下一步討論。", "success");
+          setStatus(form, "收到了，我們會用電子信箱回覆，約下一步討論。", "success");
         } catch (error) {
           setStatus(form, error.message || "訊息暫時送不出去，請稍後再試。", "error");
         } finally {
