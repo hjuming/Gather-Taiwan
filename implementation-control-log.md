@@ -1,0 +1,191 @@
+# Gather Taiwan Platform v1.0 Implementation Draft Gate 控制日誌
+
+更新時間：2026-08-02
+
+## 0. 語言與讀者設定
+
+- 語言：繁體中文。
+- 讀者：Gather Taiwan / 聚場台灣專案決策者、WEDO 團隊、後續接手工程與內容協作者。
+- 本文件用途：記錄本輪 Implementation Draft Gate 的需求、AI 決策、觸及檔案、驗證結果與回滾方式。
+
+## 1. 任務目標
+
+- 將 `/`、`/moonlight-bbq`、`/neo-rechao` 整理為同一個 `聚場台灣 / Gather Taiwan` Culture Platform 產品。
+- 完成 Identity / URL、首頁 IA 重建、兩個 proposal page 安全降風險、SEO / structured data pass、QA。
+- 不部署 production。
+
+## 2. 使用者明確要求
+
+- Domain 統一為 `https://gather.wedopr.com`。
+- Product identity 統一為 `聚場台灣 / Gather Taiwan`。
+- 首頁依 PRD IA 重建：Hero、What is、Why、How、Current Gatherings、Stories、Partnership、Join、Boundary。
+- Moonlight BBQ 定位為 Season Gathering proposal page，可保留 planning snapshot，但不可形成 confirmed event claim。
+- Neo-Rechao 定位為 Signature Gathering proposal page，移除 festival / lineup / tickets / ticketing / confirmed event 語氣。
+- 首頁 structured data 可用 Organization / WebSite / BreadcrumbList / WebPage。
+- 子頁 structured data 可用 WebPage + CreativeWork / Article。
+- 不新增售票、報名、活動行事曆、會員、付款。
+- 不新增 confirmed partner logo。
+- 不使用 Event / MusicEvent / Festival structured data。
+- 不把日期、場地、容量、陣容、合作方寫成已定案。
+
+## 3. 待釐清問題與假設
+
+- 假設現有靜態 HTML / CSS / JS 架構保留，不遷移 Next.js。
+- 假設未追蹤資產 `uploads/gather-home-hero-long-table.png`、`uploads/gather-platform-og.png` 可作為本輪首頁與 OG 視覺來源。
+- 假設現有 Moonlight / Neo-Rechao 圖片可作為概念視覺，但需要避開真實藝人 lineup 呈現。
+- 待後續確認：正式視覺資產、正式合作夥伴、正式主辦與法務公告語氣。
+
+## 4. AI 自行決定
+
+1. 採用靜態 HTML 重寫而非引入新框架，理由：PRD 允許 preserving existing deployment flow，且本輪不應增加技術遷移風險。
+2. 將視覺方向收斂為 Warm Documentary editorial，理由：符合 PRD「像雜誌 / 攝影集，不是活動官網」。
+3. 將 Moonlight 的日期與場地移入 `Planning Snapshot` 並加強「暫定、籌備中、待確認」語境，理由：使用者允許保留 snapshot，但禁止 confirmed claim。
+4. 將 Neo-Rechao 原本 Design Composer 長頁替換為簡化 proposal page，理由：原頁含 festival / lineup / tickets / neon event landing 語氣，與 PRD 不符。
+5. 保留「報名 / 售票 / 付款 / 會員」字詞只作為 FAQ 邊界說明，理由：使用者禁止新增功能，但 PRD 也要求說清楚目前不能報名或買票。
+6. 首頁使用 `uploads/gather-home-hero-long-table.png` 與 `uploads/gather-platform-og.png`，理由：這兩張已在 workspace 中且符合 visual brief 的平台母視覺 slot。
+7. 將 mobile hero copy 加上可收縮寬度與自然換行規則，並把子頁首屏長英文尾詞改為中文「聚場」語境，理由：390px 手機截圖需避免裁切與英文單字硬斷。
+
+## 5. 規格偏離
+
+- 無 intentional spec deviation。
+- 未新增任何被禁止的售票、報名、活動行事曆、會員、付款功能。
+- 未使用 Event / MusicEvent / Festival structured data。
+- 未部署。
+
+## 6. Surgical Change 追溯
+
+- `index.html`：重建首頁 IA、身份、SEO、structured data、mobile hero 防溢出規則。
+- `moonlight-bbq/index.html`：降風險為 Season Gathering proposal page；保留 planning snapshot；移除 confirmed event / lineup 語氣；調整 mobile hero copy。
+- `neo-rechao/index.html`：降風險為 Signature Gathering proposal page；移除 festival / lineup / tickets / ticketing 架構；調整 mobile hero copy。
+- `README.md`：更新專案身份、網域、邊界。
+- `robots.txt`：更新 sitemap URL。
+- `sitemap.xml`：更新 canonical routes。
+- `_headers` / `_redirects`：更新註解身份，不改部署行為。
+- `implementation-control-log.md`：新增本控制日誌。
+
+## 7. 取捨
+
+- 選擇重寫三個 HTML 頁面主體，而非局部替換字串，原因是舊頁 IA 與活動語氣已和 PRD 差距過大。
+- 選擇不新增依賴與建置工具，原因是目前站點是靜態頁，本輪目標是安全 draft gate。
+- 選擇保留高風險字詞於 FAQ 否定句，原因是邊界說明本身需要明確告知「不可報名、不可買票、未定案」。
+
+## 8. 高風險 / 不可逆操作檢查
+
+- 部署：未觸發。
+- Git push / Git commit：未觸發。
+- 付款 / 會員 / auth / DB：未觸發。
+- 外部副作用：未觸發。
+- Destructive command：未觸發。
+- Broad refactor：限定於三個頁面與 SEO 輔助檔，符合使用者明確要求。
+
+## 9. 驗證結果
+
+- 已執行：`curl -I` 檢查 `/`、`/moonlight-bbq/`、`/neo-rechao/`，皆為 `200 OK`。
+- 已執行：精準掃描舊 identity / 舊 URL / 禁用 structured data 欄位，公開檔案無 `gathering.wedopr.com`、`Taiwan Gathering Movement`、`@type: Event`、`@type: MusicEvent`、`@type: Festival`、`startDate`、`location`、`performer`、`offers`、`ticketing`、`tickets`、`lineup`、`festival`、`confirmed` 命中。
+- 已執行：高風險中文掃描。`報名`、`售票`、`付款`、`會員`、`正式公告`、`已定案`、`場地`、`日期`、`容量`、`陣容`、`合作名單` 命中皆位於否定性邊界、FAQ 或 planning snapshot 語境。
+- 已執行：structured data 掃描。首頁僅使用 Organization / WebSite / BreadcrumbList / WebPage / CreativeWork；子頁使用 WebPage / WebSite / CreativeWork / Article / Organization。
+- 已執行：desktop / tablet / mobile 截圖，輸出至 `/private/tmp/gather-taiwan-qa/`：
+  - `home-desktop.png`、`home-tablet.png`、`home-mobile.png`
+  - `moonlight-desktop.png`、`moonlight-tablet.png`、`moonlight-mobile.png`
+  - `neo-desktop.png`、`neo-tablet.png`、`neo-mobile.png`
+- 已檢視：首頁 desktop/mobile、Moonlight mobile、Neo mobile。未見首屏文字水平裁切；mobile 截圖以 390 x 844 viewport、deviceScaleFactor 2 產出。
+- 注意：一般文字掃描中的 `Event` 命中若出現於 `addEventListener`，屬 JavaScript API 名稱，不是 schema.org structured data。
+
+## 10. 回滾計畫
+
+- 使用 git diff 檢查本輪變更。
+- 若需回滾，可還原 `index.html`、`moonlight-bbq/index.html`、`neo-rechao/index.html`、`README.md`、`robots.txt`、`sitemap.xml`、`_headers`、`_redirects`。
+- `implementation-control-log.md` 是本輪新增，可直接移除。
+- 未追蹤圖片資產不由本輪建立，不納入回滾。
+
+## 11. 給人類審查的最終摘要
+
+- 已完成 Gather Taiwan Platform v1.0 draft implementation：三頁統一為同一 Culture Platform 產品。
+- 首頁已依 PRD IA 重建；Moonlight BBQ 與 Neo-Rechao 已降風險為 proposal page。
+- SEO / canonical / OG / Twitter / sitemap / robots / README 已改為 `gather.wedopr.com` 與 `聚場台灣 / Gather Taiwan`。
+- Structured data 未使用活動型 schema，未加入定案日期、場地、演出、票務或 offer 欄位。
+- 本輪未部署，仍需人類審查正式資產、正式公告語氣與後續法務/場地方確認。
+
+---
+
+# 2026-08-02：報名系統 Phase 1／P1-01 啟動
+
+## 12. Decision Packet
+
+### 目標
+
+- 將既有聚場台灣 ICON 套用至聚場專屬 LINE OA／Messaging 與 staging、production
+  Login channels，並將官網識別設定為 `https://gather.wedopr.com/`。
+- 依 `gather-registration-master-backlog.md` 啟動 P1-01：App foundation、staging／
+  production 邊界、migration／seed、固定時鐘、可重跑 concurrency harness、CI，
+  以及共用 XSS sanitizer、URL scheme allowlist 與安全 external-link renderer。
+
+### 明確不做
+
+- 不接真實 LINE OAuth，不做 T-01b，不發布 Login channel。
+- 不部署 production、不 push。
+- 不建立付款判定、交易證明欄位或 service-role RLS bypass。
+- 不進入 P1-02 schema／migration 實作；P1-01 只建立 migration framework 與可驗證空基線。
+
+### 使用者已明確授權的高風險 Gate
+
+- 2026-08-02 使用者明確指示「請繼續」，承接上一輪「確認後進 Phase 1」的裁決；
+  因此本輪可建立 Phase 1 的 local auth/security scaffold，但仍不得啟用真實 auth。
+- 使用者明確指示上傳聚場台灣 ICON 作為 LINE 代表圖案；因此可修改聚場專屬
+  LINE OA／Login channel 的品牌設定。不得碰 channel secret、token 或 Care WEDO。
+
+### 成功標準
+
+- [ ] LINE OA／Messaging 與兩個 Login channels 顯示同一枚聚場 ICON；官網資料
+  可設定的 surface 使用 `https://gather.wedopr.com/`，並完成 UI read-back。
+- [ ] P1-01 所有產品程式均由先失敗的行為測試驅動，再以最小程式轉綠。
+- [ ] `type-check`、`test`、`build`、`smoke` 都有真實可重現指令；不存在的 gate
+  明確標示，不建立假綠腳本。
+- [ ] production build／scan 不含 dev auth 實作；Phase 1 不接 service role。
+- [ ] 結構性 auth/security foundation 通過 fresh-context A 級驗收。
+
+### 已知風險與回滾
+
+- LINE 圖示修改是外部可見設定，但可用原圖重新上傳回滾；Login channels 持續
+  `Developing`，不會對外啟用登入。
+- 工作樹已有多項未追蹤內容；施工只納入明確 allowlist，不批次 stage 或覆蓋既有檔。
+- production deploy、push、真實 auth、secret 寫入仍是下一次 stop-and-confirm Gate。
+
+## 13. 本輪 AI 決策（施工中持續更新）
+
+| 決定 | 理由 | 替代方案 | 風險 |
+|---|---|---|---|
+| LINE 上傳使用 `favicon_io/android-chrome-512x512.png` | 與 1254px 主圖視覺相同，512×512、PNG、538KB，更適合 Console 上傳與圓形裁切 | 使用 1254px、2.6MB 的 `favicon.png` | 透明圓角在不同 LINE surface 的裁切需 read-back |
+| 官網 URL 一律保留尾斜線 `https://gather.wedopr.com/` | 使用者提供的 exact URL；避免日後設定比對漂移 | 去除尾斜線 | 個別 Console 欄位可能自行 canonicalize |
+| P1 App 採 repo 內獨立 `apps/join` deploy root | 不覆寫既有 `gather.wedopr.com` 靜態文化平台，並可讓 `join.gather.wedopr.com` 獨立部署／回滾 | 改寫根站或另開 repo | 同 repo 仍須以 CI path 與 deploy root 隔離 |
+| 技術基線採 TypeScript + React/Vite + `@cloudflare/vite-plugin` Worker + pnpm；資料層預留 Supabase PostgreSQL raw SQL migrations | Cloudflare 現行官方 React SPA/API 路徑會在 workerd 相容環境開發，最小承接未來 RLS/RPC/trigger、LINE server callback、Cloudflare Access 與可測安全渲染 | 舊式 Pages Functions、Next.js/OpenNext、純靜態 JS | production Worker/project 尚未建立，本輪只做 local scaffold |
+
+## 14. LINE 品牌設定執行紀錄
+
+- `✅ 已真實驗證｜live UI`：staging Login channel `2010930923` 與 production
+  Login channel `2010930927` 已上傳 `favicon_io/android-chrome-512x512.png`；各自
+  由編輯狀態回到 `Channel icon / Edit`，provider 頁面視覺 read-back 兩張圖示存在。
+- `✅ 已真實驗證｜live UI`：OA 基本檔案圖片以 512×512 圖示完成置中裁切，發布後
+  avatar 由預設圖改為 LINE CDN profile 圖；Messaging channel 同 OA 顯示代表圖。
+- `✅ 已真實驗證｜live UI`：OA 網站填入 `https://gather.wedopr.com/`，設定頁
+  read-back 顯示 `gather.wedopr.com/`。
+- 安全事件：Staging Basic settings 的 DOM read-back 使既有 channel secret 出現在
+  工具輸出。未記錄或重複輸出該值，已立即確認重新發行；新值未讀取、未存放，
+  Staging Login 在輪替完成前不得啟用。Production secret 未讀取。
+- 回滾：重新上傳原圖或在 OA 商業簡介移除網站；兩個 Login channel 持續
+  `Developing`，未發布 OAuth。
+
+## 15. P1-01-A Gate 結果
+
+- `✅ 已真實驗證｜local`：TypeScript、ESLint、Vitest 全套 15/15、安全套件
+  14/14、production build 與 built Worker smoke 全部通過。
+- `✅ 已真實驗證｜local`：production dependency audit 連線 npm registry 後回報
+  `No known vulnerabilities found`。
+- `✅ 已真實驗證｜Fresh Review A`：外連與 rich-text 兩條路徑均固定
+  `nofollow noopener noreferrer`；URL protocol allowlist 與負向案例完整。
+- `✅ 已真實驗證｜Fresh Review B`：Worker security headers、實際 response 行為、
+  source／build secret scan 與 CI full/security 分工均通過；無殘餘 P0/P1。
+- `⏸️ 待遠端驗證`：GitHub Actions 尚未 push，因此 CI read-back 為 `NOT_RUN`；
+  staging／production Worker、Cloudflare Access 與部署回滾仍未建立。
+- 本 Gate 的本機 safepoint 僅可納入核准 allowlist；不得 stage `.vscode/`、
+  `.wrangler/`、`asset-risk-archive/`、既有網站圖片或其他未追蹤素材。

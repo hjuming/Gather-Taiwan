@@ -1,0 +1,30 @@
+:root {
+  color: #1b1712;
+  background: #fbf6ea;
+  font-family: "Noto Sans TC", system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  width: min(680px, calc(100% - 48px));
+  margin: 15vh auto;
+}
+
+.eyebrow {
+  color: #a33a2b;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+h1 {
+  font-family: "Noto Serif TC", serif;
+  font-size: clamp(2rem, 8vw, 4rem);
+}
+
+a {
+  color: inherit;
+}
