@@ -20,6 +20,17 @@ pnpm build
 pnpm smoke
 ```
 
+有真 PostgreSQL URL 時執行 P1-02 schema 行為 gate：
+
+```sh
+GATHER_JOIN_TEST_DATABASE_URL='postgresql://…' pnpm verify:p1-02
+```
+
+此 gate 讀回 migration ledger、enum、RLS／ACL／policy、payment boundary 與 indexes，
+再於 rollback transaction 內驗證 owner transfer、membership identity、active unique、
+合法／非法狀態轉移、開始後 INSERT 拒絕、跨活動 FK、2/29、DST、時區拒絕及付款
+證明型欄位拒絕。
+
 `pnpm test` 沒有 `GATHER_JOIN_TEST_DATABASE_URL` 時會 skip 真 DB suite。不可將 skip 宣稱為
 migration 或 concurrency PASS。
 
@@ -30,6 +41,10 @@ migration 或 concurrency PASS。
 3. public table 當次 migration 就要啟用 RLS，並明確 grant/revoke。
 4. 入庫前先跑 contract tests，遠端套用後再做 SQL read-back 與 Advisors。
 5. 容量與報名狀態只能經單一席次引擎 RPC 改動，App role 不可直寫。
+6. 已套用 migration 永不回改；修正必須新增 forward-only migration。P1-02 的 owner
+   transfer 修正即保留為獨立 ledger 版本，避免本地檔與雲端 checksum 漂移。
+7. P1-02 domain tables 尚無 policy 是刻意的 fail-closed Gate；只有 P1-04 驗收後才可
+   grant 最小權限。不得為了 UI 開發先給 base-table DML。
 
 ## Gather 雲端 DB Gate
 
@@ -50,6 +65,10 @@ project ref 與資料庫密碼。不得顯示、複製到文件、CI log 或 iss
 - 需要不變量時的雙連線併發測試
 - Supabase Security/Performance Advisors 讀回（staging/production readiness 必須；未取得時
   以 `NOT_RUN` 記錄，不得宣稱部署 readiness PASS）
+
+P1-02 行為 fixture 必須在 transaction 內建立且 rollback；不得把 synthetic auth user、
+organizer 或 event 留在雲端。正式「免費、公開、不限額」預設活動須等待受支援身分
+流程建立 owner，不能手寫 production `auth.users`。
 
 ## Git 切片
 

@@ -26,6 +26,10 @@
 - [`apps/join/docs/DEVELOPMENT.md`](./apps/join/docs/DEVELOPMENT.md)
 - [`apps/join/docs/MAINTENANCE.md`](./apps/join/docs/MAINTENANCE.md)
 
+目前已完成 P1-01 foundation 與 P1-02 canonical database schema；domain tables 在
+RLS policy 建立前維持 fail-closed。LINE 登入、主辦建場、分享邀請與參加者報名仍在
+後續 Gate，不應把資料表存在誤認為產品已可上線。
+
 ## Content Boundary
 
 本網站目前為文化平台提案與合作溝通用途。

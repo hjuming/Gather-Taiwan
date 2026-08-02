@@ -19,6 +19,7 @@
     "stop": "supabase stop --no-backup",
     "reset": "supabase db reset --local",
     "verify": "GATHER_JOIN_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:58322/postgres node scripts/verify-probe.mjs",
+    "verify:p1-02": "node scripts/verify-domain-schema.mjs",
     "concurrency": "GATHER_JOIN_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:58322/postgres vitest run scripts/concurrency-harness.test.ts",
     "test:p1-01": "pnpm reset && pnpm verify && pnpm reset && pnpm verify && pnpm concurrency",
     "smoke": "node scripts/smoke.mjs"

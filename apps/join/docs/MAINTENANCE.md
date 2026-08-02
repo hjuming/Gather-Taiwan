@@ -21,6 +21,21 @@
   統一 `BigInt(value)`；不可對字串直接 `+ 1n`。
 - 有限容量不得在 UI 端先讀後寫。必須使用事務、鎖、唯一約束、單一席次
   引擎與 deferred constraint trigger 共同維持。
+- P1-02 新增的 domain tables 目前全部 `ENABLE/FORCE RLS`、無 policy、無 App role
+  privilege；查不到資料是預期 fail-closed，不可用 service role 或暫時 grant 繞過。
+- Owner transfer 同時受 partial unique 與 deferred「恰一位 owner」constraint trigger
+  保護。若 caller 先把 constraints 改為 immediate，RPC 仍會在自身交易內延後該 trigger、
+  完成雙更新後立刻重驗；不得拆成兩次 API update。
+- `organizer_members.organizer_id/user_id` 與 `registrations.event_id/user_id` 均不可更新
+  搬移；要換關聯須走明確撤銷／新建流程。registration 與 answer/idempotency/
+  notification/outbox/audit 的活動歸屬另由 composite FK 防止跨租戶拼接。
+- Terminal registration status 不可復活；新增狀態或轉移必須以新 migration 同步修改
+  enum、transition function、席次占用集合與 verifier，不可只改前端文案。
+- 已知 P2：`registration_answers` 目前同時保留原單欄 FK 與新增的 composite FK，正確性
+  不受影響但會重複檢查。若 profiling／Advisor 證明需要清理，只能新增 forward-only
+  migration 移除冗餘單欄 FK，不能改寫已套用 migration。
+- `outbox_events.notification_kind` 必須包含收件對象語意。若後續改成 recipient 直接
+  進 unique key，需以新 migration、併發測試及通知 replay 測試裁決，不可原地改舊表。
 
 ## LINE Login
 

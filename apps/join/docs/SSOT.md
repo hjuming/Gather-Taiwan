@@ -54,8 +54,37 @@
 - P1-01-B：Gather 雲端 migration ledger、probe RLS、全 table privilege 撤銷、
   PII-free seed、雙連線 serializable retry 已通過；Supabase Advisors 尚未讀回，
   狀態為 `PASS_WITH_DECLARED_FOLLOW_UP`，不是部署 readiness PASS。
-- 未完成：profiles/events/registrations canonical schema、LINE OIDC 實際登入、主辦與
-  報名 UI，staging/production 部署與雙帳號 E2E。
+- P1-02：canonical domain schema、完整活動／報名狀態 enum、owner 每 organizer
+  恰一位與交易式轉移、合法 registration transition、開始後 INSERT 拒絕、membership
+  identity 不可變、跨活動 composite FK、時區／DST、active registration／冪等／outbox
+  unique seam 及交易資料邊界已在 Gather 雲端通過 read-back。所有 domain table 目前
+  沒有 policy、沒有 App role privilege，預期完全 fail-closed。
+- 未完成：P1-03 dev JWT、P1-04 domain RLS policies、單一席次引擎、LINE OIDC 實際
+  登入、主辦與報名 UI，staging/production 部署與雙帳號 E2E。
+
+## P1-02 資料模型裁決
+
+- 時間一律存 `timestamptz` 絕對時間，另存有效 IANA `timezone` 供顯示；DB fixture
+  覆蓋 2/29 與 America/New_York DST 邊界。
+- 新報名最晚於 `starts_at` 關閉。活動開始後仍可修正文案，但時間、時區、容量、
+  confirmation mode、年齡與邀請池等安全關鍵設定不可修改。
+- initial registration 只允許依 confirmation mode 建立 `confirmed`／
+  `pending_organizer_confirmation` 或 `waitlisted`；後續僅能依明確矩陣轉移，
+  `offer_expired/expired/declined/cancelled/removed_by_organizer` 不可復活。
+- registration answer、idempotency result、notification、outbox 與 audit 只要同時帶
+  registration/event，就由 composite FK 保證屬於同一活動；membership 的 organizer/user
+  identity 不可用 UPDATE 搬移。
+- 免費費用的 canonical 值為 `fee_amount = 0`；可顯示主辦收款說明，但參加者資料只
+  允許 `payment_declared_at`，不得新增付款證明或平台判定欄位。
+- `outbox_events` 沿用裁決的三欄 unique；需要不同收件人的同一轉移時，
+  `notification_kind` 必須包含明確收件對象語意，避免以相同 kind 壓掉通知。
+- check-in 欄位依 Master Backlog 優先序延至 P3-01；頭像 asset 欄位延至選配 P1-11，
+  本 Gate 不為未啟用功能提前蒐集資料。
+- 正式資料庫不建立 synthetic owner 或預設活動。免費／公開／不限額活動只先作
+  transaction rollback fixture；待 P1-03 的受支援 dev identity 或真實 LINE owner
+  存在後，才建立可操作的預設活動。
+- P1-02 owner transfer 只證明單一交易、唯一 owner 與 audit seam；T-07 要求的雙方確認、
+  token 與 owner/admin/staff 完整 RBAC workflow 仍屬 P1-05，尚未完成。
 
 ## 真實來源優先序
 

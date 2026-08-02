@@ -251,3 +251,42 @@
   已定案或已完成功能。
 - 建立 `apps/join/docs/SSOT.md`、`DEVELOPMENT.md`、`MAINTENANCE.md`，
   將產品邊界、環境定址、密鑰事件、migration 規則與回滾納入可讀回文件。
+
+## 18. P1-02 Canonical Schema Gate
+
+### 範圍與裁決
+
+- 本段只完成 P1-02 schema 與 default-deny surface，不提前宣稱 P1-03 dev JWT、P1-04
+  RLS policies、P1-06/P1-08 冪等 replay／席次引擎完成。
+- 時間採 `timestamptz` 絕對時間＋IANA timezone；報名最晚於開始關閉，開始後安全關鍵
+  設定不可變，文案修正仍允許。
+- Master Backlog 優先於 construction contract：check-in 延至 P3-01；正式預設活動等
+  受支援 owner 身分存在後建立，不手寫 production auth user。
+
+### RED→GREEN 與雲端行為
+
+- Canonical migration 不存在時 schema contract 3/3 RED；migration 建立後 3/3 GREEN。
+- 雲端 rollback fixture 額外抓到 caller 設為 immediate 時 owner transfer 的零-owner
+  中間狀態；新增 corrective contract 先 1 RED，再以 forward-only migration 修正。
+- 修正後 contract 5/5 PASS，雲端 verifier 通過 ledger、13 tables、enum、RLS/FORCE RLS、
+  anon/authenticated/PUBLIC ACL、零 policy、付款資料邊界、owner、active unique、2/29、
+  DST、合法 transition、terminal 不可復活、開始後 INSERT 拒絕、membership identity、
+  cross-event composite FK、invalid timezone 與付款證明欄位拒絕。
+- `supabase db lint` 回報 public schema 無錯誤；migration list 三筆 local/remote 對齊，
+  最後 dry-run 為 up to date。
+- 所有 fixture 均於 transaction 末端 rollback；雲端沒有 synthetic domain seed。
+- P1-02 transfer RPC 尚不含 T-07 的雙方確認與 token workflow；該功能留在 P1-05，
+  目前 function 對 App roles 無 EXECUTE。
+- Local typecheck/lint/build/smoke PASS；Vitest 26 passed / 1 DB suite skipped，security
+  14/14。P1-02 真 DB 行為另由雲端 rollback verifier PASS；本機 Node 20.20.2 的
+  engine warning 保留，canonical CI 仍是 Node 22。
+- Fresh spec 與 engineering/security review 均回覆 P0/P1 清零、`ALLOW_COMMIT`；保留一項
+  P2：`registration_answers` 單欄 FK 與 composite FK 重複檢查，後續只能 forward cleanup。
+
+### 明確未驗收
+
+- Supabase Security/Performance Advisors：連接器重試仍回 project permission denied，
+  記為 `NOT_RUN`，不得宣稱 deployment readiness。
+- GitHub Actions：branch push 不會觸發現行 workflow；PR 尚未建立時為 `NOT_RUN`。
+- 本機 Supabase：Docker daemon 未啟動；local reset 未執行。雲端 dedicated project
+  transaction read-back 已通過，但不冒充 local CI。
