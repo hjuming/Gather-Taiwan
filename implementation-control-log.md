@@ -189,3 +189,65 @@
   staging／production Worker、Cloudflare Access 與部署回滾仍未建立。
 - 本 Gate 的本機 safepoint 僅可納入核准 allowlist；不得 stage `.vscode/`、
   `.wrangler/`、`asset-risk-archive/`、既有網站圖片或其他未追蹤素材。
+
+## 16. P1-01-B Gate 狀態
+
+- `✅ 已真實驗證｜RED→GREEN`：Clock、migration contract 與 concurrency primitive
+  均先失敗再轉綠；離線全套為 20 passed、真 DB 1 skipped。
+- `✅ 已真實驗證｜code contract`：probe migration fail-fast、啟用 RLS 並撤銷
+  `public/anon/authenticated` 權限；verify 會 SQL read-back ledger、seed 與 privilege。
+- `✅ 已真實驗證｜code contract`：harness 使用兩條獨立連線、5 秒 barrier timeout、
+  `isolation level serializable`、40001 retry 與 bigint-safe version；整合測試要求至少
+  一次 retry 且最後 counter/version 均為 2。
+- `⛔ BLOCKED_NOT_GREEN｜local DB`：本機 PostgreSQL 初始化沒有在窗口內接受 SQL，
+  首次容器最後 exit 137；因此雙 reset、migration/seed SQL read-back 與真併發均
+  `NOT_RUN`，不得用離線 skipped suite 取代。
+- `⚠️ cleanup read-back`：首次失敗後已確認 gather-join-p1 filter 為空；第二次中止
+  僅取得 CLI `Stopping containers...`，因 Docker 工具權限額度用盡，最終殘留
+  read-back 未執行。其他既有 Supabase stacks 未被主動停止或修改。
+
+## 17. Gather 專屬 Supabase 接手與 P1-01-B 雲端 Gate
+
+### 授權與目標
+
+- 使用者明確要求接手已登入的 Supabase、對應 `hjuming/Gather-Taiwan`，
+  並在每個開發段落 commit/push。
+- 瀏覽器實際讀回發現使用者建立的是 Free organization `gather Taiwan`，
+  project list 為空。依「專屬資料庫、請接手」的既定目標建立
+  `gather-taiwan` project，位於 Tokyo。
+
+### 安全設定與憑證事件
+
+- 建立時讀回：Data API=on、Automatically expose new tables=off、automatic RLS=on。
+- 建立快照意外含初始隨機 DB password。未重複輸出或寫入 Git，立即在
+  Database Settings 重設；現行密碼再次輪替後只存於被 ignore 的
+  `apps/join/.env.supabase.local`，模式 `0600`。
+- 現行 Supabase CLI profile 可看見 Signal/Care，不可看見 Gather org；`supabase link`
+  因 access-control 權限被拒絕。未解除或繞過，也未寫入其他專案。
+
+### Migration 與 live read-back
+
+- Direct host 因 IPv6 路徑不適用當前環境；Session pooler TCP 5432 在 5 秒內成功。
+- `psql 16` 以 Gather project ref、Session pooler、SSL 成功讀回 PostgreSQL 17.6。
+- 單一 transaction 建立 migration ledger、套用 probe migration、記錄 version/name/
+  statements 並套用 PII-free seed；全部輸出成功。
+- `verify-probe.mjs` 讀回 ledger、零值 seed、RLS enabled；`anon` / `authenticated`
+  的 7 種 table privileges 共 14 個布林值全為 false，並確認無 `PUBLIC` ACL grant。
+- 首次雲端 concurrency 發現 PostgreSQL bigint 字串邊界缺陷。以新增 RED
+  驗證後導入 `normalizeProbeVersion`，真雙連線測試最終通過且讀回
+  `counter=2/version=2`；已恢復為 0/0 並再次 verify。
+- migration 後 Supabase Advisors 未能執行：connector 對 Gather project 回覆 permission
+  denied，內建瀏覽器無 Supabase 登入狀態。此項記為 `NOT_RUN`，不用過期
+  overview 代替；P1-01-B 的直接 RLS/privilege 驗收已通過，但部署 readiness
+  仍未通過。
+- Fresh Review 要求補證手工 ledger 相容性；`supabase migration list --db-url`
+  讀回 Local/Remote 的 `20260802010000` 對齊，`supabase db push --dry-run --db-url`
+  回報 `Remote database is up to date`，兩者 exit 0。
+
+### 架構更新
+
+- 根據 2026-08 現行 Supabase 官方 Custom OAuth/OIDC 能力，建議 P2-02 採
+  `custom:line` + LINE OIDC/PKCE；這是尚未 live 驗收的技術 ADR，不是 P1-01-B
+  已定案或已完成功能。
+- 建立 `apps/join/docs/SSOT.md`、`DEVELOPMENT.md`、`MAINTENANCE.md`，
+  將產品邊界、環境定址、密鑰事件、migration 規則與回滾納入可讀回文件。

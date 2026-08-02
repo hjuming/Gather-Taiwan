@@ -1,0 +1,51 @@
+project_id = "gather-join-p1"
+
+# P1-01-B local-only framework probe. Do not add domain schema, RLS, RPC, or triggers here.
+
+[api]
+enabled = true
+port = 58321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 58322
+shadow_port = 58320
+major_version = 17
+
+[db.pooler]
+enabled = true
+port = 58325
+pool_mode = "transaction"
+default_pool_size = 20
+max_client_conn = 100
+
+[realtime]
+enabled = true
+
+[studio]
+enabled = true
+port = 58323
+api_url = "http://127.0.0.1:58321"
+
+[inbucket]
+enabled = true
+port = 58324
+
+[storage]
+enabled = true
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:5173"
+additional_redirect_urls = []
+
+[edge_runtime]
+enabled = true
+inspector_port = 58326
+
+[analytics]
+enabled = true
+port = 58327
+backend = "postgres"

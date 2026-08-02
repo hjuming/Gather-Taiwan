@@ -6,6 +6,6 @@ export default defineConfig(({ mode }) => ({
   plugins: mode === "test" ? [react()] : [react(), cloudflare()],
   test: {
     environment: "jsdom",
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx", "worker/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx", "worker/**/*.test.ts", "scripts/**/*.test.ts"],
   },
 }));

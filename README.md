@@ -16,12 +16,22 @@
 | `/moonlight-bbq` | Season Gathering proposal page · 月光開烤 |
 | `/contact` | 聯絡我們頁面，承接品牌、場地、食物、音樂、影像與地方故事合作訊息 |
 
+## Registration Application
+
+「來聚一場」報名系統於 [`apps/join`](./apps/join/README.md) 獨立開發，未來以
+`join.gather.wedopr.com` 作為獨立 deploy root，不覆寫本靜態文化主站。實作的
+產品真實來源與維運規則見：
+
+- [`apps/join/docs/SSOT.md`](./apps/join/docs/SSOT.md)
+- [`apps/join/docs/DEVELOPMENT.md`](./apps/join/docs/DEVELOPMENT.md)
+- [`apps/join/docs/MAINTENANCE.md`](./apps/join/docs/MAINTENANCE.md)
+
 ## Content Boundary
 
 本網站目前為文化平台提案與合作溝通用途。
 
 - 不構成正式公告
-- 不提供報名
+- 文化主站不直接提供報名；未來報名功能只由獨立 `apps/join` 產品提供
 - 不提供票務
 - 不提供活動行事曆
 - 不提供會員或付款功能
