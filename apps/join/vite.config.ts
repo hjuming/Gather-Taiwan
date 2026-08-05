@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
       }),
     ],
   test: {
-    environment: "jsdom",
+    environment: "node",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx", "worker/**/*.test.ts", "scripts/**/*.test.ts"],
   },
 }));

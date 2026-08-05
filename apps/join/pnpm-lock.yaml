@@ -11,6 +11,9 @@ importers:
       dompurify:
         specifier: ^3.2.6
         version: 3.4.12
+      jose:
+        specifier: ^6.1.0
+        version: 6.2.8
       react:
         specifier: ^19.1.0
         version: 19.2.8
@@ -1260,6 +1263,9 @@ packages:
 
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
+
+  jose@6.2.8:
+    resolution: {integrity: sha512-Bsdjwm3Qsd/P0jR+BHDe3LytDfY7WBq2HmCCLIwuVRHMuEC9ae7/R474GIUdF1NgCyZjzVo/A9DOiOBtXq8ZoQ==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -2819,6 +2825,8 @@ snapshots:
   is-potential-custom-element-name@1.0.1: {}
 
   isexe@2.0.0: {}
+
+  jose@6.2.8: {}
 
   js-tokens@4.0.0: {}
 
