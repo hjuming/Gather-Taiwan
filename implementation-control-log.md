@@ -475,3 +475,56 @@
 4. `P1-10`：建場精靈與活動/報名頁 UI。
 5. LINE 真實登入（取代 dev-auth，需另外確認）。
 6. 部署 staging（真實 Cloudflare Access 接線，需另外確認）。
+
+# 2026-08-05：P1-06 / P1-08 單一席次引擎 Gate（含一次真實死結修正）
+
+## 範圍與裁決
+
+- 單一席次引擎 RPC family、idempotency replay、兩池合併、capacity 編輯守護、
+  lazy expiry、remove/blocklist；seats 固定 1、offer 視窗固定 24 小時、
+  主辦端通知不在本 Gate（詳見 `apps/join/docs/evidence/p1-06-08-green.md`
+  「範圍裁決」）。
+
+## 完成項目
+
+- 新增 `apps/join/supabase/migrations/20260805210000_p1_06_08_seat_engine.sql`
+  （13 個函式 + 1 個 capacity 守護 trigger）。
+- **真實多連線併發測試（`apps/join/scripts/verify-p1-06-08-concurrency.mjs`）
+  發現一個結構性 lock-upgrade deadlock**：`register_for_event`／
+  `cancel_registration` 在鎖 `events` 列之前就先寫入
+  `idempotency_requests`（該表有 FK 到 events，INSERT 會隱含取
+  `FOR KEY SHARE`），兩個併發交易互相卡住升級成 `FOR UPDATE`，8 個平行請求
+  裡穩定有 5～6 個死結，不是偶發。修正：把 `events` 的 `FOR UPDATE` 移到
+  `idempotency_requests` INSERT 之前。因為原 migration 已對雲端套用，依
+  forward-only 規則新增
+  `20260805220000_p1_06_08_deadlock_fix.sql`（`CREATE OR REPLACE
+  FUNCTION`），比照 P1-02 `owner_transfer_fix.sql` 的既有作法，不回頭改
+  已套用的檔案。
+- 修正後：`verify:p1-06-08:concurrency` 連續 3 次跑 8 搶 3 皆
+  `fulfilled=8 rejected=0`；另以 `RACE_N=41 RACE_CAPACITY=40` 重跑 backlog
+  原文的「41 搶 40」情境，`confirmed=40 waitlisted=1`，零超賣零錯誤。
+- `verify:p1-06-08`（循序行為）11/11 PASS，5 項預期拒絕情境錯誤原因正確。
+- `pnpm typecheck && pnpm lint && pnpm test`：全部 PASS。
+
+## 明確未驗收
+
+- P1-07（邀請 claim RPC、密碼閘門）、P1-09/P1-13（表單法遵驗證）、P1-10
+  （UI）、P1-15（主辦通知）皆不在本 Gate；`register_for_event` 目前只能用
+  `psql`／Supabase client 直接呼叫，沒有任何網頁介面。
+- 跨活動／跨 organizer 的併發互動未做壓力測試，只驗證了單一活動內的併發
+  正確性。
+
+## 來源與證據
+
+- `apps/join/docs/evidence/p1-06-08-green.md`
+- `apps/join/scripts/verify-p1-06-08-rls.sql`
+- `apps/join/scripts/verify-p1-06-08-concurrency.mjs`
+
+## 下一步順序（更新）
+
+1. `P1-07`：邀請制、event password 閘門。
+2. `P1-09 / P1-13`：收款說明、法遵欄位。
+3. `P1-10`：建場精靈與活動/報名頁 UI——這是「網站」本體，使用者才能真的
+   點得到報名按鈕。
+4. LINE 真實登入（取代 dev-auth，需另外確認）。
+5. 部署 staging（真實 Cloudflare Access 接線，需另外確認）。
