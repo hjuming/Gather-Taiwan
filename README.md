@@ -40,8 +40,12 @@ RLS policy 建立前仍維持 fail-closed。`apps/join` 的 LINE 登入、主辦
     `apps/join/public/site.webmanifest`，`apps/join/index.html` 已加入 favicon 連結。
   - `jose` 已安裝，並補齊 dev-auth 測試環境（`vite.config.ts` 為測試 node
     environment；`security.test.tsx` 明確標註 jsdom）。
+  - P1-03（非 production dev auth harness）已完成正式驗收：typecheck/lint/test/
+    build/smoke 與 build:staging/smoke:staging 全綠，production build 靜態掃描
+    確認零 dev-auth 殘留。證據：`apps/join/docs/evidence/p1-03-green.md`。
 - 已知未完成/待續
-  - P1-03 Dev auth（非 production）尚待實際接續；production 版需刪除相關程式。
+  - P1-03 harness 尚未接線真實 Cloudflare Access／`AUTH_RATE_LIMITER` binding，
+    未部署至任何環境；「多 sub 受 RLS」的資料庫端強制力留待 P1-04。
   - P1-04 domain RLS policies 還未上線；目前完整 fail-closed。
   - P1-06/P1-08 冪等與席次引擎尚未上線。
   - LINE callback、token 驗證與真人 E2E 尚未完成（T-01b）。

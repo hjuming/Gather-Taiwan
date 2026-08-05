@@ -65,7 +65,10 @@
   read-back；詳見 `line-t01a-settings-record.md`。
 - `vite.config.ts` 測試環境維持 `node` + `jsdom` 測試註解，`apps/join/src/security/
   security.test.tsx` 已補環境，確保 `sanitizeUrl`/`SafeExternalLink` suite 穩定。
-- 本輪未調整 `join` 的 deployment pipeline；staging/production 部署仍留待 P1-03 之後
-  與 T-01b。
+- P1-03（dev-only auth harness）已完成正式驗收，見
+  `apps/join/docs/evidence/p1-03-green.md`；過程中修正 `scripts/smoke-staging.mjs`
+  既有 marker 檢查 bug（三檔誤共用同一符號）。
+- 本輪未調整 `join` 的 deployment pipeline；staging/production 部署仍留待真實
+  Cloudflare Access／`AUTH_RATE_LIMITER` binding 接線與 T-01b。
 - 本次不新增新型憑證；`jose` 只記錄在 lockfile 作為未來 auth 基礎，
   `app secret` 仍需依 Phase 2 secret store 寫入。

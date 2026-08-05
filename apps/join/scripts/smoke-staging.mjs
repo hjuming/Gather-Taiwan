@@ -4,9 +4,9 @@ import { pathToFileURL } from "node:url";
 
 const distDirectory = join(process.cwd(), "dist");
 const requiredSourceFiles = [
-  join(process.cwd(), "worker/staging.ts"),
-  join(process.cwd(), "worker/dev-auth.ts"),
-  join(process.cwd(), "worker/response-security.ts"),
+  { file: join(process.cwd(), "worker/staging.ts"), marker: "createStagingWorker" },
+  { file: join(process.cwd(), "worker/dev-auth.ts"), marker: "verifyCloudflareAccess" },
+  { file: join(process.cwd(), "worker/response-security.ts"), marker: "withSecurityHeaders" },
 ];
 
 function filesIn(directory) {
@@ -20,10 +20,10 @@ if (!existsSync(distDirectory)) {
   throw new Error("Build output is missing: run pnpm build:staging first.");
 }
 
-for (const file of requiredSourceFiles) {
+for (const { file, marker } of requiredSourceFiles) {
   const content = readFileSync(file, "utf8");
-  if (!content.includes("createStagingWorker")) {
-    throw new Error(`${file} missing createStagingWorker implementation marker.`);
+  if (!content.includes(marker)) {
+    throw new Error(`${file} missing ${marker} implementation marker.`);
   }
 }
 

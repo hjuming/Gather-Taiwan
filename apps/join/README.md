@@ -56,10 +56,14 @@ pnpm smoke
 - LINE T-01a
   - 專屬 provider / OA / Messaging API / staging/login / production/login 建立完成。
   - 代表圖（icon）上傳驗證完成，URL 維持 `https://gather.wedopr.com/`。
+- P1-03
+  - dev JWT identity harness、Cloudflare Access 驗證、可信 rate-limit key、
+    CSP/security headers 已完成正式驗收；production build 靜態掃描確認零
+    dev-auth 殘留。證據：`docs/evidence/p1-03-green.md`。
+  - 尚未接線真實 Cloudflare Access／`AUTH_RATE_LIMITER`，未部署至任何環境。
 
 ## 未完成 / 下一階（可接手）
 
-- P1-03：非 production dev auth（需 `dev JWT`）
 - P1-04：domain RLS policies（目前仍 fail-closed）
 - P1-06 / P1-08：冪等請求與單一席次引擎
 - T-01b：LINE callback、state/nonce 驗證與真人 E2E

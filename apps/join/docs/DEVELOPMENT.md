@@ -59,11 +59,13 @@ migration 或 concurrency PASS。
 
 ## 後續作業建議順序
 
-1) 先補齊 `P1-03`（dev-only auth）
-2) 再做 `P1-04`（domain policies）
-3) 同步補 `P1-06 / P1-08`（席次引擎與冪等）
-4) 完成 `T-01b`（LINE callback 與 E2E）
-5) 補齊 staging/production 部署與 Cloudflare Access
+`P1-03`（dev-only auth harness）已完成正式驗收，證據見
+`docs/evidence/p1-03-green.md`；尚未接線真實 Cloudflare Access，未部署。
+
+1) 先做 `P1-04`（domain policies）
+2) 同步補 `P1-06 / P1-08`（席次引擎與冪等）
+3) 完成 `T-01b`（LINE callback 與 E2E）
+4) 補齊 staging/production 部署與真實 Cloudflare Access 接線
 
 ## Migration 規則
 

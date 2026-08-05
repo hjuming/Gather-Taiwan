@@ -326,3 +326,47 @@
 3. 串接 `P1-06 / P1-08`（席次引擎與冪等）。
 4. `T-01b`（LINE callback／真人 E2E）
 5. 部署 `staging`/`production`（含 Cloudflare Access）與 CI 重新通關。
+
+# 2026-08-05：P1-03 dev-only auth harness Gate 收斂
+
+## 範圍與裁決
+
+- 實作程式碼已存在於前一輪 `feat(join): add staging dev auth worker pipeline`
+  （`0eae1b8`：`worker/dev-auth.ts`、`worker/staging.ts`、
+  `worker/response-security.ts`、`worker/staging-auth.test.ts`），但未經過與
+  P1-01/P1-02 相同的驗收與 Gate 記錄。本段只做正式驗收、修正發現的既有 bug、
+  補齊證據文件，不新增 P1-03 範圍以外的功能。
+- 不提前宣稱 P1-04 RLS policies、P1-06/P1-08 冪等/席次引擎、T-01b 完成。
+
+## 完成項目
+
+- 全量跑 `pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm smoke`
+  與 `pnpm build:staging && pnpm smoke:staging`，確認 P1-03 acceptance
+  （多 sub 有獨立短效 JWT／production build 無 dev auth／spoofed IP 不影響
+  rate-limit）均有對應測試覆蓋且 PASS。
+- 對 `dist/gather_join/index.js`（production worker bundle）做字串靜態掃描，
+  確認零 dev-auth 相關符號，佐證「production build 無 dev auth」。
+- 修正 `apps/join/scripts/smoke-staging.mjs` 既有 bug：原本三個原始檔共用同一個
+  字串 marker `"createStagingWorker"`，但該符號只在 `worker/staging.ts` 定義，
+  導致 `dev-auth.ts`／`response-security.ts` 必然檢查失敗、`smoke:staging`
+  無法通過。改為逐檔比對各自實際匯出的符號。
+- 新增 `apps/join/docs/evidence/p1-03-green.md` 記錄完整驗收結果與範圍界線。
+
+## 明確未驗收
+
+- Cloudflare Access（`ACCESS_TEAM_DOMAIN`／`ACCESS_AUD`）與
+  `AUTH_RATE_LIMITER` binding 尚未在真實 Cloudflare 環境接線；本輪只驗證程式
+  邏輯與單元/整合測試，不宣稱 staging 環境已上線或可對外服務。
+- 「多 sub 仍受 RLS」的資料庫端強制力屬 P1-04，本 Gate 不涵蓋。
+
+## 來源與證據
+
+- `apps/join/docs/evidence/p1-03-green.md`
+- `apps/join/worker/staging-auth.test.ts`（6/6 PASS）
+
+## 下一步順序（更新）
+
+1. `P1-04`：default-deny RLS、registration-scoped view/RPC、欄位白名單。
+2. 串接 `P1-06 / P1-08`（席次引擎與冪等）。
+3. `T-01b`（LINE callback／真人 E2E）。
+4. 部署 `staging`/`production`（含真實 Cloudflare Access 接線）與 CI 重新通關。

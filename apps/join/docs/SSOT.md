@@ -61,8 +61,11 @@
   沒有 policy、沒有 App role privilege，預期完全 fail-closed。
 - 站內表示資產：`apps/join/public/favicon_io/*` 與 `apps/join/public/site.webmanifest`
   已更新，與 LINE T-01a 圖示 read-back 一致。
-- 未完成：P1-03 dev JWT、P1-04 domain RLS policies、單一席次引擎、LINE OIDC 實際
-  登入、主辦與報名 UI，staging/production 部署與雙帳號 E2E。
+- P1-03：dev JWT identity harness、Cloudflare Access 驗證、可信 rate-limit key、
+  CSP/security headers 已完成正式驗收（`docs/evidence/p1-03-green.md`）；尚未
+  接線真實 Cloudflare Access，未部署至任何環境。
+- 未完成：P1-04 domain RLS policies、單一席次引擎、LINE OIDC 實際登入、主辦與
+  報名 UI，staging/production 部署與雙帳號 E2E。
 
 ## P1-02 資料模型裁決
 
