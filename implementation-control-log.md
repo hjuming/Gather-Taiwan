@@ -566,3 +566,44 @@
    password view cookie／匿名訪客 token 簽發自然落腳的地方。
 3. LINE 真實登入（取代 dev-auth，需另外確認）。
 4. 部署 staging（真實 Cloudflare Access 接線，需另外確認）。
+
+# 2026-08-05：P1-09 / P1-13 付款聲明與年齡把關 Gate
+
+## 範圍與裁決
+
+- `declare_payment_for_registration`（無金額/帳號/截圖欄位，
+  `payment_declared_at` 唯一 SSOT）、`report_event_payment_instructions`
+  （檢舉入口）、`register_for_event` 新增 `min_age` 強制檢查（第三次
+  `create or replace`，接續 deadlock-fix 版本）、`compute_age`／
+  `zodiac_sign` helper。活動改期重算與正式申訴流程延後，理由見
+  `apps/join/docs/evidence/p1-09-13-green.md`。
+
+## 完成項目
+
+- 新增
+  `apps/join/supabase/migrations/20260805240000_p1_09_13_payment_and_age.sql`。
+- 交易內 dry-run：6 項正向查核 + 3 項預期拒絕全部正確才正式套用；額外
+  單獨驗證 1976-02-29 生日跨 2025 年生日前後的年齡計算正確
+  （Postgres `age()` 內建處理，不需特殊 case）。
+- 新增 `apps/join/scripts/verify-p1-09-13-rls.sql`、
+  `apps/join/scripts/verify-p1-09-13.sh`、`pnpm verify:p1-09-13`；套用後
+  重跑 6/6 PASS，殘留檢查為 0。
+- `pnpm typecheck && pnpm lint && pnpm test`：全部 PASS。
+
+## 來源與證據
+
+- `apps/join/docs/evidence/p1-09-13-green.md`
+- `apps/join/scripts/verify-p1-09-13-rls.sql`
+
+## 下一步順序（更新）
+
+P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料庫層的
+安全、席次引擎、邀請制、年齡與付款把關都已經過交易內驗證＋雲端套用＋
+再驗證。接下來性質不同，是「網站本體」與需要使用者本人操作外部帳號的
+項目：
+
+1. `P1-10`：建場精靈與活動/報名頁 UI——沒有這個，前面全部 RPC 都只能用
+   `psql` 呼叫，使用者看不到任何網頁。
+2. LINE 真實登入（取代 dev-auth）——需要使用者的 LINE Developer console。
+3. 部署 staging（真實 Cloudflare Access 接線）——需要使用者的 Cloudflare
+   帳號操作。
