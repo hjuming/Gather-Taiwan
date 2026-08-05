@@ -25,6 +25,7 @@
     "verify:p1-05": "bash scripts/verify-p1-05.sh",
     "verify:p1-06-08": "bash scripts/verify-p1-06-08.sh",
     "verify:p1-06-08:concurrency": "node scripts/verify-p1-06-08-concurrency.mjs",
+    "verify:p1-07": "bash scripts/verify-p1-07.sh",
     "concurrency": "GATHER_JOIN_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:58322/postgres vitest run scripts/concurrency-harness.test.ts",
     "test:p1-01": "pnpm reset && pnpm verify && pnpm reset && pnpm verify && pnpm concurrency",
     "smoke": "node scripts/smoke.mjs",

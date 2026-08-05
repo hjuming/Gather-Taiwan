@@ -528,3 +528,41 @@
    點得到報名按鈕。
 4. LINE 真實登入（取代 dev-auth，需另外確認）。
 5. 部署 staging（真實 Cloudflare Access 接線，需另外確認）。
+
+# 2026-08-05：P1-07 邀請制與 event password Gate
+
+## 範圍與裁決
+
+- 雙邀請制（verified-email 自動資格＋one-time token 領取）、
+  `set_event_password`／`verify_event_password`（dummy-hash 統計容差）。
+  password view cookie 與匿名訪客 scoped token 簽發留給 P1-10（需要
+  Worker/API，詳見 `apps/join/docs/evidence/p1-07-green.md`）。
+
+## 完成項目
+
+- 新增
+  `apps/join/supabase/migrations/20260805230000_p1_07_invites_and_password.sql`。
+- **修正一個真實缺口**：`events` 表 RLS 原本只有「organizer members」與
+  「公開已發佈」兩條 SELECT policy，`can_view_event()` helper 雖然把
+  invitee 考慮進去，但沒有任何 `events` policy 真的呼叫它——導致
+  verified-email 受邀者能報名（`register_for_event` 直接查
+  `is_event_invitee`）卻看不到活動本身。新增第三條 permissive policy
+  `events_select_invitee` 修正，OR 進既有兩條，不影響既有行為。
+- 交易內 dry-run：9 項正向查核 + 5 項預期拒絕全部正確才正式套用。
+- 新增 `apps/join/scripts/verify-p1-07-rls.sql`、
+  `apps/join/scripts/verify-p1-07.sh`、`pnpm verify:p1-07`；套用後重跑
+  9/9 PASS，殘留檢查為 0。
+- `pnpm typecheck && pnpm lint && pnpm test`：全部 PASS。
+
+## 來源與證據
+
+- `apps/join/docs/evidence/p1-07-green.md`
+- `apps/join/scripts/verify-p1-07-rls.sql`
+
+## 下一步順序（更新）
+
+1. `P1-09 / P1-13`：收款說明、法遵欄位。
+2. `P1-10`：建場精靈與活動/報名頁 UI——這是「網站」本體，也是
+   password view cookie／匿名訪客 token 簽發自然落腳的地方。
+3. LINE 真實登入（取代 dev-auth，需另外確認）。
+4. 部署 staging（真實 Cloudflare Access 接線，需另外確認）。
