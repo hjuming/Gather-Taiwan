@@ -370,3 +370,67 @@
 2. 串接 `P1-06 / P1-08`（席次引擎與冪等）。
 3. `T-01b`（LINE callback／真人 E2E）。
 4. 部署 `staging`/`production`（含真實 Cloudflare Access 接線）與 CI 重新通關。
+
+# 2026-08-05：P1-04 default-deny RLS Gate（使用者目標更正為「內部測試上線」）
+
+## 目的與範圍更正
+
+- 使用者將原先設定的目標由「提交 App Store 送審」更正為「讓網站與 LINE
+  可實際上線供內部測試」。本專案（來聚一場／Gather Taiwan）完全是 Cloudflare
+  Workers 網頁報名系統，沒有 iOS App，App Store 目標經確認後已放棄，改回
+  master backlog 既定路線圖。
+- 本段只做 P1-04：default-deny RLS、registration-scoped view/RPC、欄位白名單。
+  不涵蓋 P1-05 RBAC 工作流、P1-06/P1-08 席次引擎、P1-07 邀請/密碼閘門、
+  P1-09/P1-13 表單與法遵欄位——這些仍是後續獨立 Gate，此刻仍 fail-closed。
+
+## 使用者已明確授權的高風險 Gate
+
+- 2026-08-05 使用者以 `/goal` 設定「做出可上線的內部測試版本，含網站與
+  LINE」，並在我提出完整範圍（P1-04 起 7 個後續 Gate）與時程說明後選擇
+  「套用（建議）」，明確同意將 P1-04 migration 正式套用到 Gather Supabase
+  雲端專案。此前 auto-mode 分類器擋下了未經確認的雲端寫入，等使用者這次
+  明確答覆後才執行。
+
+## 完成項目
+
+- 新增 `apps/join/supabase/migrations/20260805190000_p1_04_default_deny_rls.sql`：
+  5 個 security-definer helper 函式、`create_organizer` RPC、11 張表共 21 條
+  RLS policy、對應欄位級 grant。完整設計裁決見
+  `apps/join/docs/evidence/p1-04-green.md`。
+- 先在 `BEGIN...ROLLBACK` 交易內套用＋跑 9 項行為驗證全過，確認無誤後才用
+  `psql --single-transaction` 正式套用，並手動登記
+  `supabase_migrations.schema_migrations`（`supabase` CLI 的 `--db-url`
+  子指令本機撞到既有、與本次改動無關的 profile 讀取 bug，改用官方 psql
+  路徑，與 P1-01-B 手法一致）。
+- 新增 `apps/join/scripts/verify-p1-04-rls.sql`、
+  `apps/join/scripts/verify-p1-04.sh`、`package.json` 的 `verify:p1-04`
+  指令，供之後重跑同一組行為驗證（每次都在交易內建立 fixture、結束前
+  rollback，零殘留）。
+- 套用後重跑 `pnpm verify:p1-04`：9/9 PASS，兩個「預期拒絕」案例
+  （`password_hash` 選取、`registrations` 直接 INSERT）錯誤原因正確。
+- `pnpm typecheck && pnpm lint && pnpm test`：全部 PASS（本 Gate 未改動 app
+  程式碼）。
+
+## 明確未驗收
+
+- `supabase db lint --db-url`：同一個 CLI profile bug 導致 `NOT_RUN`。
+- Supabase Security/Performance Advisors：沿用 P1-02 的 `NOT_RUN`。
+- 「網站真的能用」仍需要 P1-06/P1-08（沒有席次引擎，報名寫入完全被擋）、
+  P1-10（沒有 UI）、以及使用者要求的 LINE 登入（目前仍是 P1-03 的
+  dev-only harness）。P1-04 只是解除資料庫讀取端的 fail-closed，不代表功能
+  可用。
+
+## 來源與證據
+
+- `apps/join/docs/evidence/p1-04-green.md`
+- `apps/join/scripts/verify-p1-04-rls.sql`
+
+## 下一步順序（更新）
+
+1. `P1-05`：owner/admin/staff RBAC、邀請/撤銷、audit。
+2. `P1-06 / P1-08`：單一席次引擎 RPC、冪等。
+3. `P1-07`：邀請制、event password 閘門。
+4. `P1-09 / P1-13`：收款說明、法遵欄位。
+5. `P1-10`：建場精靈與活動/報名頁 UI——這是「網站」本體。
+6. LINE 真實登入（取代 dev-auth）。
+7. 部署 staging（真實 Cloudflare Access 接線）供使用者內部測試。
