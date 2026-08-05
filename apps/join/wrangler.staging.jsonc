@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/@cloudflare/vite-plugin/config-schema.json",
+  "name": "gather-join-staging",
+  "main": "worker/staging.ts",
+  "compatibility_date": "2026-08-02",
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "gather.cloudflareaccess.com",
+    "ACCESS_AUD": "gather-staging-aud"
+  }
+}

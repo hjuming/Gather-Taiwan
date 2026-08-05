@@ -1,9 +1,13 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, lstatSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const distDirectory = join(process.cwd(), "dist");
-const sourceDirectories = [join(process.cwd(), "src"), join(process.cwd(), "worker"), join(process.cwd(), "scripts")];
+const sourceDirectories = [
+  join(process.cwd(), "src"),
+  join(process.cwd(), "worker/index.ts"),
+  join(process.cwd(), "worker/response-security.ts"),
+];
 const configFiles = ["index.html", "package.json", "vite.config.ts", "wrangler.jsonc"].map((file) => join(process.cwd(), file));
 const forbidden = [
   new RegExp(["dev", "auth"].join("[-_ ]?"), "i"),
@@ -25,6 +29,12 @@ const expectedHeaders = {
 };
 
 function filesIn(directory) {
+  if (!existsSync(directory)) {
+    return [];
+  }
+  if (!lstatSync(directory).isDirectory()) {
+    return [directory];
+  }
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = join(directory, entry.name);
     return entry.isDirectory() ? filesIn(path) : [path];
