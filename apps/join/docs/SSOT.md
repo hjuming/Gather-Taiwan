@@ -1,6 +1,6 @@
 # 來聚一場：產品與技術 SSOT
 
-最後更新：2026-08-02
+最後更新：2026-08-05
 
 ## 產品目標
 
@@ -59,6 +59,8 @@
   identity 不可變、跨活動 composite FK、時區／DST、active registration／冪等／outbox
   unique seam 及交易資料邊界已在 Gather 雲端通過 read-back。所有 domain table 目前
   沒有 policy、沒有 App role privilege，預期完全 fail-closed。
+- 站內表示資產：`apps/join/public/favicon_io/*` 與 `apps/join/public/site.webmanifest`
+  已更新，與 LINE T-01a 圖示 read-back 一致。
 - 未完成：P1-03 dev JWT、P1-04 domain RLS policies、單一席次引擎、LINE OIDC 實際
   登入、主辦與報名 UI，staging/production 部署與雙帳號 E2E。
 

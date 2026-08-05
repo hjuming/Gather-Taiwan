@@ -50,6 +50,8 @@
 
 代表圖檔案契約：512×512 PNG、538,001 bytes，SHA-256
 `20e30440968d8831f3250ff3203e06c1bf9c1ca2be23d8cf98e67a66265b8521`。
+`apps/join/public/favicon_io/android-chrome-512x512.png` 已同步複本，供 join 站內 read-back 與
+部署資產一致性比對使用。
 
 ### 交接責任角色（不記個人登入資料）
 

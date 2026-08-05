@@ -290,3 +290,39 @@
 - GitHub Actions：branch push 不會觸發現行 workflow；PR 尚未建立時為 `NOT_RUN`。
 - 本機 Supabase：Docker daemon 未啟動；local reset 未執行。雲端 dedicated project
   transaction read-back 已通過，但不冒充 local CI。
+
+# 2026-08-05：文件化交接與 icon/測試環境收斂
+
+## 目的
+
+- 將本輪收斂結果整理為可直接接續的文件：本機與雲端成果保留。
+- 補齊站內 icon（join/LINE）與 README、開發手冊、維護注意事項。
+- 對接下階段的 P1-03 / P1-04 / T-01b 提供明確先後順序。
+
+## 完成項目
+
+- `apps/join/public/favicon_io/*` 與 `apps/join/public/site.webmanifest` 新增。
+- `apps/join/index.html` 加上 favicon 與 manifest 連結。
+- `apps/join/vite.config.ts` 測試環境明確使用 `node`。
+- `apps/join/src/security/security.test.tsx` 加上 `@vitest-environment jsdom`。
+- `apps/join/pnpm-lock.yaml` 更新 `jose` 到 `6.2.8`。
+- `README.md`、`apps/join/README.md`、`apps/join/docs/DEVELOPMENT.md`、
+  `apps/join/docs/MAINTENANCE.md`、`apps/join/docs/SSOT.md` 已更新為可接續版本。
+- `line-t01a-settings-record.md` 新增 join 站內 icon 複本 hash 對照。
+
+## 來源與證據
+
+- build / test 命令：`pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm smoke`
+- 證據文件
+  - `apps/join/docs/evidence/p1-01-a-green.md`
+  - `apps/join/docs/evidence/p1-01-b-green.md`
+  - `apps/join/docs/evidence/p1-02-green.md`
+  - `line-t01a-settings-record.md`
+
+## 下一步順序（建議）
+
+1. 先補 `P1-03` 非 production dev auth。
+2. `P1-04` policies 上線。
+3. 串接 `P1-06 / P1-08`（席次引擎與冪等）。
+4. `T-01b`（LINE callback／真人 E2E）
+5. 部署 `staging`/`production`（含 Cloudflare Access）與 CI 重新通關。

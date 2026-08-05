@@ -54,3 +54,18 @@
   先有 backup／export、目標比對與人工核准。
 - LINE：Login channel 在 E2E 前維持 Developing；若 callback 錯誤，先撤下發布並復原
   上一個已驗證 URL，不用 Care WEDO 設定代替。
+
+## 2026-08-05 維運交接要點
+
+- `apps/join` 圖示資產已完成站內上傳鏈路。
+  - 來源圖：`favicon_io/android-chrome-512x512.png`
+  - 存放：`apps/join/public/favicon_io/android-chrome-512x512.png`
+  - `apps/join/index.html` 已掛載 icon link 與 manifest。
+- T-01a 圖示回寫完成，OA/Messaging/staging login/production login 皆已完成線上
+  read-back；詳見 `line-t01a-settings-record.md`。
+- `vite.config.ts` 測試環境維持 `node` + `jsdom` 測試註解，`apps/join/src/security/
+  security.test.tsx` 已補環境，確保 `sanitizeUrl`/`SafeExternalLink` suite 穩定。
+- 本輪未調整 `join` 的 deployment pipeline；staging/production 部署仍留待 P1-03 之後
+  與 T-01b。
+- 本次不新增新型憑證；`jose` 只記錄在 lockfile 作為未來 auth 基礎，
+  `app secret` 仍需依 Phase 2 secret store 寫入。

@@ -34,6 +34,37 @@ GATHER_JOIN_TEST_DATABASE_URL='postgresql://…' pnpm verify:p1-02
 `pnpm test` 沒有 `GATHER_JOIN_TEST_DATABASE_URL` 時會 skip 真 DB suite。不可將 skip 宣稱為
 migration 或 concurrency PASS。
 
+## 2026-08-05 已更新項目
+
+- `apps/join/vite.config.ts`
+  - `test.environment` 維持 `node`，避免 `jsdom` 在 `dompurify` 與 `vitest` worker plugin
+    併發下偶發失敗。
+  - 保留 `cloudflare` plugin 的 staging / production 雙 config。
+- `apps/join/src/security/security.test.tsx`
+  - 補 `@vitest-environment jsdom`，讓 `renderToStaticMarkup`、`SafeExternalLink`
+    在本機一致性穩定通過。
+- `apps/join/index.html`
+  - 加入 favicon 及 manifest 對應連結。
+- `apps/join/public/`
+  - 新增 `favicon_io/*` 與 `site.webmanifest`，並補上 `favicon.ico`。
+- `apps/join/pnpm-lock.yaml`
+  - 記錄 `jose` 升版到 `6.2.8`，為後續 dev-auth JWT/會話工單作基礎。
+
+本輪驗證證據請沿用 evidence：
+
+- `docs/evidence/p1-01-a-green.md`
+- `docs/evidence/p1-01-b-green.md`
+- `docs/evidence/p1-02-green.md`
+- `apps/join/src/security/security.test.tsx`（本地 test suite）
+
+## 後續作業建議順序
+
+1) 先補齊 `P1-03`（dev-only auth）
+2) 再做 `P1-04`（domain policies）
+3) 同步補 `P1-06 / P1-08`（席次引擎與冪等）
+4) 完成 `T-01b`（LINE callback 與 E2E）
+5) 補齊 staging/production 部署與 Cloudflare Access
+
 ## Migration 規則
 
 1. 每個 schema 變更只能新增 `supabase/migrations/<UTC timestamp>_<name>.sql`。

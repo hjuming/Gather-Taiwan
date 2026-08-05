@@ -27,8 +27,30 @@
 - [`apps/join/docs/MAINTENANCE.md`](./apps/join/docs/MAINTENANCE.md)
 
 目前已完成 P1-01 foundation 與 P1-02 canonical database schema；domain tables 在
-RLS policy 建立前維持 fail-closed。LINE 登入、主辦建場、分享邀請與參加者報名仍在
-後續 Gate，不應把資料表存在誤認為產品已可上線。
+RLS policy 建立前仍維持 fail-closed。`apps/join` 的 LINE 登入、主辦建場、分享邀請與
+參加者報名仍在後續 Gate，請勿把目前已就緒的資料表誤認為可直接上線。
+
+## 2026-08-05 進度摘要（可直接接續）
+
+- 完成項目
+  - `apps/join`：P1-01-A/B 與 P1-02 已完成主要驗收，且有本機與雲端回讀資料。
+  - LINE 專屬 provider / OA / Messaging API / staging、production Login channels
+    已完成「同一 provider 建立」拓撲，並完成圖示上線（`512x512` 圖示）。
+  - join 站點 icons 已納入版本：`apps/join/public/favicon_io/*` 與
+    `apps/join/public/site.webmanifest`，`apps/join/index.html` 已加入 favicon 連結。
+  - `jose` 已安裝，並補齊 dev-auth 測試環境（`vite.config.ts` 為測試 node
+    environment；`security.test.tsx` 明確標註 jsdom）。
+- 已知未完成/待續
+  - P1-03 Dev auth（非 production）尚待實際接續；production 版需刪除相關程式。
+  - P1-04 domain RLS policies 還未上線；目前完整 fail-closed。
+  - P1-06/P1-08 冪等與席次引擎尚未上線。
+  - LINE callback、token 驗證與真人 E2E 尚未完成（T-01b）。
+- 當前接力文件（優先看）
+  - `apps/join/docs/SSOT.md`
+  - `apps/join/docs/DEVELOPMENT.md`
+  - `apps/join/docs/MAINTENANCE.md`
+  - `implementation-control-log.md`
+  - `line-t01a-settings-record.md`
 
 ## Content Boundary
 
