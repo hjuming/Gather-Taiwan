@@ -434,3 +434,44 @@
 5. `P1-10`：建場精靈與活動/報名頁 UI——這是「網站」本體。
 6. LINE 真實登入（取代 dev-auth）。
 7. 部署 staging（真實 Cloudflare Access 接線）供使用者內部測試。
+
+# 2026-08-05：P1-05 organizer RBAC Gate
+
+## 範圍與裁決
+
+- `add_organizer_member`／`revoke_organizer_member` 兩個 RPC，direct-assignment
+  取代 email/token 邀請（理由見
+  `apps/join/docs/evidence/p1-05-green.md`「範圍裁決」段）。owner transfer
+  沿用 P1-02 既有 RPC，未變動。
+
+## 使用者已明確授權的高風險 Gate
+
+- 2026-08-05 使用者對「後續 migration 授權」問題選擇「這一段工作全部授權」：
+  只要依同一流程（交易內 dry-run 全部正向/預期拒絕通過才套用）即可直接套用
+  P1-06/08、P1-07、P1-09/13 的 migration 到 Gather Supabase 雲端專案，不用
+  每次再問，事後在本控管日誌記錄。P1-10（UI）、LINE 登入、staging 部署仍各自
+  屬於不同性質的動作，不在這次授權範圍內，屆時另外確認。
+
+## 完成項目
+
+- 新增 `apps/join/supabase/migrations/20260805200000_p1_05_organizer_rbac.sql`。
+- 交易內 dry-run：5 項正向查核 + 3 項預期拒絕全部正確，才用
+  `psql --single-transaction` 正式套用並登記 ledger。
+- 新增 `apps/join/scripts/verify-p1-05-rls.sql`、
+  `apps/join/scripts/verify-p1-05.sh`、`pnpm verify:p1-05`；套用後重跑
+  5/5 PASS，殘留檢查為 0。
+- `pnpm typecheck && pnpm lint && pnpm test`：全部 PASS。
+
+## 來源與證據
+
+- `apps/join/docs/evidence/p1-05-green.md`
+- `apps/join/scripts/verify-p1-05-rls.sql`
+
+## 下一步順序（更新）
+
+1. `P1-06 / P1-08`：單一席次引擎 RPC、冪等——這是「報名」功能本身。
+2. `P1-07`：邀請制、event password 閘門。
+3. `P1-09 / P1-13`：收款說明、法遵欄位。
+4. `P1-10`：建場精靈與活動/報名頁 UI。
+5. LINE 真實登入（取代 dev-auth，需另外確認）。
+6. 部署 staging（真實 Cloudflare Access 接線，需另外確認）。
