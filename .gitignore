@@ -3,3 +3,31 @@
 .env.*
 !.env.example
 !.env.local.example
+
+# local tooling caches — never commit
+.pnpm-store/
+.wrangler/
+
+# personal editor config
+.vscode/
+
+# rights-pending / legacy visual assets kept for local reference only
+# (portrait & licensing risk — see docs/MAINTENANCE.md)
+asset-risk-archive/
+
+# unused raw image exports — not referenced by any page, keep locally only
+favicon.png
+uploads/gather-bg-early-summer-harbor-v1.jpg
+uploads/gather-bg-oldstreet-pastry-v1.jpg
+uploads/gather-bg-winter-steam-tangyuan-v1.jpg
+uploads/gather-contact-co-creator-og-v1.png
+uploads/gather-harbor-dinner-documentary-v1.png
+uploads/gather-home-hero-long-table-v2-natural.png
+uploads/gather-local-banquet-v1.png
+uploads/gather-market-morning-documentary-v1.png
+uploads/gather-moon-viewing-v1.png
+uploads/gather-moonlight-charcoal-v1.png
+uploads/gather-neo-rechao-cheers-v1.png
+uploads/gather-platform-og.png
+uploads/gather-winter-table-v1.png
+uploads/moonlight-bbq-og-table-detail-test-v1.png
