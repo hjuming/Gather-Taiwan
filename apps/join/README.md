@@ -4,24 +4,21 @@
 React/Vite、`@cloudflare/vite-plugin` 與 Worker static assets；它不共用既有
 `gather.wedopr.com` 靜態主站的部署輸出或 Functions。
 
-## 當前狀態（2026-08-05）
+## 當前狀態（2026-08-06）
 
-- P1-01-A 已建立前端 foundation 與共用 rich-text／external-link 安全元件。
-- P1-01-B 已在 Gather 專屬 Supabase 完成 migration ledger、冪等 seed、可注入時鐘
-  與真實雙連線 serializable concurrency gate。
-- P1-02 已建立活動／報名 canonical schema、狀態 enum、owner 唯一與交易式轉移、
-  合法 registration 狀態機、開始後新報名拒絕、跨活動 composite FK、IANA
-  timezone／DST 儲存契約、開始後安全編輯規則及付款資料邊界。
-- 所有 domain tables 已 `ENABLE/FORCE RLS` 且撤銷 App roles 權限；P1-04 policies
-  尚未建立，因此目前預期行為是完整 fail-closed，不是可用的 domain RLS API。
-- 尚不含報名流程、席次引擎 RPC、LINE callback 或 Worker 部署。
+- P1-01～P1-09/13（安全基礎、DB migration/seed、canonical schema、
+  dev-auth harness、RLS、RBAC、單一席次引擎、邀請制、付款聲明與年齡把關）
+  全部完成並在 Gather 專屬雲端 Supabase 通過交易內驗證＋套用＋再驗證。
+- P1-10：網站 UI 已建立（Supabase client、型別化 API 層、路由、5 個頁面：
+  首頁、email OTP 登入、建場表單、活動頁含報名/密碼閘門/付款聲明/整場取消、
+  我的報名）。已用真實雲端資料在瀏覽器實際驗證匿名可見的頁面；登入後的
+  互動流程尚未經瀏覽器實測（見下方「未完成」）。
+- 登入機制目前是 Supabase email OTP（內部測試暫代方案），LINE 登入
+  （P2-02）與正式 Cloudflare Access staging 部署（P1-03 dev-auth harness
+  的實際上線）都還沒接線。
 - production source 與 build output 不得含 dev-auth 或 service-role 字詞；`pnpm smoke`
-  會檢查。
-- `apps/join/public/favicon_io/*` 與 `apps/join/public/site.webmanifest` 已補齊，
-  `apps/join/index.html` 已掛載 icon 連結；站內資產與 LINE 圖示已做雜湊對照。
-- 已完成 `jose` 安裝，並以 `vite.config.ts` 將測試環境設定為 `node`，避免
-  `jsdom` + `dompurify` 衝突；`src/security/security.test.tsx` 使用 `@vitest-environment
-  jsdom`。
+  會檢查（掃描範圍已修正為安全性掃全部、程式碼衛生只掃自家原始碼，避免
+  vendored 依賴內部字串造成誤判）。
 
 ## 當前可接手入口
 
@@ -42,33 +39,40 @@ pnpm smoke
 若缺 `GATHER_JOIN_TEST_DATABASE_URL`，`pnpm test` 只會 skip 本機 DB suite；
 這不能代替 migration / concurrency pass。
 
-## 已確認完成（本輪）
+## 已確認完成
 
-- P1-01-A
-  - 安全 URL 允許名單、rich text sanitizer、外部連結防護、標準 security header。
-  - security suite、typecheck、lint、build、smoke 已全部綠。
-- P1-01-B
-  - Migration probe、PII-free seed、ledger、RLS/權限、雙連線 serializable retry，
-    已在 Gather 專屬雲端完成 read-back。
-- P1-02
-  - canonical domain schema、owner transfer 正規化、跨活動/時間/狀態 guardrails 已完成
-    read-back。
-- LINE T-01a
-  - 專屬 provider / OA / Messaging API / staging/login / production/login 建立完成。
-  - 代表圖（icon）上傳驗證完成，URL 維持 `https://gather.wedopr.com/`。
-- P1-03
-  - dev JWT identity harness、Cloudflare Access 驗證、可信 rate-limit key、
-    CSP/security headers 已完成正式驗收；production build 靜態掃描確認零
-    dev-auth 殘留。證據：`docs/evidence/p1-03-green.md`。
-  - 尚未接線真實 Cloudflare Access／`AUTH_RATE_LIMITER`，未部署至任何環境。
+- P1-01-A/B、P1-02、P1-03：安全基礎、DB migration/seed、canonical schema、
+  dev-auth harness。證據：`docs/evidence/p1-01-a-green.md`、
+  `p1-01-b-green.md`、`p1-02-green.md`、`p1-03-green.md`。
+- LINE T-01a：專屬 provider / OA / Messaging API / staging/login /
+  production/login 建立完成，代表圖（icon）上傳驗證完成。
+- P1-04：default-deny RLS、registration-scoped view/RPC、欄位白名單
+  （`password_hash` 對任何角色都不可直接讀取）。
+  證據：`docs/evidence/p1-04-green.md`。
+- P1-05：owner/admin/staff RBAC（`add_organizer_member`／
+  `revoke_organizer_member`）。證據：`docs/evidence/p1-05-green.md`。
+- P1-06 / P1-08：單一席次引擎（`register_for_event` 等 8 個 RPC）、
+  idempotency、deadlock-free（併發測試抓到並修好一個真實 lock-upgrade
+  死結）。證據：`docs/evidence/p1-06-08-green.md`。
+- P1-07：雙邀請制（verified-email 自動資格＋one-time token）、event
+  password 驗證（dummy-hash 統計容差）。
+  證據：`docs/evidence/p1-07-green.md`。
+- P1-09 / P1-13：付款聲明（無金額/帳號欄位）、`min_age` 強制、2/29 生日
+  年齡計算。證據：`docs/evidence/p1-09-13-green.md`。
+- P1-10：網站 UI（建場表單、活動頁、報名、我的報名、email OTP 登入）、
+  activity password 解鎖的實際 RLS 授權路徑（`event_password_grants`）、
+  整場取消（`cancel_event`）。證據：`docs/evidence/p1-10-green.md`。
 
 ## 未完成 / 下一階（可接手）
 
-- P1-04：domain RLS policies（目前仍 fail-closed）
-- P1-06 / P1-08：冪等請求與單一席次引擎
-- T-01b：LINE callback、state/nonce 驗證與真人 E2E
-- 部署：staging/production Worker、Cloudflare Access（staging）
-- 通知：Phase-2 前續（隱私權條款、callback、secret 寫入後）
+- LINE 真實登入（P2-02，取代/並行於 email OTP）——需要使用者 LINE
+  Developer console 存取。
+- 部署 staging（真實 Cloudflare Access 接線、`AUTH_RATE_LIMITER` binding）
+  ——需要使用者 Cloudflare 帳號操作；部署後才能完整驗證登入後的互動流程
+  （目前只驗證了匿名可見頁面的真實瀏覽器渲染）。
+- 自訂報名欄位（`event_fields`）的建立與動態渲染 UI。
+- 主辦端報名者名單管理頁面（confirm/decline/remove 的 UI 化）。
+- 通知：Phase-2 前續（隱私權條款、callback、secret 寫入後）。
 
 ## Local verification
 

@@ -1,12 +1,22 @@
-import { SafeExternalLink, SafeRichText } from "./security/security";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import TopNav from "./components/TopNav";
+import HomePage from "./pages/HomePage";
+import AuthPage from "./pages/AuthPage";
+import EventCreatePage from "./pages/EventCreatePage";
+import EventPage from "./pages/EventPage";
+import MyRegistrationsPage from "./pages/MyRegistrationsPage";
 
 export default function App() {
   return (
-    <main>
-      <p className="eyebrow">來聚一場</p>
-      <h1>報名系統基礎已建立</h1>
-      <SafeRichText html="<p>此獨立 App 目前只提供安全渲染基礎，尚未開放報名。</p>" />
-      <SafeExternalLink href="https://gather.wedopr.com/">回到聚場台灣</SafeExternalLink>
-    </main>
+    <BrowserRouter>
+      <TopNav />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/events/new" element={<EventCreatePage />} />
+        <Route path="/e/:slug" element={<EventPage />} />
+        <Route path="/me/registrations" element={<MyRegistrationsPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

@@ -607,3 +607,60 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 2. LINE 真實登入（取代 dev-auth）——需要使用者的 LINE Developer console。
 3. 部署 staging（真實 Cloudflare Access 接線）——需要使用者的 Cloudflare
    帳號操作。
+
+# 2026-08-06：P1-10 網站 UI Gate（含 email OTP 登入與 3 個真實 bug 修正）
+
+## 範圍與裁決
+
+- 使用者對「UI 怎麼做」明確裁決「你自己按 WEDO 風格設計」，授權自行決定
+  視覺與流程。
+- 登入方式改用 Supabase 內建 email OTP（非 LINE、非自建 dev-auth），理由與
+  範圍界線見 `apps/join/docs/evidence/p1-10-green.md`。這是本輪唯一的
+  架構性決定（新增一條身分驗證路徑），其餘都是既定範圍內的實作。
+- 建場精靈為單頁表單（非多步驟精靈）；不含自訂報名欄位建立 UI、主辦端
+  名單管理頁、匿名訪客密碼預覽。
+
+## 完成項目
+
+- 4 個新 migration：`cancel_event`、`sync_verified_email`、
+  `event_password_grants` + `has_verified_event_password` +
+  `verify_event_password`（第二次修訂）、`verify_event_password_by_slug`。
+  皆先交易內驗證才正式套用。
+- 全新前端：Supabase client、型別化 API 層、5 個頁面、路由、延續既有
+  暖色極簡視覺系統。
+- 用 Claude Browser 對本機 `vite dev` + 真實雲端 Supabase 資料實際渲染
+  驗證（非 mock），過程中發現並修正 3 個真實 bug：
+  1. 前端 `select("*")` 撞上 P1-04 的 `events` 欄位白名單（`password_hash`
+     未授權導致整個 `SELECT *` 被拒），改用明確欄位清單。
+  2. `events` RLS 從未真的呼叫 `can_view_event()`，導致受邀者能報名卻看
+     不到活動本身；新增 `events_select_invitee` policy。
+  3. `verify_event_password` 需要活動 UUID，但未解鎖的私密活動前端連 ID
+     都拿不到（雞生蛋）；新增 slug-based 版本。
+- 額外修正一個測試方法論問題：`pnpm smoke` 的 forbidden-pattern 掃描器
+  誤判 `@supabase-js` 自身內部字串（`token:"access_token"`、
+  `console.log`）為違規；正確修法是把「安全性掃描」（掃全部，含依賴套件）
+  與「程式碼衛生檢查」（只掃自家原始碼，不該檢查 vendored 依賴內部寫法）
+  分開，而不是放寬安全性規則本身。
+- `pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm smoke`與
+  `pnpm build:staging && pnpm smoke:staging`（各自在乾淨 `dist/` 下）：
+  全部 PASS。
+
+## 明確未驗收（NOT_RUN）
+
+- 登入後的完整互動流程（報名／取消／建場）未經瀏覽器實際操作驗證——沒有
+  管道接收真實 OTP email，也刻意不手刻 `auth.users` 密碼登入（避免讓
+  Supabase Auth 內部狀態不一致的風險）。後端 RPC 邏輯已由 psql 交易測試
+  詳盡覆蓋；前後端串接的真實互動需等 staging 部署後才能完整驗證。
+- 自訂報名欄位 UI、主辦端名單管理頁、匿名訪客密碼預覽（見範圍裁決）。
+
+## 來源與證據
+
+- `apps/join/docs/evidence/p1-10-green.md`
+- `apps/join/scripts/verify-p1-10-cancel-event.sql`
+
+## 下一步順序
+
+1. LINE 真實登入（取代／並行於 email OTP，需使用者 LINE Developer
+   console 存取）。
+2. 部署 staging（真實 Cloudflare Access 接線，需使用者 Cloudflare 帳號
+   操作）——部署後才能完整驗證登入後的互動流程。
