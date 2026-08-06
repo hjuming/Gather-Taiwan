@@ -39,7 +39,7 @@
 | --- | --- | --- |
 | GitHub | `hjuming/Gather-Taiwan` | `codex/gather-mvp` 開發分支已推送 |
 | 文化主站 | `https://gather.wedopr.com/` | 獨立靜態站，不可被 app build 覆寫 |
-| 報名 App | `join.gather.wedopr.com` | 尚未部署 |
+| 報名 App | `gather.wedopr.com/app/*`（Workers Route，2026-08-06 起改為同網域路徑，前為獨立子網域） | 尚未部署 |
 | Supabase org | `gather Taiwan` / `qqcraliqerxjcuyztkkf` | Free |
 | Supabase project | `gather-taiwan` / `anklbpkyesdmsubyfcna` | Healthy, Tokyo |
 | Supabase URL | `https://anklbpkyesdmsubyfcna.supabase.co` | 公開 project URL，非 secret |

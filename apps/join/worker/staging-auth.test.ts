@@ -27,6 +27,12 @@ function createEnv(rateLimitSuccess = true) {
       SUPABASE_JWT_SECRET: "s".repeat(32),
       SUPABASE_AUTH_ISSUER: "https://anklbpkyesdmsubyfcna.supabase.co/auth/v1",
       DEV_AUTH_SUBJECTS: devSubject,
+      SUPABASE_URL: "https://project.supabase.co",
+      SUPABASE_SERVICE_ROLE_KEY: "service-role-test-key",
+      LINE_CHANNEL_ID: "test-channel-id",
+      LINE_CHANNEL_SECRET: "test-channel-secret",
+      LINE_CALLBACK_URL: "https://gather.wedopr.com/app/auth/line/callback",
+      APP_BASE_URL: "https://gather.wedopr.com/app",
       AUTH_RATE_LIMITER: {
         limit: async ({ key }: { key: string }) => {
           rateKeys.push(key);

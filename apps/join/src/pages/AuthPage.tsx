@@ -5,10 +5,20 @@ import { ensureUserProfile } from "../lib/api";
 
 type Step = "email" | "code";
 
+const LINE_ERROR_LABEL: Record<string, string> = {
+  line_declined: "已取消 LINE 登入",
+  missing_code_or_state: "LINE 登入回應不完整，請重新嘗試",
+  state_mismatch: "登入驗證失敗，請重新嘗試",
+  nonce_mismatch: "登入驗證失敗，請重新嘗試",
+  audience_mismatch: "登入驗證失敗，請重新嘗試",
+  token_exchange_failed: "LINE 登入暫時無法使用，請稍後再試",
+};
+
 export default function AuthPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/";
+  const lineError = searchParams.get("line_error");
 
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
@@ -68,17 +78,31 @@ export default function AuthPage() {
 
   return (
     <div className="page">
-      <p className="eyebrow">來聚一場・內部測試</p>
+      <p className="eyebrow">來聚一場</p>
       <h1>登入 / 註冊</h1>
-      <p style={{ color: "var(--muted)" }}>
-        目前以 email 驗證碼登入供內部測試使用；LINE 登入上線後會取代這個流程。
-      </p>
 
+      {lineError && (
+        <div className="banner banner--error" role="alert">
+          {LINE_ERROR_LABEL[lineError] ?? "LINE 登入失敗，請重新嘗試"}
+        </div>
+      )}
       {error && (
         <div className="banner banner--error" role="alert">
           {error}
         </div>
       )}
+
+      <div className="card" style={{ marginBottom: 20 }}>
+        <a
+          className="btn btn-primary"
+          style={{ display: "block", textAlign: "center", textDecoration: "none" }}
+          href={`/app/auth/line/start?redirect=${encodeURIComponent(redirectTo)}`}
+        >
+          使用 LINE 登入
+        </a>
+      </div>
+
+      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>或使用 email 驗證碼：</p>
 
       {step === "email" ? (
         <form className="stack card" onSubmit={handleSendCode}>

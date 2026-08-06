@@ -3,6 +3,16 @@
   "name": "gather-join",
   "main": "worker/index.ts",
   "compatibility_date": "2026-08-02",
+  // Same-origin path routing under the main site's domain (not a separate
+  // subdomain) so Supabase Auth session storage and LINE Login state share
+  // naturally with no cross-origin cookie handling. This route intercepts
+  // only /app/* on gather.wedopr.com; every other path on that zone keeps
+  // being served by the existing "gather-taiwan" Cloudflare Pages project
+  // (Workers Routes take precedence over Pages custom domains only for the
+  // paths they explicitly match).
+  "routes": [
+    { "pattern": "gather.wedopr.com/app/*", "zone_name": "wedopr.com" }
+  ],
   "assets": {
     "directory": "./dist/client",
     "binding": "ASSETS",

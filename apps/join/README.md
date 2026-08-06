@@ -1,8 +1,13 @@
 # Gather Join App
 
-`apps/join` 是 `join.gather.wedopr.com` 的獨立 Cloudflare Worker deploy root，使用
-React/Vite、`@cloudflare/vite-plugin` 與 Worker static assets；它不共用既有
-`gather.wedopr.com` 靜態主站的部署輸出或 Functions。
+`apps/join` 是同網域路徑掛載在 `gather.wedopr.com/app/*` 的 Cloudflare Worker（2026-08-06
+起改為此架構，之前是獨立子網域 `join.gather.wedopr.com`；見
+`implementation-control-log.md` 2026-08-06 段），使用 React/Vite、
+`@cloudflare/vite-plugin` 與 Worker static assets。透過 Cloudflare Workers Route
+（`gather.wedopr.com/app/*`）與主站既有 Cloudflare Pages 部署（`gather-taiwan` 專案）
+共存於同一個 zone；主站其餘路徑仍由 Pages 服務，不受影響。同網域讓 Supabase Auth
+的 session 與未來 cookie 天然共用，不需處理跨子網域問題。Vite `base` 固定為
+`/app/`（見 `vite.config.ts`），React Router `basename` 讀 `import.meta.env.BASE_URL`。
 
 ## 當前狀態（2026-08-06）
 

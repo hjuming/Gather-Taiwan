@@ -4,7 +4,7 @@ import worker from "./index";
 describe("Worker asset response security headers", () => {
   it("preserves the asset response while adding strict browser headers", async () => {
     const response = await worker.fetch(
-      new Request("https://join.gather.wedopr.com/"),
+      new Request("https://gather.wedopr.com/app/"),
       {
         ASSETS: {
           fetch: async () => new Response("asset body", {
@@ -12,6 +12,12 @@ describe("Worker asset response security headers", () => {
             headers: { "X-Asset": "preserved" },
           }),
         },
+        SUPABASE_URL: "https://project.supabase.co",
+        SUPABASE_SERVICE_ROLE_KEY: "service-role-test-key",
+        LINE_CHANNEL_ID: "test-channel-id",
+        LINE_CHANNEL_SECRET: "test-channel-secret",
+        LINE_CALLBACK_URL: "https://gather.wedopr.com/app/auth/line/callback",
+        APP_BASE_URL: "https://gather.wedopr.com/app",
       },
     );
 

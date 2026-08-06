@@ -27,8 +27,8 @@ export default function HomePage() {
       <div className="card" style={{ marginTop: 48 }}>
         <h2>目前狀態</h2>
         <p style={{ color: "var(--muted)" }}>
-          這是內部測試版本：登入方式為 email 驗證碼（LINE 登入之後會取代它）。
-          報名、候補、邀請制、活動密碼、付款聲明都已可用；金流仍為主辦人自行約定，平台不代收款項。
+          這是內部測試版本：登入方式為 LINE 或 email 驗證碼。報名、候補、邀請制、活動密碼、
+          付款聲明、主辦人手動名單管理都已可用；金流仍為主辦人自行約定，平台不代收款項。
         </p>
       </div>
     </div>

@@ -722,3 +722,54 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 2. join app 改為同網域路徑部署（`gather.wedopr.com/app/*`）。
 3. 主站靜態頁面加上共用登入／會員導覽連結。
 4. 部署 staging（需使用者 Cloudflare 帳號操作）。
+
+# 2026-08-06：LINE Worker 完成後續——前端整合
+
+## P1-14：LINE 真實登入（前端整合，Worker 已於前一輪完成並單元測試）
+
+## 範圍與裁決
+
+- Worker 端（`worker/line-auth.ts`）已完成並有 9 項單元測試（CSRF state、
+  nonce、audience 驗證與 Admin API 呼叫）。本輪把它接上真的前端路徑：
+  `AuthPage.tsx` 新增「使用 LINE 登入」按鈕與 LINE 錯誤訊息 banner；新增
+  `LineAuthCompletePage.tsx` 承接 Worker 導回的 `token_hash`，呼叫
+  `supabase.auth.verifyOtp({ token_hash, type: "magiclink" })` 換成真正
+  session；`App.tsx` 掛上 `/auth/line/complete` route；`HomePage.tsx`
+  更新過時文案（原本寫「LINE 登入之後會取代 email 驗證碼」，現在兩者並存）。
+  詳見 `apps/join/docs/evidence/p1-14-line-login-green.md`。
+
+## 完成項目
+
+- `src/pages/AuthPage.tsx`、`src/pages/LineAuthCompletePage.tsx`（新檔）、
+  `src/App.tsx`、`src/pages/HomePage.tsx`。
+- 過程中修正一個型別錯誤：`LineAuthCompletePage.tsx` 對
+  `supabase.rpc(...)` 誤用 `.catch()`（`PostgrestFilterBuilder` 沒有此
+  方法），改為 `try/catch` 包住，語意不變（best-effort 保底，失敗不阻擋
+  登入）。
+- `pnpm typecheck && pnpm lint && pnpm test`：全部 PASS
+  （41 passed / 1 skipped）。
+- `pnpm build && pnpm smoke`、`pnpm build:staging && pnpm smoke:staging`：
+  全部 PASS（兩次 build 間 `rm -rf dist`，避免 prod／staging bundle
+  共存汙染 smoke 掃描）。
+
+## 來源與證據
+
+- `apps/join/docs/evidence/p1-14-line-login-green.md`
+
+## 不屬於本輪（仍待處理）
+
+- LINE Developers Console 的 Callback URL（正式／staging 兩個 channel）
+  仍是空的，尚未填入，因此尚無法對真實 LINE 帳號做端對端手動測試。
+- Cloudflare Worker secrets 尚未透過 `wrangler secret put` 設定。
+- `wrangler deploy` / Workers Route 啟用尚未執行（影響正式對外網域，需
+  使用者明確確認後才執行）。
+- 主站靜態頁面加上共用登入／會員導覽連結（任務 #11）尚未開始。
+
+## 下一步順序（更新）
+
+1. 設定 LINE Developers Console 兩個 channel 的 Callback URL。
+2. 設定 Cloudflare Worker secrets（`wrangler secret put`）。
+3. join app 同網域路徑部署（`gather.wedopr.com/app/*`）——需使用者明確
+   確認後才執行 `wrangler deploy`。
+4. 部署後對真實 LINE 帳號做端對端登入測試。
+5. 主站靜態頁面加上共用登入／會員導覽連結。

@@ -5,14 +5,16 @@ import AuthPage from "./pages/AuthPage";
 import EventCreatePage from "./pages/EventCreatePage";
 import EventPage from "./pages/EventPage";
 import MyRegistrationsPage from "./pages/MyRegistrationsPage";
+import LineAuthCompletePage from "./pages/LineAuthCompletePage";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <TopNav />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/auth/line/complete" element={<LineAuthCompletePage />} />
         <Route path="/events/new" element={<EventCreatePage />} />
         <Route path="/e/:slug" element={<EventPage />} />
         <Route path="/me/registrations" element={<MyRegistrationsPage />} />
