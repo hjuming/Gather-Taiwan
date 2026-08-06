@@ -803,3 +803,30 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 
 - 連結在 join app 正式部署（`wrangler deploy` + Workers Route 啟用）前
   會是 404，等該部署完成後才會真的可用。
+
+# 2026-08-06：設定 LINE Login 正式頻道 Callback URL
+
+## 使用者已明確授權的外部帳號設定變更
+
+- 使用者在瀏覽器登入 `https://developers.line.biz/console/`，明確同意
+  由我操作瀏覽器把正式頻道的 Callback URL 設定好（見前一輪
+  AskUserQuestion，選項「現在設定」）。
+- 用 Claude in Chrome 進入 LINE Developers Console → provider「聚場台灣
+  Gather Taiwan」→ Production Login channel（Channel ID `2010930927`，
+  與 `apps/join/docs/SSOT.md`、`apps/join/.env.line.local` 記錄的 ID
+  一致）→ LINE Login 分頁 → Callback URL 欄位填入
+  `https://gather.wedopr.com/app/auth/line/callback`（對應
+  `worker/line-auth.ts` 的 `LINE_AUTH_CALLBACK_PATH`）→ 點擊 Update，
+  畫面確認已儲存成功。
+- Staging 頻道（Channel ID `2010930923`）這次刻意沒有動——staging 網域
+  架構尚未定案（`wrangler.jsonc` 目前只有正式網域的 route），沒有
+  URL 可以填。
+
+## 尚未完成（不因此變更而解除）
+
+- Cloudflare Worker secrets（`LINE_CHANNEL_SECRET`、
+  `SUPABASE_SERVICE_ROLE_KEY` 等）仍未透過 `wrangler secret put` 設定。
+- `wrangler deploy` / Workers Route 啟用仍未執行——Callback URL 設定完成
+  不代表可以馬上端對端測試，Worker 本身還沒有部署到會回應這個網址的地方；
+  仍需使用者明確確認後才執行。
+- 一旦部署完成，才能用真實 LINE 帳號跑一次端對端登入驗收。
