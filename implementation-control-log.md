@@ -773,3 +773,33 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
    確認後才執行 `wrangler deploy`。
 4. 部署後對真實 LINE 帳號做端對端登入測試。
 5. 主站靜態頁面加上共用登入／會員導覽連結。
+
+# 2026-08-06：主站靜態頁面加上共用登入連結
+
+## 範圍與裁決
+
+- `index.html`、`gatherings/index.html`、`contact/index.html`、
+  `moonlight-bbq/index.html`、`neo-rechao/index.html` 五個靜態頁面的
+  導覽選單，都在既有連結清單末尾（drawer-note 說明文字之前）新增
+  `<a href="/app/auth">會員登入</a>`，連到即將同網域路徑部署的報名系統
+  登入頁。`index.html`／`gatherings/index.html`／`contact/index.html`
+  三個有連結清單式頁尾的頁面，頁尾也加上同一個連結；
+  `moonlight-bbq`／`neo-rechao` 兩個活動宣傳頁頁尾本來就只有「回聚場台灣」
+  一行極簡連結，不做結構改動，維持它們原本的精簡風格——導覽選單已經有
+  登入入口，足夠。
+- 連結目標用網站根目錄相對路徑 `/app/auth`，正式部署後（join app
+  Cloudflare Workers Route 掛在 `gather.wedopr.com/app/*`）即可直接生效；
+  部署前這個連結會 404，這是預期狀態，記錄於此以免被誤判為 bug。
+
+## 已通過
+
+- 起一個本地靜態伺服器（`python3 -m http.server`）用瀏覽器實際打開
+  `index.html`，點開手機版選單抽屜，確認「會員登入」正確顯示在導覽清單
+  最後一項、drawer-note 說明文字之前，版面與既有連結樣式一致，沒有破版。
+  其餘四頁與 `index.html` 共用完全相同的 nav／drawer CSS 與 JS
+  （已用 grep 逐頁核對過選單結構一致），視為同一套驗證涵蓋。
+
+## 不屬於本次
+
+- 連結在 join app 正式部署（`wrangler deploy` + Workers Route 啟用）前
+  會是 404，等該部署完成後才會真的可用。
