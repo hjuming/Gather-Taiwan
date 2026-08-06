@@ -830,3 +830,47 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
   不代表可以馬上端對端測試，Worker 本身還沒有部署到會回應這個網址的地方；
   仍需使用者明確確認後才執行。
 - 一旦部署完成，才能用真實 LINE 帳號跑一次端對端登入驗收。
+
+# 2026-08-06：設定 Cloudflare Worker secrets
+
+## 完成項目
+
+- `apps/join/wrangler.jsonc` 新增 `vars`：`SUPABASE_URL`、
+  `LINE_CHANNEL_ID`、`LINE_CALLBACK_URL`、`APP_BASE_URL`——這四個都不是
+  機密（project URL 本來就寫死在前端 client、channel ID 本來就會出現在
+  OAuth authorize URL 的 query string、其餘兩個只是自家網域字串），用
+  明碼寫進 `wrangler.jsonc` 一起進版控。
+- 兩個真正機密的 `LineAuthEnv` 欄位改用 `wrangler secret put --name
+  gather-join` 個別設定，皆從 `apps/join/.env.line.local`（0600，
+  gitignored）讀值，過程未印在任何回應或提交內容中：
+  - `LINE_CHANNEL_SECRET`：本次由我直接執行成功。
+  - Supabase 的高權限 key：本地分類器擋下我直接執行這個動作（比對到
+    敏感關鍵字），改成我提供指令，由使用者本人在終端機執行——使用者已
+    執行完成，`wrangler secret list --name gather-join` 確認兩個 secret
+    名稱都已存在。
+- **側面效果記錄**：`LINE_CHANNEL_SECRET` 是第一個對 `gather-join` 這個
+  Worker 名稱執行 `secret put` 的動作，Cloudflare 帳號上原本沒有這個
+  名字的 Worker，`wrangler` 自動建立並「Automatic deployment on upload」
+  部署了一個空白 placeholder script（不是我們的 `worker/index.ts`
+  真實程式碼）。這個 placeholder 目前沒有掛上 `gather.wedopr.com/app/*`
+  這條 route（route 只有真正執行 `wrangler deploy` 讀取
+  `wrangler.jsonc` 才會套用），所以正式網站現階段不受影響；但這代表
+  Cloudflare 帳號上已經有一個名為 `gather-join` 的 live Worker 存在，
+  早於任何刻意的 `wrangler deploy` 動作，特此記錄避免之後誤判為未預期
+  的帳號狀態。
+- 修正一個 `pnpm smoke` 誤判：`wrangler.jsonc` 是 `configFiles` 掃描
+  對象之一，我原本寫的說明註解裡直接打了敏感關鍵字組合的完整字樣，被
+  `forbiddenServiceRoleKeyword` 抓到（這正是它該抓的東西——即使只是
+  註解提及欄位名稱，也不該把完整關鍵字組合明文留在原始碼裡）；改寫成
+  不含該關鍵字組合的說明文字後 `pnpm smoke` 恢復 PASS。
+- `pnpm typecheck && pnpm lint && pnpm test`：全部 PASS
+  （41 passed / 1 skipped）。`rm -rf dist && pnpm build && pnpm smoke`：
+  PASS。
+
+## 不屬於本次（仍待處理）
+
+- `wrangler deploy` / Workers Route 正式啟用尚未執行——這會讓
+  `/app/*` 真的在 `gather.wedopr.com` 上線，影響正式對外網域，依規定
+  需要使用者明確確認細節後才執行。
+- 部署完成後才能對真實 LINE 帳號做端對端登入測試。
+- Staging 頻道的對應 secrets／vars 尚未設定（staging 網域架構未定案）。

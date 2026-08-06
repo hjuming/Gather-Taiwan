@@ -17,5 +17,16 @@
     "directory": "./dist/client",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application"
+  },
+  // Non-secret LineAuthEnv fields: public project URL, public LINE channel
+  // ID (already visible in the OAuth authorize URL), and our own domain
+  // strings. The two sensitive LineAuthEnv fields (LINE channel secret,
+  // Supabase elevated-access key) are set separately via
+  // `wrangler secret put` (never committed).
+  "vars": {
+    "SUPABASE_URL": "https://anklbpkyesdmsubyfcna.supabase.co",
+    "LINE_CHANNEL_ID": "2010930927",
+    "LINE_CALLBACK_URL": "https://gather.wedopr.com/app/auth/line/callback",
+    "APP_BASE_URL": "https://gather.wedopr.com/app"
   }
 }
