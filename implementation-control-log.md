@@ -664,3 +664,61 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
    console 存取）。
 2. 部署 staging（真實 Cloudflare Access 接線，需使用者 Cloudflare 帳號
    操作）——部署後才能完整驗證登入後的互動流程。
+
+# 2026-08-06：使用者看過 P1-10 成果後的方向調整
+
+## 使用者已明確授權的高風險 Gate
+
+- 使用者看過 P1-10 demo 後，提出三項調整：(1) join app 併入主站
+  `gather.wedopr.com`，共用導覽列／頁尾，變成全站會員系統；(2) LINE
+  真實登入設定已申請完成，明確授權「你可以直接操作瀏覽器，獲取需要資料」；
+  (3) 新增主辦人手動管理參加者名單功能（不在原始 backlog）。
+- 對 (1) 的整合方式提出確認：同網域路徑（`gather.wedopr.com/app/*`，
+  Cloudflare Workers Route，不動主站現有 Pages 部署）——使用者選擇建議選項。
+- 用 Claude in Chrome（使用者本人已登入的瀏覽器）進入 LINE Developers
+  Console，取得 production／staging 兩個 LINE Login channel 的 Channel
+  ID／Channel Secret，存在 `apps/join/.env.line.local`（0600，
+  gitignored，未印在任何回應或提交內容中）。兩個 channel 的 Callback URL
+  目前都是空的，待整合架構定案後才設定。
+
+## P1-11：主辦人手動管理參加者名單
+
+## 範圍與裁決
+
+- `registrations.user_id` 改 nullable，新增 manual_display_name／
+  manual_contact／added_by_user_id 與 CHECK constraint 強制身分形狀互斥；
+  獨立 RPC family（add/edit/remove manual participant），不改動已通過
+  併發測試的既有席次引擎 RPC。詳見
+  `apps/join/docs/evidence/p1-11-green.md`。
+
+## 完成項目
+
+- 新增
+  `apps/join/supabase/migrations/20260806050000_p1_11_manual_roster.sql`。
+- 交易內 dry-run：2 項正向查核（第一版誤設「confirmed→waitlisted」為
+  合法轉換，被 P1-02 既有狀態機正確擋下，修正測試假設而非 migration）
+  + 5 項預期拒絕全部正確才正式套用。
+- 新增 `apps/join/scripts/verify-p1-11-manual-roster.sql`、
+  `apps/join/scripts/verify-p1-11.sh`、`pnpm verify:p1-11`；套用後重跑
+  4/4 PASS，殘留檢查為 0。
+- 前端新增 `RosterManager` 元件，掛在活動頁「參加者名單管理」
+  （organizer admin 限定）。
+- 順手修正一個既有 React 反模式 bug：`EventCreatePage`／
+  `MyRegistrationsPage` 在 render 期間直接呼叫 `navigate()`
+  （React 警告「Cannot update a component while rendering a different
+  component」），改到 `useEffect` 執行。用瀏覽器（新分頁排除歷史訊息
+  干擾）確認修正後 console 乾淨。
+- `pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm smoke`：
+  全部 PASS。
+
+## 來源與證據
+
+- `apps/join/docs/evidence/p1-11-green.md`
+- `apps/join/scripts/verify-p1-11-manual-roster.sql`
+
+## 下一步順序（更新）
+
+1. LINE 真實登入 Worker（OAuth callback，使用已取得的 Channel ID/Secret）。
+2. join app 改為同網域路徑部署（`gather.wedopr.com/app/*`）。
+3. 主站靜態頁面加上共用登入／會員導覽連結。
+4. 部署 staging（需使用者 Cloudflare 帳號操作）。

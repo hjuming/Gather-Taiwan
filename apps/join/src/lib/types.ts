@@ -65,7 +65,7 @@ export interface EventFieldRow {
 export interface RegistrationRow {
   id: string;
   event_id: string;
-  user_id: string;
+  user_id: string | null;
   status: RegistrationStatus;
   seats: number;
   seat_pool: "invite" | "public";
@@ -74,6 +74,9 @@ export interface RegistrationRow {
   offer_expires_at: string | null;
   payment_declared_at: string | null;
   display_name_snapshot: string | null;
+  manual_display_name: string | null;
+  manual_contact: string | null;
+  added_by_user_id: string | null;
 }
 
 export const REGISTRATION_STATUS_LABEL: Record<RegistrationStatus, string> = {

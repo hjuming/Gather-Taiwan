@@ -14,6 +14,7 @@ import { supabase } from "../lib/supabase";
 import { useSession } from "../lib/useSession";
 import { SafeRichText } from "../security/security";
 import { REGISTRATION_STATUS_LABEL, type EventRow, type RegistrationRow } from "../lib/types";
+import RosterManager from "../components/RosterManager";
 
 const VISIBILITY_LABEL: Record<EventRow["visibility"], string> = {
   public: "公開活動",
@@ -341,6 +342,13 @@ export default function EventPage() {
           <p style={{ color: "var(--muted)" }}>目前未開放報名</p>
         )}
       </div>
+
+      {isOrganizerAdmin && (
+        <div className="card" style={{ marginTop: 24 }}>
+          <h2>參加者名單管理</h2>
+          <RosterManager eventId={event.id} />
+        </div>
+      )}
     </div>
   );
 }

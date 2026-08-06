@@ -57,11 +57,13 @@ export default function EventCreatePage() {
       .catch((err) => setError(err instanceof Error ? err.message : "讀取主辦身份失敗"));
   }, [session]);
 
-  if (loading) return null;
-  if (!session) {
-    navigate(`/auth?redirect=${encodeURIComponent("/events/new")}`, { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (!loading && !session) {
+      navigate(`/auth?redirect=${encodeURIComponent("/events/new")}`, { replace: true });
+    }
+  }, [loading, session, navigate]);
+
+  if (loading || !session) return null;
 
   async function handleCreateOrganizer(event: FormEvent) {
     event.preventDefault();

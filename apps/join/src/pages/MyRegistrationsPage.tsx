@@ -23,11 +23,13 @@ export default function MyRegistrationsPage() {
     if (session) load();
   }, [session]);
 
-  if (loading) return null;
-  if (!session) {
-    navigate(`/auth?redirect=${encodeURIComponent("/me/registrations")}`, { replace: true });
-    return null;
-  }
+  useEffect(() => {
+    if (!loading && !session) {
+      navigate(`/auth?redirect=${encodeURIComponent("/me/registrations")}`, { replace: true });
+    }
+  }, [loading, session, navigate]);
+
+  if (loading || !session) return null;
 
   const active = rows.filter((r) =>
     ["offered", "pending_organizer_confirmation", "confirmed", "waitlisted"].includes(r.status),

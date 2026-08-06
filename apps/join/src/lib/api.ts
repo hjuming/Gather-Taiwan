@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { EventFieldRow, EventRow, RegistrationRow } from "./types";
+import type { EventFieldRow, EventRow, RegistrationRow, RegistrationStatus } from "./types";
 
 // events.password_hash is deliberately never granted to any role (P1-04) —
 // a bare `select("*")` translates to a real `SELECT *` and Postgres refuses
@@ -66,6 +66,52 @@ export async function getMyRegistrationForEvent(eventId: string): Promise<Regist
     .maybeSingle();
   if (error) throw error;
   return (data as RegistrationRow | null) ?? null;
+}
+
+export async function getEventRoster(eventId: string): Promise<RegistrationRow[]> {
+  const { data, error } = await supabase
+    .from("registrations")
+    .select("*")
+    .eq("event_id", eventId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data as RegistrationRow[]) ?? [];
+}
+
+export async function organizerAddManualParticipant(
+  eventId: string,
+  displayName: string,
+  contact: string,
+  status: "confirmed" | "waitlisted" | "pending_organizer_confirmation" = "confirmed",
+): Promise<string> {
+  const { data, error } = await supabase.rpc("organizer_add_manual_participant", {
+    p_event_id: eventId,
+    p_display_name: displayName,
+    p_contact: contact || null,
+    p_status: status,
+  });
+  if (error) throw error;
+  return data as string;
+}
+
+export async function organizerEditManualParticipant(
+  registrationId: string,
+  updates: { displayName?: string; contact?: string; status?: RegistrationStatus },
+): Promise<void> {
+  const { error } = await supabase.rpc("organizer_edit_manual_participant", {
+    p_registration_id: registrationId,
+    p_display_name: updates.displayName ?? null,
+    p_contact: updates.contact ?? null,
+    p_status: updates.status ?? null,
+  });
+  if (error) throw error;
+}
+
+export async function organizerRemoveManualParticipant(registrationId: string): Promise<void> {
+  const { error } = await supabase.rpc("organizer_remove_manual_participant", {
+    p_registration_id: registrationId,
+  });
+  if (error) throw error;
 }
 
 export async function getMyRegistrations(): Promise<(RegistrationRow & { events: EventRow })[]> {
