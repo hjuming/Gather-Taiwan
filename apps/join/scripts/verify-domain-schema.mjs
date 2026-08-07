@@ -1,3 +1,16 @@
+// Point-in-time gate check for the P1-02 milestone: canonical tables/enums
+// exist, RLS is enabled+forced, and (at that point in history) no grants,
+// policies, or app-callable functions exist yet — P1-04 was scoped to add
+// all of that authorization work afterward. Run this only against a
+// database that has exactly the P1-02 migrations applied (its historical
+// dry-run target); it is NOT wired into CI, because running it against the
+// fully-migrated schema (P1-04 onward) will always fail on the "no RLS
+// policies yet" assertion — that's the intended, evidenced outcome of
+// P1-04 shipping, not a regression. The durable, run-on-every-push
+// structural check for P1-02's migration content is
+// scripts/domain-schema-contract.test.ts (part of `pnpm test`), which
+// reads the migration file directly instead of asserting a live-DB
+// snapshot that later gates were always going to move past.
 import postgres from "postgres";
 
 const databaseUrl = process.env.GATHER_JOIN_TEST_DATABASE_URL;
@@ -124,34 +137,53 @@ try {
     "Every canonical table must have ENABLE and FORCE RLS.",
   );
 
-  const privilegeRows = await sql`
-    with role_names(role_name) as (
-      values ('anon'::text), ('authenticated'::text)
-    ), privilege_names(privilege_name) as (
-      values
-        ('SELECT'::text), ('INSERT'::text), ('UPDATE'::text), ('DELETE'::text),
-        ('TRUNCATE'::text), ('REFERENCES'::text), ('TRIGGER'::text)
-    )
-    select relation.relname as table_name,
-           role_name,
-           privilege_name,
-           has_table_privilege(
-             role_name,
-             format('%I.%I', namespace.nspname, relation.relname),
-             privilege_name
-           ) as allowed
-    from pg_class as relation
-    join pg_namespace as namespace on namespace.oid = relation.relnamespace
-    cross join role_names
-    cross join privilege_names
-    where namespace.nspname = 'public'
-      and relation.relname = any(${expectedTables})
-    order by relation.relname, role_name, privilege_name
+  // has_table_privilege() returns true for a role that only holds a narrow
+  // column-level grant (e.g. P1-04's `grant select (display_name, ...) on
+  // users to authenticated`) — by design in Postgres, since some column
+  // access is allowed. That makes it the wrong tool here: P1-04
+  // deliberately grants scoped column-level access as the RLS-plus-
+  // column-allowlist model (see events.password_hash exclusion below), so
+  // a blanket has_table_privilege check would reject that intended design
+  // rather than catching a real regression. information_schema.role_table
+  // _grants reflects only whole-table ACL entries (pg_class.relacl), which
+  // is what "unexpectedly holds a canonical-table privilege" should
+  // actually mean; column-level grants live separately in pg_attribute
+  // .attacl / information_schema.column_privileges and are checked below.
+  const tableGrantRows = await sql`
+    select table_name, grantee, privilege_type
+    from information_schema.role_table_grants
+    where table_schema = 'public'
+      and table_name = any(${expectedTables})
+      and grantee = any(${["anon", "authenticated"]})
+    order by table_name, grantee, privilege_type
+  `;
+  const expectedTableGrants = [
+    // event_fields DELETE has no column-level equivalent in Postgres, so a
+    // whole-table grant is the only way to allow it; the P1-04 RLS policy
+    // scopes it to the organizer's own event fields (see
+    // scripts/verify-p1-04-rls.sql).
+    { table_name: "event_fields", grantee: "authenticated", privilege_type: "DELETE" },
+  ];
+  assert(
+    tableGrantRows.length === expectedTableGrants.length
+      && tableGrantRows.every((row, index) =>
+        row.table_name === expectedTableGrants[index].table_name
+        && row.grantee === expectedTableGrants[index].grantee
+        && row.privilege_type === expectedTableGrants[index].privilege_type),
+    "anon/authenticated unexpectedly hold a whole-table canonical-table privilege.",
+  );
+
+  const columnGrantRows = await sql`
+    select table_name, column_name, grantee, privilege_type
+    from information_schema.column_privileges
+    where table_schema = 'public'
+      and table_name = 'events'
+      and column_name = 'password_hash'
+      and grantee = any(${["anon", "authenticated"]})
   `;
   assert(
-    privilegeRows.length === expectedTables.length * 2 * 7
-      && privilegeRows.every(({ allowed }) => allowed === false),
-    "anon/authenticated unexpectedly hold a canonical-table privilege.",
+    columnGrantRows.length === 0,
+    "anon/authenticated unexpectedly hold a privilege on events.password_hash.",
   );
 
   const publicAclRows = await sql`

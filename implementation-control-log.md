@@ -943,3 +943,75 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
   → 導回並取得 session）需要使用者本人用真實 LINE 帳號完成——我不會
   也不能替使用者輸入 LINE 密碼，這一步必須由使用者親自操作瀏覽器完成。
 - Staging 頻道的部署與對應設定仍未處理（staging 網域架構未定案）。
+
+# 2026-08-07：修正 CI 上 `pnpm verify:p1-02` 的誤判與過時 gate
+
+## 問題
+
+- push 到 `main` 觸發 `join-gates.yml` 的 `local-supabase` job，
+  `pnpm verify:p1-02`（`scripts/verify-domain-schema.mjs`）失敗：
+  `Error: anon/authenticated unexpectedly hold a canonical-table
+  privilege.`
+
+## 根因（兩層，都查證過，不是猜測）
+
+1. **誤判**：這段檢查用 `has_table_privilege(role, table, 'SELECT')`
+   判斷 anon/authenticated 是否持有資料表權限。Postgres 的
+   `has_table_privilege` 只要角色持有「任何一個欄位」的欄級授權就會回
+   `true`——但 P1-04 的設計本來就刻意對 `users`／`organizers`／
+   `events`（排除 `password_hash`）等表下了欄級 `GRANT SELECT (...)`，
+   這是已經證據齊全、通過 dry-run 的既定架構（見 P1-04 evidence），不是
+   意外洞。用直連雲端 DB 查 `information_schema.role_table_grants`
+   （只反映「整張表」層級的 ACL，不含欄級授權）證實：目前唯一一筆真正
+   的整表授權是 `event_fields` / `authenticated` / `DELETE`
+   （`DELETE` 在 Postgres 沒有欄級語法，只能整表授權，RLS policy
+   再把它收斂到「只能刪自己活動的欄位」），其餘全部是刻意的欄級授權。
+   `password_hash` 用 `information_schema.column_privileges` 直接查證
+   零筆授權，符合 P1-04 文件裡「password_hash 永不出現在任何欄級授權」
+   的宣告。
+   - 修正：把 `has_table_privilege` 換成直接查
+     `information_schema.role_table_grants`，比對一份明確的預期清單
+     （目前只有 `event_fields`/`authenticated`/`DELETE` 這一筆），任何
+     未來新增的整表授權都會讓這個測試明確失敗、強制被審視，不是靜默
+     放行；另外新增一個獨立、針對 `events.password_hash` 的防禦性欄級
+     查核，直接鎖定這個文件裡明確點名的敏感欄位。
+2. **更深一層：這支腳本本來就是 P1-02 那個時間點的快照式 gate 檢查，
+   不是可以套用在「全部 migration 都套用完」之上的長期不變量**。往下
+   還有一條斷言 `policyRows.length === 0`（訊息：「P1-02 must not
+   introduce P1-04 RLS policies.」）——這條斷言在 P1-04 正式加入 RLS
+   policies 之後永遠不可能通過，這是 P1-04 上線後刻意、已驗收的結果，
+   不是回歸。用雲端 DB 實測確認：修正第 1 點之後，腳本確實卡在這條
+   斷言，證實了這個診斷。
+   - 這支腳本原本的角色，是驗證「P1-02 這個 migration 檔案本身」在
+     套用當下長什麼樣子，設計上就只該對著「只套用到 P1-02 為止」的
+     資料庫跑一次，而不是對著往後每個 gate 持續套用的 CI 資料庫跑。
+     現在對 P1-02 migration 檔案內容的長期、每次 push 都會驗證的檢查，
+     已經由 `scripts/domain-schema-contract.test.ts`（讀 migration
+     檔案原始碼、不連線資料庫）取代並且已經在 CI 主要的 `verify` job
+     裡持續執行（`pnpm test` 內）。
+   - 修正：把 `.github/workflows/join-gates.yml` 的 `local-supabase`
+     job 裡「Verify canonical schema behavior」這個呼叫
+     `pnpm verify:p1-02` 的步驟移除；job 其餘部分（`pnpm start` 起
+     本地 Supabase、`pnpm test:p1-01` 跑真實 Postgres 併發測試、
+     `pnpm stop` 收尾）維持不動，那些跟這個問題無關。
+   - `scripts/verify-domain-schema.mjs` 本身沒有刪除，保留給日後想
+     對著「只套用到 P1-02」的資料庫手動重跑、做歷史稽核用；在檔案開頭
+     加了說明註解，講清楚它是時間點快照檢查、為什麼不掛在 CI 上。
+
+## 已驗證
+
+- 修正後的權限檢查邏輯已直接對雲端 Gather Supabase 專案（唯讀查詢，
+  沒有寫入）實測：`role_table_grants` 只有預期的那一筆
+  `event_fields`/`authenticated`/`DELETE`；`password_hash` 欄級授權
+  零筆；兩項斷言都通過，確認到「P1-02 RLS policies 快照」那條斷言為止
+  （符合預期，見上）。
+- `pnpm typecheck && pnpm lint && pnpm test`：全部 PASS
+  （43 passed / 1 skipped，未受影響）。
+- 目視覆核 `join-gates.yml` 修改後的 YAML 結構完整、縮排正確。
+
+## 不屬於本次
+
+- 沒有新增一份「對著全部 migration 套用完的最終狀態」的存活 CI
+  live-DB 契約測試（例如驗證 RLS policies 確實存在、grants 確實符合
+  P1-04+ 設計）。這是使用者沒要求、超出這次回報的 CI 失敗範圍的新
+  基礎建設，先不動；如果之後想要，值得另外開一個任務討論范圍。
