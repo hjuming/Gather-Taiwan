@@ -1015,3 +1015,91 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
   live-DB 契約測試（例如驗證 RLS policies 確實存在、grants 確實符合
   P1-04+ 設計）。這是使用者沒要求、超出這次回報的 CI 失敗範圍的新
   基礎建設，先不動；如果之後想要，值得另外開一個任務討論范圍。
+
+# 2026-08-07：使用者實測回報「LINE 登入沒反應、Email 收不到驗證碼」
+
+## 診斷方式
+
+- 使用者提供四張截圖（DevTools Elements、登入頁畫面、實際收到的信、
+  點信件連結後的畫面），加上引導使用者自己開 Network 分頁重現並回報
+  實際 Status Code——這是關鍵：我自己的瀏覽器工具（Claude in Chrome
+  與 Browser pane）都被政策擋下無法導向 `access.line.me`
+  （"This site is not allowed due to safety restrictions"），所以
+  LINE 登入這條路徑我完全無法自己重現，必須靠使用者實測配合截圖才能
+  診斷，過程中我曾一度誤把自己工具被擋當成「已重現問題」，後來發現
+  不對，向使用者更正並改用引導方式取得真實瀏覽器證據。
+
+## 問題一：Email 驗證碼——兩個獨立根因，都已查證
+
+1. 這個 Supabase 專案從未設定過自訂 SMTP。Dashboard 明確顯示
+   「Set up custom SMTP to edit templates — Emails will be sent using
+   the default templates.」——沒有自訂 SMTP，Magic Link/OTP 樣板*無法
+   編輯*，只能用預設樣板，而預設樣板只有一個「Sign in」連結，不會顯示
+   6 碼數字。但 `AuthPage.tsx` 的介面設計是要使用者輸入 6 碼——使用者
+   不是「沒收到信」，是信裡從來就沒有這個介面要他找的東西。
+2. 那封信裡的連結，`emailRedirectTo` 沒有明確指定，用了 Supabase
+   Dashboard 的 Site URL 預設值——而那個值還停在開發期的
+   `localhost:3000`，使用者點下去得到
+   `ERR_CONNECTION_REFUSED`（見使用者截圖 4）。
+
+## 問題一的修正
+
+- `AuthPage.tsx` 的 `signInWithOtp` 呼叫明確加上
+  `emailRedirectTo: ${window.location.origin}${import.meta.env.BASE_URL}`，
+  不再依賴 Dashboard 的 Site URL 設定（該設定本身沒有被我修改，因為
+  修改 Auth 帳號設定屬於需要使用者明確同意的動作，而程式碼層級這樣做
+  更穩健、不受 Dashboard 設定漂移影響）。supabase-js 預設
+  `detectSessionInUrl: true`，落地在 `${APP_BASE_URL}#access_token=...`
+  時會自動用這個 hash token 建立 session——這代表信裡的連結現在真的
+  是一條可用的登入路徑，不只是修好網址而已。
+- 「輸入 6 碼」步驟的說明文字更新，補一句「信裡如果沒看到 6 碼數字，
+  直接點信裡的連結也可以登入」，讓使用者不會卡在等一個信裡本來就沒有
+  的東西。
+- 不屬於本次：沒有設定自訂 SMTP、沒有編輯 Supabase 的 Magic Link 樣板
+  讓它顯示 `{{ .Token }}`。這需要選一個 SMTP 供應商並在 Dashboard
+  輸入其憑證——輸入第三方服務憑證是使用者必須自己做的動作，我不會
+  也不能代為輸入 API key／密碼。這件事會讓使用者「非看信件連結不可」
+  的體驗持續存在，值得使用者之後決定要不要投入設定自訂 SMTP。
+
+## 問題二：LINE 登入完全沒反應——已確認根因並修正
+
+- 使用者引導我確認：點擊按鈕後 Network 分頁「有」出現一筆對
+  `line/start` 的請求，但 Status Code 是 `200`，不是預期的 `302`。
+  同時我直接用 curl 打同一個網址，穩定拿到正確的 302
+  （`location` 指向 `access.line.me`，`state`／`nonce` cookie 正確）
+  ——這代表問題只在「真實瀏覽器點擊」這條路徑，跟 Worker 本身的邏輯
+  無關。
+- 根因：這個網域的 Cloudflare「Speculative Loading」功能是啟用的
+  （回應標頭裡的 `speculation-rules: "/cdn-cgi/speculation"` 證實），
+  會自動把頁面上的同網域連結視為可預先擷取／預先渲染的候選對象。
+  但「使用 LINE 登入」原本是一個普通的 `<a href="/app/auth/line/
+  start?...">`——這個端點不是安全、無副作用的 GET：它會設定一次性的
+  `state`／`nonce` cookie 並 302 導向，被推測式載入在使用者真的點擊
+  之前預先打過一次，會讓真正點擊時的行為不正常（伺服器端仍然每次都
+  正確回應 302，但瀏覽器端沒有依照預期完整導向到 LINE）。
+- 修正：把這個按鈕從 `<a href>` 改成 `<button onClick={() =>
+  window.location.href = ...}>`——沒有 `href` 屬性，Speculation Rules
+  （不管是 Cloudflare 自動注入的，或未來任何瀏覽器原生規則）都沒有
+  東西可以預先擷取，真正點擊時才會觸發一次乾淨的導航。已在瀏覽器
+  DOM 直接驗證：`tagName === "BUTTON"`、`getAttribute("href") ===
+  null`。
+- 不屬於本次：沒有去 Cloudflare Dashboard 停用整個網域的 Speculative
+  Loading 功能（那是帳號設定變更，且主站其他純導覽連結沒有副作用，
+  停用會犧牲那些連結原本受益的效能，不必要）。
+
+## 已驗證
+
+- `pnpm typecheck && pnpm lint && pnpm test`：全部 PASS
+  （43 passed / 1 skipped，三次修正各自獨立驗證過一次）。
+- 每次修正都走 `rm -rf dist && pnpm build && pnpm smoke →
+  wrangler deploy` 完整流程，三次部署都成功。
+- 用 Claude in Chrome 直接對正式網域重新載入頁面、讀 DOM 確認實際
+  渲染結果（不只是看 build 產物），並用 curl 交叉驗證 bundle hash
+  與 CDN 快取已更新到最新部署。
+
+## 過程中的工具問題（記錄，不是產品 bug）
+
+- Claude in Chrome 這個 session 出現多次「未連線」、頁面卡在
+  loading、screenshot 回傳 viewport 0x0 等不穩定狀況，花了不少來回
+  才成功操作 Cloudflare Dashboard 清快取。這是自動化工具本身的穩定性
+  問題，跟 gather.wedopr.com／join app 的程式碼或架構無關。

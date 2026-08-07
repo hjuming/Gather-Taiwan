@@ -38,7 +38,18 @@ export default function AuthPage() {
     try {
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: email.trim(),
-        options: { shouldCreateUser: true },
+        options: {
+          shouldCreateUser: true,
+          // Without this, Supabase falls back to the project's dashboard
+          // "Site URL" — which for this project is still the local-dev
+          // default (localhost:3000), so the magic-link fallback inside
+          // the OTP email 404s for real users. supabase-js auto-detects
+          // the #access_token in this URL's hash on load (default
+          // detectSessionInUrl: true), so this also makes clicking the
+          // email link itself work as a login path, not just the 6-digit
+          // code this page actually asks for.
+          emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`,
+        },
       });
       if (otpError) throw otpError;
       setStep("code");
@@ -93,13 +104,26 @@ export default function AuthPage() {
       )}
 
       <div className="card" style={{ marginBottom: 20 }}>
-        <a
+        <button
+          type="button"
           className="btn btn-primary"
-          style={{ display: "block", textAlign: "center", textDecoration: "none" }}
-          href={`/app/auth/line/start?redirect=${encodeURIComponent(redirectTo)}`}
+          style={{ display: "block", width: "100%", textAlign: "center" }}
+          onClick={() => {
+            // Deliberately not a plain <a href> — this endpoint issues
+            // one-time CSRF/nonce cookies and 302s onward, so it isn't a
+            // safe, side-effect-free GET. A real <a href> is a legitimate
+            // link Cloudflare's Speculative Loading (confirmed active on
+            // this zone via the injected /cdn-cgi/speculation script) can
+            // prefetch/prerender in the background before the user ever
+            // clicks, silently consuming that one-time state and leaving
+            // the real click looking like it does nothing. Triggering
+            // navigation from a click handler means there is no href for
+            // a prefetcher to discover in the first place.
+            window.location.href = `/app/auth/line/start?redirect=${encodeURIComponent(redirectTo)}`;
+          }}
         >
           使用 LINE 登入
-        </a>
+        </button>
       </div>
 
       <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>或使用 email 驗證碼：</p>
@@ -137,7 +161,8 @@ export default function AuthPage() {
       ) : (
         <form className="stack card" onSubmit={handleVerifyCode}>
           <p className="hint" style={{ color: "var(--muted)" }}>
-            驗證碼已寄到 <strong style={{ color: "var(--fg)" }}>{email}</strong>
+            驗證信已寄到 <strong style={{ color: "var(--fg)" }}>{email}</strong>
+            。信裡如果沒看到 6 碼數字，直接點信裡的連結也可以登入。
           </p>
           <div className="field">
             <label htmlFor="code">6 碼驗證碼</label>
