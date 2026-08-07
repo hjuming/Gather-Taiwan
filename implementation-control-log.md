@@ -874,3 +874,72 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
   需要使用者明確確認細節後才執行。
 - 部署完成後才能對真實 LINE 帳號做端對端登入測試。
 - Staging 頻道的對應 secrets／vars 尚未設定（staging 網域架構未定案）。
+
+# 2026-08-07：join app 正式部署至 gather.wedopr.com/app/*
+
+## 使用者已明確授權的部署決策
+
+- 部署範圍先問過使用者：`gather.wedopr.com/app/*` 部署後要不要加
+  Cloudflare Access 門檻——使用者選擇「直接公開部署」，依靠既有的單場
+  活動邀請制／密碼作為實際項目資料的保護，不另外加帳號級門檻。
+
+## 完成項目
+
+- `pnpm build`（乾淨 build，`rm -rf dist` 後重建）→ `pnpm smoke` PASS →
+  `wrangler deploy -c dist/gather_join/wrangler.json` 部署成功。
+  `gather.wedopr.com/app/*` 這條 Workers Route 正式掛上這個 Worker；
+  `gather.wedopr.com/` 其餘路徑繼續由既有 Cloudflare Pages 服務，不受
+  影響（curl 驗證兩者皆 200）。
+
+## 部署後發現並修正的真實 bug
+
+- 用瀏覽器實際打開 `https://gather.wedopr.com/app/auth`，畫面是空白
+  （不是只看 curl 狀態碼就結案）。Console 顯示 JS／CSS 都被當成
+  `text/html` 退回，MIME 檢查擋下執行。根因：Workers Route 比對的是
+  完整路徑 `/app/*`，但 `dist/client`（Vite build 輸出）是攤平的——
+  `index.html`／`assets/` 都在根目錄，沒有 `app/` 子目錄；
+  `env.ASSETS.fetch(request)` 直接把帶 `/app` 前綴的原始 request 轉給
+  ASSETS binding，比對不到檔案，落回 SPA fallback，回傳 `index.html`
+  當成 JS／CSS 的內容。
+  - 修正：`worker/index.ts` 在轉給 `env.ASSETS.fetch` 之前，先把路徑
+    開頭的 `/app` 前綴剝掉（`/app/assets/foo.js` → `/assets/foo.js`，
+    `/app` 本身 → `/`），瀏覽器網址列與 React Router 的
+    `basename="/app/"` 不受影響，只有 Worker 內部轉給 ASSETS binding
+    的請求路徑改變。
+  - 新增兩個單元測試（`worker/index.test.ts`）驗證前綴剝除邏輯：
+    `/app/assets/index-abc123.js` → ASSETS 收到 `/assets/index-abc123.js`；
+    `/app` → ASSETS 收到 `/`。
+  - `pnpm typecheck && pnpm lint && pnpm test`：43 passed / 1 skipped，
+    全部 PASS。重新 `build` → `smoke` PASS → 重新 `wrangler deploy`。
+  - **第二個問題**：修好程式碼重新部署後，curl 對同一個 JS 檔案網址
+    仍然拿到快取住的舊 `text/html` 回應（`cf-cache-status: HIT`）——
+    Cloudflare 邊緣快取在修好之前就把壞掉的回應快取住了，即使 origin
+    回應帶 `cache-control: no-store` 也一樣（邊緣快取層級設定會覆蓋
+    origin 標頭）。用 Cloudflare Dashboard（Claude in Chrome 操作，
+    使用者已登入的瀏覽器）到 wedopr.com 的 Caching 設定，用「自訂清除
+    → 前置字元 `gather.wedopr.com/app/`」清除，比清除全站更精準，範圍
+    限定在這次部署的路徑，不影響主站其他快取內容。清除後重新 curl
+    確認 JS／CSS content-type 恢復正常，且 `cf-cache-status: HIT`
+    （代表新的正確回應已經被快取，不是每次都得繞過快取的臨時狀態）。
+
+## 已驗證（部署後、正式網域上）
+
+- `curl` 確認 `/app/`、`/app/auth`、`/`（主站）三者皆 200；JS／CSS
+  content-type 正確（`text/javascript`／`text/css`）。
+- 用瀏覽器開新分頁（避免舊分頁殘留 console 歷史誤判，這個坑本次 session
+  在 P1-11 就踩過一次）打開 `/app/auth`，畫面正確渲染登入頁、「使用
+  LINE 登入」按鈕與 email 驗證碼表單都在，console 乾淨無錯誤。
+- 直接 `curl` `/app/auth/line/start?redirect=%2F`，確認 Worker 回傳
+  正確的 302，`location` 指向 LINE 真正的 `access.line.me` 授權端點，
+  `client_id=2010930927`（與正式頻道一致）、
+  `redirect_uri=https://gather.wedopr.com/app/auth/line/callback`
+  （與 Console 設定的 Callback URL 一致）、`state`／`nonce` cookie 皆
+  正確以 `HttpOnly; Secure; SameSite=Lax` 設定。這證明 LINE OAuth 起始
+  流程在正式環境是真的可用的。
+
+## 不屬於本次（仍待處理）
+
+- 真正的端對端登入測試（點擊「使用 LINE 登入」→ 在 LINE 頁面輸入帳密
+  → 導回並取得 session）需要使用者本人用真實 LINE 帳號完成——我不會
+  也不能替使用者輸入 LINE 密碼，這一步必須由使用者親自操作瀏覽器完成。
+- Staging 頻道的部署與對應設定仍未處理（staging 網域架構未定案）。

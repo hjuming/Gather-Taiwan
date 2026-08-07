@@ -31,4 +31,50 @@ describe("Worker asset response security headers", () => {
     expect(response.headers.get("Referrer-Policy")).toBe("no-referrer");
     expect(response.headers.get("Permissions-Policy")).toBe("geolocation=(), camera=(), microphone=()");
   });
+
+  it("strips the /app path prefix before asking ASSETS for a file", async () => {
+    let requestedPath: string | undefined;
+    await worker.fetch(
+      new Request("https://gather.wedopr.com/app/assets/index-abc123.js"),
+      {
+        ASSETS: {
+          fetch: async (req: Request) => {
+            requestedPath = new URL(req.url).pathname;
+            return new Response("js body");
+          },
+        },
+        SUPABASE_URL: "https://project.supabase.co",
+        SUPABASE_SERVICE_ROLE_KEY: "service-role-test-key",
+        LINE_CHANNEL_ID: "test-channel-id",
+        LINE_CHANNEL_SECRET: "test-channel-secret",
+        LINE_CALLBACK_URL: "https://gather.wedopr.com/app/auth/line/callback",
+        APP_BASE_URL: "https://gather.wedopr.com/app",
+      },
+    );
+
+    expect(requestedPath).toBe("/assets/index-abc123.js");
+  });
+
+  it("maps the bare /app root to / for ASSETS", async () => {
+    let requestedPath: string | undefined;
+    await worker.fetch(
+      new Request("https://gather.wedopr.com/app"),
+      {
+        ASSETS: {
+          fetch: async (req: Request) => {
+            requestedPath = new URL(req.url).pathname;
+            return new Response("index body");
+          },
+        },
+        SUPABASE_URL: "https://project.supabase.co",
+        SUPABASE_SERVICE_ROLE_KEY: "service-role-test-key",
+        LINE_CHANNEL_ID: "test-channel-id",
+        LINE_CHANNEL_SECRET: "test-channel-secret",
+        LINE_CALLBACK_URL: "https://gather.wedopr.com/app/auth/line/callback",
+        APP_BASE_URL: "https://gather.wedopr.com/app",
+      },
+    );
+
+    expect(requestedPath).toBe("/");
+  });
 });
