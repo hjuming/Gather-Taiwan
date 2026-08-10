@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { createEvent, createOrganizer, getMyOrganizers, type OrganizerMembership } from "../lib/api";
 import { useSession } from "../lib/useSession";
 import { createSlug } from "../lib/slug";
-
-function defaultDateTimeLocal(hoursFromNow: number): string {
-  const d = new Date(Date.now() + hoursFromNow * 60 * 60 * 1000);
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().slice(0, 16);
-}
+import DateTimeField from "../components/DateTimeField";
+import {
+  dateTimePartsToTaipeiIso,
+  dateTimePartsToTimestamp,
+  getDefaultEventDateTime,
+  isValidTime,
+  type DateTimeParts,
+} from "../lib/date-time";
 
 export default function EventCreatePage() {
   const { session, loading } = useSession();
@@ -24,13 +26,13 @@ export default function EventCreatePage() {
   const [description, setDescription] = useState("");
   const [visibility, setVisibility] = useState<"public" | "unlisted" | "private">("public");
   const [confirmationMode, setConfirmationMode] = useState<"instant" | "organizer_confirmed">("instant");
-  const [startsAt, setStartsAt] = useState(defaultDateTimeLocal(24 * 7));
-  const [endsAt, setEndsAt] = useState(defaultDateTimeLocal(24 * 7 + 2));
+  const [startsAt, setStartsAt] = useState<DateTimeParts>(() => getDefaultEventDateTime().startsAt);
+  const [endsAt, setEndsAt] = useState<DateTimeParts>(() => getDefaultEventDateTime().endsAt);
   const [locationName, setLocationName] = useState("");
   const [locationAddress, setLocationAddress] = useState("");
   const [hasCapacity, setHasCapacity] = useState(true);
   const [capacity, setCapacity] = useState(20);
-  const [feeAmount, setFeeAmount] = useState(0);
+  const [feeAmountInput, setFeeAmountInput] = useState("0");
   const [paymentInstructions, setPaymentInstructions] = useState("");
   const [hasMinAge, setHasMinAge] = useState(false);
   const [minAge, setMinAge] = useState(18);
@@ -90,8 +92,22 @@ export default function EventCreatePage() {
       setError("請輸入活動名稱");
       return;
     }
-    if (new Date(startsAt) >= new Date(endsAt)) {
+    if (!locationName.trim()) {
+      setError("請輸入地點名稱");
+      return;
+    }
+    if (!isValidTime(startsAt.time) || !isValidTime(endsAt.time)) {
+      setError("請選擇有效的 24 小時制時間");
+      return;
+    }
+    if (dateTimePartsToTimestamp(startsAt) >= dateTimePartsToTimestamp(endsAt)) {
       setError("結束時間必須晚於開始時間");
+      return;
+    }
+
+    const feeAmount = feeAmountInput === "" ? 0 : Number(feeAmountInput);
+    if (!Number.isSafeInteger(feeAmount) || feeAmount < 0) {
+      setError("費用請填寫 0 或正整數");
       return;
     }
 
@@ -107,8 +123,8 @@ export default function EventCreatePage() {
         visibility,
         confirmationMode,
         timezone: "Asia/Taipei",
-        startsAt: new Date(startsAt).toISOString(),
-        endsAt: new Date(endsAt).toISOString(),
+        startsAt: dateTimePartsToTaipeiIso(startsAt),
+        endsAt: dateTimePartsToTaipeiIso(endsAt),
         locationName: locationName.trim(),
         locationAddress: locationAddress.trim(),
         capacity: hasCapacity ? capacity : null,
@@ -206,6 +222,8 @@ export default function EventCreatePage() {
                 type="text"
                 value={locationName}
                 onChange={(event) => setLocationName(event.target.value)}
+                placeholder="例如：金色三麥 美麗華店"
+                required
               />
             </div>
             <div className="field">
@@ -222,27 +240,10 @@ export default function EventCreatePage() {
 
         <div className="card stack">
           <h2>時間</h2>
+          <p className="hint">台北時間，使用 24 小時制。預設為當日 18:30–21:30。</p>
           <div className="row">
-            <div className="field">
-              <label htmlFor="startsAt">開始時間</label>
-              <input
-                id="startsAt"
-                type="datetime-local"
-                value={startsAt}
-                onChange={(event) => setStartsAt(event.target.value)}
-                required
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="endsAt">結束時間</label>
-              <input
-                id="endsAt"
-                type="datetime-local"
-                value={endsAt}
-                onChange={(event) => setEndsAt(event.target.value)}
-                required
-              />
-            </div>
+            <DateTimeField id="startsAt" label="開始時間" value={startsAt} onChange={setStartsAt} />
+            <DateTimeField id="endsAt" label="結束時間" value={endsAt} onChange={setEndsAt} />
           </div>
         </div>
 
@@ -331,11 +332,11 @@ export default function EventCreatePage() {
             <label htmlFor="feeAmount">費用（TWD，0 表示免費）</label>
             <input
               id="feeAmount"
-              type="number"
-              min={0}
-              step="1"
-              value={feeAmount}
-              onChange={(event) => setFeeAmount(Number(event.target.value))}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={feeAmountInput}
+              onChange={(event) => setFeeAmountInput(event.target.value.replace(/[^0-9]/g, ""))}
             />
           </div>
           <div className="field">

@@ -17,6 +17,7 @@ import { SafeRichText } from "../security/security";
 import { REGISTRATION_STATUS_LABEL, type EventFieldRow, type EventRow, type RegistrationRow } from "../lib/types";
 import RosterManager from "../components/RosterManager";
 import { validateEventAnswers, type EventAnswer } from "../lib/event-fields";
+import { copyText, getEventShareText, getEventShareUrl, getGoogleMapsSearchUrl, getLineShareUrl } from "../lib/event-links";
 
 const VISIBILITY_LABEL: Record<EventRow["visibility"], string> = {
   public: "公開活動",
@@ -29,11 +30,24 @@ function formatDateRange(startsAt: string, endsAt: string): string {
   const end = new Date(endsAt);
   const dateFmt = new Intl.DateTimeFormat("zh-TW", {
     dateStyle: "long",
-    timeStyle: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
     timeZone: "Asia/Taipei",
   });
-  const timeFmt = new Intl.DateTimeFormat("zh-TW", { timeStyle: "short", timeZone: "Asia/Taipei" });
-  const sameDay = start.toDateString() === end.toDateString();
+  const dateKeyFmt = new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "Asia/Taipei",
+  });
+  const timeFmt = new Intl.DateTimeFormat("zh-TW", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: "Asia/Taipei",
+  });
+  const sameDay = dateKeyFmt.format(start) === dateKeyFmt.format(end);
   return sameDay ? `${dateFmt.format(start)} - ${timeFmt.format(end)}` : `${dateFmt.format(start)} - ${dateFmt.format(end)}`;
 }
 
@@ -229,6 +243,35 @@ export default function EventPage() {
     }
   }
 
+  async function handleShare() {
+    const eventRow = event as EventRow;
+    const url = getEventShareUrl(eventRow.slug);
+    const text = getEventShareText(eventRow, url);
+    setError(null);
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: eventRow.title, text, url });
+        setNotice("已開啟分享面板");
+      } else {
+        await copyText(url);
+        setNotice("活動連結已複製，可以貼到 LINE 群組或聊天室");
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      setError("分享失敗，請改用複製連結");
+    }
+  }
+
+  async function handleCopyLink() {
+    setError(null);
+    try {
+      await copyText(getEventShareUrl((event as EventRow).slug));
+      setNotice("活動連結已複製");
+    } catch {
+      setError("複製失敗，請手動複製瀏覽器網址");
+    }
+  }
+
   return (
     <div className="page">
       <p className="eyebrow">{VISIBILITY_LABEL[event.visibility]}</p>
@@ -244,7 +287,14 @@ export default function EventPage() {
           <div className="meta-line">
             <strong>地點</strong>
             <span>
-              {event.location_name}
+              <a
+                className="map-link"
+                href={getGoogleMapsSearchUrl(event) ?? undefined}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {event.location_name}
+              </a>
               {event.location_address ? `・${event.location_address}` : ""}
             </span>
           </div>
@@ -265,6 +315,23 @@ export default function EventPage() {
             <span>{event.min_age} 歲以上</span>
           </div>
         )}
+      </div>
+
+      <div className="event-share" aria-label="分享活動">
+        <button type="button" className="btn-primary" onClick={handleShare}>
+          分享活動
+        </button>
+        <button type="button" className="btn-secondary" onClick={handleCopyLink}>
+          複製活動連結
+        </button>
+        <a
+          className="btn-secondary event-share__line"
+          href={getLineShareUrl(getEventShareText(event, getEventShareUrl(event.slug)))}
+          target="_blank"
+          rel="noreferrer"
+        >
+          分享到 LINE
+        </a>
       </div>
 
       {notice && <div className="banner banner--success">{notice}</div>}

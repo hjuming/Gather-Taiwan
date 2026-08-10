@@ -20,9 +20,16 @@ export default function TopNav() {
 
   return (
     <nav className="top-nav">
-      <Link to="/" className="brand" style={{ textDecoration: "none" }} onClick={closeMenu}>
-        來聚一場
-      </Link>
+      <div className="brand-lockup">
+        <a href="/" className="brand brand--site" onClick={closeMenu}>
+          聚場台灣
+          <span>Gather Taiwan</span>
+        </a>
+        <span className="brand-divider" aria-hidden="true">/</span>
+        <Link to="/" className="brand brand--tool" onClick={closeMenu}>
+          來聚一場
+        </Link>
+      </div>
       <button
         type="button"
         className="menu-toggle"
@@ -36,6 +43,9 @@ export default function TopNav() {
         </span>
       </button>
       <div id="top-nav-menu" className={`actions top-nav-menu${menuOpen ? " is-open" : ""}`} style={{ gap: 16 }}>
+        <a href="/gatherings/" onClick={closeMenu}>
+          聚場地圖
+        </a>
         <Link to="/events/new" onClick={closeMenu}>
           發起活動
         </Link>

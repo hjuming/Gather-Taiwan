@@ -1390,3 +1390,15 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - 驗證：導覽測試先 RED 後 GREEN；完整 Vitest `59 passed / 1 skipped`、typecheck、lint、build、smoke（49 audited files）PASS；build bundle 已包含 `max-width: 900px` 與 `menu-toggle` 規則。
 - ⚠️ 實體 iPad 觸控與旋轉尚未在本輪取得裝置錄影；正式網域尚未因本輪變更重新部署。
 - 回滾：回滾本次三個檔案的 commit 即可，未涉及資料庫、Auth、Cloudflare 或使用者資料。
+
+## 2026-08-10：建立活動表單與活動分享體驗（待部署）
+
+- ✅ 日期／時間改為獨立日期欄位與 24 小時制時／分選單；以 Asia/Taipei 組合 ISO，預設當日
+  18:30–21:30，若當日活動時段已過則順延翌日，避免送出過去時間。
+- ✅ 費用改為 `text`＋`inputMode=numeric`，只保留數字字元，不使用瀏覽器上下微調器；仍維持主辦人自行收款、平台不代收的邊界。
+- ✅ 地點名稱改為必填；活動頁提供 Google Maps 搜尋連結、複製活動連結、原生分享與分享到 LINE。
+- ✅ 報名工具導覽改為「聚場台灣／來聚一場」品牌鎖定，新增主站連結與一致的深色頁尾。
+- ✅ 新增 `gather-feedback-implementation-plan.md` 與 `apps/join/docs/LINE-MESSAGING-PHASE2.md`，記錄本輪驗收與 LINE 對話管理未施工邊界。
+- ✅ 本地驗證：Vitest `67 passed / 1 skipped`、typecheck PASS、lint PASS、build PASS、`git diff --check` PASS。
+- ⚠️ 尚未部署；尚未完成 Messaging API webhook、LINE 推播、Rich Menu／LIFF 與對話管理 E2E。依 D-2 Pilot 仍以 email＋站內通知為準。
+- 回滾：僅涉及 `apps/join/src` 前端與文件，未修改資料庫、Supabase 權限、LINE Developers 或 Cloudflare production 設定。

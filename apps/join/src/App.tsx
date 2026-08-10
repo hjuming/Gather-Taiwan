@@ -6,6 +6,7 @@ import EventCreatePage from "./pages/EventCreatePage";
 import EventPage from "./pages/EventPage";
 import MyRegistrationsPage from "./pages/MyRegistrationsPage";
 import LineAuthCompletePage from "./pages/LineAuthCompletePage";
+import SiteFooter from "./components/SiteFooter";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/e/:slug" element={<EventPage />} />
         <Route path="/me/registrations" element={<MyRegistrationsPage />} />
       </Routes>
+      <SiteFooter />
     </BrowserRouter>
   );
 }
