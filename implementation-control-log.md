@@ -1463,3 +1463,11 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ✅ 新 JS `index-keRCsIuJ.js` 與 CSS `index-BN21jZCo.css` 已由正式資產端點讀回；JS 含「相招，聚一場。」「我發起的聚會」「一起來的人」「替朋友留名」，CSS 含 `mobile-action-dock`、`section-rail`、`scroll-tabs`。
 - ⚠️ Cloudflare edge 仍可能讓首頁 HTML 暫時命中前一版資產；本次未操作 purge。若看不到新版，請重新整理、使用無痕視窗，或等待 edge cache 更新。
 - ⚠️ 尚未取得實體手機／iPad／桌機 screenshot E2E；本環境 Vite dev server 仍受 `listen EPERM` 限制。Supabase、LINE、付款資料與使用者資料均未修改。
+
+## 2026-08-10：桌機橫式 RWD 修正（待部署）
+
+- ✅ 根因：`main` 與 `.page--wide` 仍沿用 680／920px 的早期窄欄寬度，桌機橫式右側產生大面積空白；建立頁沒有利用寬螢幕做即時聚會摘要。
+- ✅ 桌機 `page--wide` 放寬至 1480px；建立頁改為「填寫區＋右側固定聚會預覽」雙欄，預覽會即時呈現主題、時間、地點、席次與到場費用。
+- ✅ 手機／iPad 維持單欄，預覽降至表單下方；不以桌機雙欄硬縮小，避免直式瀏覽橫向溢出。
+- ✅ 本地驗證：Vitest `69 passed / 1 skipped`、typecheck、lint、build、smoke（59 audited files）、`git diff --check` PASS。
+- ⚠️ 尚未部署；仍未取得實體裝置 screenshot E2E。Supabase、LINE、付款資料與使用者資料未修改。

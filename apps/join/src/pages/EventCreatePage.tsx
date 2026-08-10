@@ -194,7 +194,8 @@ export default function EventCreatePage() {
         </div>
       )}
 
-      <form className="stack" onSubmit={handleSubmit}>
+      <form className="create-form" onSubmit={handleSubmit}>
+        <div className="create-form__main stack">
         {organizers.length > 1 && (
           <div className="field">
             <label htmlFor="organizer">這場聚會的名字</label>
@@ -369,6 +370,21 @@ export default function EventCreatePage() {
             {busy ? "準備中…" : "把這場聚會建立起來"}
           </button>
         </div>
+        </div>
+        <aside className="create-form__aside" aria-label="聚會預覽">
+          <div className="create-preview">
+            <p className="section-kicker">桌邊先放一張椅子</p>
+            <h2>{title.trim() || "新的聚會"}</h2>
+            <p>{summary.trim() || "寫下一句，讓大家知道這次為什麼想見面。"}</p>
+            <dl>
+              <div><dt>時間</dt><dd>{startsAt.date}・{startsAt.time}–{endsAt.time}</dd></div>
+              <div><dt>地點</dt><dd>{locationName.trim() || "還在等一個地方"}</dd></div>
+              <div><dt>席次</dt><dd>{hasCapacity ? `${capacity} 人` : "不限人數"}</dd></div>
+              <div><dt>到場</dt><dd>{Number(feeAmountInput) > 0 ? `NT$ ${feeAmountInput}` : "免費"}</dd></div>
+            </dl>
+            <p className="create-preview__note">建立後，這段相聚會有自己的連結，可以送進 LINE 群組。</p>
+          </div>
+        </aside>
       </form>
     </div>
   );
