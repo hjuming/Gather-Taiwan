@@ -221,6 +221,16 @@
     body{padding-bottom:82px}
   }
 </style>
+<style>
+  @media (max-width:1100px), (pointer:coarse) and (max-width:1180px){
+    body.nav-open{overflow:hidden}
+    .nav-toggle{display:flex!important;flex:0 0 44px;position:relative;z-index:90;flex-direction:column;justify-content:center;margin-left:auto;min-width:44px;min-height:44px;touch-action:manipulation}
+    .nav-links{position:fixed;inset:68px 0 auto auto;z-index:80;display:flex;flex-direction:column;align-items:stretch;gap:0;width:min(420px,calc(100vw - 24px));max-height:calc(100dvh - 84px);overflow:auto;padding:24px 28px 28px;background:#fbf6ea;border-left:1px solid rgba(27,23,18,.14);border-bottom:1px solid rgba(27,23,18,.14);box-shadow:-24px 24px 80px rgba(27,23,18,.32);opacity:0;visibility:hidden;pointer-events:none}
+    .nav-links.open{opacity:1;visibility:visible;pointer-events:auto}
+    .nav-links a{padding:18px 0;border-bottom:1px solid rgba(27,23,18,.14);font-size:16px;color:var(--ink)}
+    .drawer-note{display:block;margin-top:18px;font-size:13px;line-height:1.7;color:var(--muted)}
+  }
+</style>
 </head>
 <body>
 <nav class="nav" aria-label="主要導覽">
@@ -229,6 +239,8 @@
     <button class="nav-toggle" type="button" aria-label="開啟選單" aria-expanded="false" aria-controls="nav-links"><span></span><span></span><span></span></button>
     <div class="nav-links" id="nav-links" aria-hidden="true">
       <a href="/">回到聚場台灣</a>
+      <a href="/gatherings/">聚場地圖</a>
+      <a href="/app/events/new">發起一場聚會</a>
       <a href="#concept">文化主張</a>
       <a href="#food-culture">美食文化</a>
       <a href="#live-memory">現場記憶</a>

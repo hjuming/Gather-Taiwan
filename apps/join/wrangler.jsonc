@@ -24,6 +24,7 @@
   // `wrangler secret put` (never committed).
   "vars": {
     "SUPABASE_URL": "https://anklbpkyesdmsubyfcna.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_Qc-0shSK0ISVXiWmo8AtaQ_Wmu_5xU7",
     "LINE_CHANNEL_ID": "2010930927",
     "LINE_CALLBACK_URL": "https://gather.wedopr.com/app/line/callback",
     "APP_BASE_URL": "https://gather.wedopr.com/app"

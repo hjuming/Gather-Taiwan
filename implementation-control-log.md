@@ -1480,3 +1480,22 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ✅ `/app/events/new?deploy=8a4f72b` HTTP 200；回應仍含既有 CSP、`cache-control: no-store` 與 `x-content-type-options: nosniff`。
 - ⚠️ Cloudflare edge 對不同 query 仍可能回傳不同 HTML／資產版本（例如 `deploy=8a4f72b` 可讀本版、其他 query 仍可能命中前版）；尚未取得 purge API／Dashboard 操作證據，因此不宣稱所有無 query 使用者已立即切換。
 - ⚠️ 尚未取得實體手機／iPad／桌機 screenshot E2E；本環境 Vite dev server 仍受 `listen EPERM` 限制。Supabase、LINE、付款資料與使用者資料未修改。
+
+## 2026-08-10：聚場地圖 × 來聚一場公開活動整合（待部署）
+
+- ✅ 採用決策：聚場地圖顯示公開、已發布、尚未結束的活動；只顯示主題、日期／時間、地點與人數，不顯示主辦人與參加者名單。
+- ✅ 新增同源 Worker endpoint `/app/api/public-events`，固定 allowlist 回傳 `slug`、`title`、`starts_at`、`ends_at`、`location_name`、`location_address`、`capacity`；不接受寫入，非 GET 回傳 405。
+- ✅ 聚場地圖新增「正在相招」活動區塊，活動卡以安全文字節點渲染，點擊後進入來聚一場活動頁；查無活動或 endpoint 暫時不可用時，顯示明確狀態文案。
+- ✅ 全站靜態頁的平板／手機導覽觸發點提前至 1100px，並增加 coarse pointer 1180px 防線，修正 iPad 直式可能採用 desktop viewport 時漢堡按鈕不出現的問題；同步加入「聚場地圖／發起一場聚會」入口。
+- ✅ `月光開烤` 共享語彙已定義為廣義燒肉聚會，涵蓋燒肉店、串燒店、日式居酒屋與韓式烤肉；中秋與月光是氣氛，不是限制條件。語彙記錄於 `CONTEXT.md`。
+- ✅ 驗證：typecheck PASS、lint PASS、Vitest `71 passed / 1 skipped`、build PASS、smoke（59 audited files）PASS；五個靜態頁 inline JS 與 nav-toggle 語法檢查 PASS。
+- ⚠️ 尚未部署；本輪未修改 Supabase migration、RLS、Auth、LINE、付款資料或使用者資料。實體手機／iPad／桌機 screenshot E2E 仍需在正式網域完成。
+
+## 2026-08-10：活動分享文案純文字化（待部署）
+
+- ✅ `getEventShareText()` 改為 LINE／原生分享／複製內容共用的純文字格式，不再輸出 Markdown 粗體或 Google Maps 超連結。
+- ✅ 分享訊息固定包含：活動主題、簡介、時間、地點名稱、地址、費用、人數上限，以及「想參加，請點此連結」的活動頁網址。
+- ✅ 活動頁上的地點仍保留可點擊的 Google Maps 入口；只有分享訊息移除地圖超連結，避免 LINE 預覽出現過長 URL。
+- ✅ 原生分享改為只傳一份純文字邀請，避免同時傳 `text` 與 `url` 造成部分 LINE／iPad 分享目標重複顯示活動網址。
+- ✅ 測試補上純文字與無 Markdown／無 Maps URL 驗收；typecheck、lint、Vitest `71 passed / 1 skipped`、build、smoke 均 PASS。
+- ⚠️ 尚未部署；實際 LINE 客戶端換行與自動辨識活動網址仍需正式環境 E2E。

@@ -13,7 +13,7 @@
 | `/` | Gather Taiwan 首頁，說明文化平台定位、相聚文化、Gatherings、Stories 與合作方向 |
 | `/gatherings` | 聚場地圖中層頁，看見不同季節、城市、食物與地方故事的聚場場景 |
 | `/neo-rechao` | Signature Gathering proposal page · 新熱炒運動 |
-| `/moonlight-bbq` | Season Gathering proposal page · 月光開烤 |
+| `/moonlight-bbq` | Gathering proposal page · 月光開烤燒肉聚會 |
 | `/contact` | 聯絡我們頁面，承接品牌、場地、食物、音樂、影像與地方故事合作訊息 |
 
 ## Registration Application
@@ -63,7 +63,7 @@ RLS policy 建立前仍維持 fail-closed。`apps/join` 的 LINE 登入、主辦
 - 不構成正式公告
 - 文化主站不直接提供報名；未來報名功能只由獨立 `apps/join` 產品提供
 - 不提供票務
-- 不提供活動行事曆
+- 不提供完整活動行事曆；聚場地圖僅顯示公開活動摘要
 - 不提供會員或付款功能
 - 不列未確認合作夥伴 logo
 - 不把潛在接觸對象寫成合作事實

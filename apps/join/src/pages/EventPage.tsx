@@ -254,7 +254,10 @@ export default function EventPage() {
     setError(null);
     try {
       if (navigator.share) {
-        await navigator.share({ title: eventRow.title, text, url });
+        // The activity URL is already the final plain-text line in `text`.
+        // Passing it again as Web Share's `url` duplicates the link in LINE
+        // and some iPad share targets, making the invitation harder to scan.
+        await navigator.share({ title: eventRow.title, text });
         setNotice("已開啟分享面板");
       } else {
         await copyText(text);

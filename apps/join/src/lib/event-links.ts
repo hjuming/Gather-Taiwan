@@ -19,24 +19,23 @@ export function getEventShareText(
 ): string {
   const start = formatTaipeiDateTime(event.starts_at);
   const end = formatTaipeiTime(event.ends_at);
-  const mapsUrl = getGoogleMapsSearchUrl(event);
-  const location = event.location_name
-    ? mapsUrl
-      ? `[${event.location_name}](${mapsUrl})`
-      : event.location_name
-    : "尚未提供";
+  const location = event.location_name?.trim() || "尚未提供";
+  const address = event.location_address?.trim() || "地址待公布";
   const fee = Number(event.fee_amount) > 0 ? `NT$ ${event.fee_amount}` : "免費";
   const capacity = event.capacity ? `${event.capacity} 人` : "不限人數";
   return [
     `來聚一場～${event.title}`,
     event.summary?.trim() || "相招來聚會",
-    `${start} - ${end}`,
-    location,
-    event.location_address?.trim() || null,
-    `**費用** ${fee}`,
-    `**人數上限** ${capacity}`,
+    "",
+    `時間：${start} - ${end}`,
+    `地點：${location}`,
+    `地址：${address}`,
+    `費用：${fee}`,
+    `人數上限：${capacity}`,
+    "",
+    "想參加，請點此連結：",
     url,
-  ].filter(Boolean).join("\n");
+  ].join("\n");
 }
 
 function formatTaipeiDateTime(value: string): string {
