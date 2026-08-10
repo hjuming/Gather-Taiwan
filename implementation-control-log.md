@@ -1402,3 +1402,10 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ✅ 本地驗證：Vitest `67 passed / 1 skipped`、typecheck PASS、lint PASS、build PASS、`git diff --check` PASS。
 - ⚠️ 尚未部署；尚未完成 Messaging API webhook、LINE 推播、Rich Menu／LIFF 與對話管理 E2E。依 D-2 Pilot 仍以 email＋站內通知為準。
 - 回滾：僅涉及 `apps/join/src` 前端與文件，未修改資料庫、Supabase 權限、LINE Developers 或 Cloudflare production 設定。
+
+## 2026-08-10：eb2b630 正式部署完成
+
+- ✅ Git commit `eb2b630` 已推送至 `origin/codex/gather-mvp`。
+- ✅ Cloudflare Worker `gather-join` 已部署，Version ID：`967c1185-b4c6-48cc-8aae-602569261ab6`，route：`gather.wedopr.com/app/*`。
+- ✅ 正式 read-back：`/app/` HTTP 200；新資產 `index-U3D3piE0.js`、`index-dwh2bXzo.css` HTTP 200；JS 含「分享活動／台北時間／LINE」，CSS 含 `date-time-field`、`event-share`、`site-footer`、`brand-lockup`。
+- ⚠️ 正式環境尚未以實體 iPad／手機完成建立活動表單、Google Maps、原生分享與 LINE 分享的實際觸控 E2E；LINE Messaging API 對話管理仍未施工。
