@@ -12,7 +12,9 @@ export function getEventShareUrl(slug: string): string {
 
 export function getEventShareText(event: Pick<EventRow, "title" | "starts_at" | "ends_at" | "location_name">, url: string): string {
   const start = new Intl.DateTimeFormat("zh-TW", {
-    dateStyle: "medium",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",

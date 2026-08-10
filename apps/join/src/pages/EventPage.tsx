@@ -29,7 +29,9 @@ function formatDateRange(startsAt: string, endsAt: string): string {
   const start = new Date(startsAt);
   const end = new Date(endsAt);
   const dateFmt = new Intl.DateTimeFormat("zh-TW", {
-    dateStyle: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     hourCycle: "h23",
