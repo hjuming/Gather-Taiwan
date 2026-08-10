@@ -1443,4 +1443,6 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ✅ 登入後 TopNav 新增「我發起的活動」；每場列出公開狀態、時間、地點、人數，並提供「管理活動」與「查看活動頁」入口。
 - ✅ 未登入訪問會導向登入，登入後回到 `/me/hosting`；無活動時提供「發起一場聚會」入口。
 - ✅ 本地驗證：Vitest `69 passed / 1 skipped`、typecheck、lint、`git diff --check` PASS。
-- ⚠️ 尚未部署；未修改 Supabase schema、RLS、Auth 或資料內容。正式環境需部署後才能看到新入口。
+- ✅ Git commit `f5bc9bf` 已推送至 `origin/codex/gather-mvp`；Cloudflare Worker `gather-join` Version ID：`01dea043-b65c-4793-a1d2-c64d047a99d9`。
+- ✅ 帶 cache-busting query 的正式 HTML 已讀回新版資產；本次未修改 Supabase schema、RLS、Auth 或資料內容。
+- ⚠️ Cloudflare edge cache 仍可能讓無 query 的 HTML 暫時命中舊版本；若看不到新入口，請重新整理或使用無痕視窗。
