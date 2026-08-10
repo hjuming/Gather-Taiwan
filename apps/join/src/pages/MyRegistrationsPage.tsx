@@ -73,7 +73,7 @@ export default function MyRegistrationsPage() {
           <h1>那些準備見面的日子</h1>
           <p>你已答應赴約、正在等候，或曾經坐過的那幾張桌子，都在這裡。</p>
         </div>
-        <Link to="/events/new" className="btn-secondary">發起活動</Link>
+        <Link to="/events/new" className="btn-secondary">發起一場聚會</Link>
       </header>
 
       {error && <div className="banner banner--error" role="alert">{error}</div>}

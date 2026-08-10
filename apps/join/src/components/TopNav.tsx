@@ -47,7 +47,7 @@ export default function TopNav() {
           聚場地圖
         </a>
         <NavLink to="/events/new" onClick={closeMenu}>
-          發起活動
+          發起一場聚會
         </NavLink>
         {session ? (
           <>
