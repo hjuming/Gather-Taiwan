@@ -1471,3 +1471,12 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ✅ 手機／iPad 維持單欄，預覽降至表單下方；不以桌機雙欄硬縮小，避免直式瀏覽橫向溢出。
 - ✅ 本地驗證：Vitest `69 passed / 1 skipped`、typecheck、lint、build、smoke（59 audited files）、`git diff --check` PASS。
 - ⚠️ 尚未部署；仍未取得實體裝置 screenshot E2E。Supabase、LINE、付款資料與使用者資料未修改。
+
+## 2026-08-10：8a4f72b 桌機橫式 RWD 修正部署完成
+
+- ✅ Git commit `8a4f72b` 已推送至 `origin/codex/gather-mvp`。
+- ✅ Cloudflare Worker `gather-join` 已部署，Version ID：`f4732d6b-da00-4482-97b6-4f46c4389b2f`，route：`gather.wedopr.com/app/*`。
+- ✅ 正式資產回讀：`index-Vxjiv3a7.js` 含 `create-form__aside`、`create-preview`、`桌邊先放一張椅子`；`index-BmR1k1jj.css` 含 `create-form`、`create-preview`、`page--wide`。
+- ✅ `/app/events/new?deploy=8a4f72b` HTTP 200；回應仍含既有 CSP、`cache-control: no-store` 與 `x-content-type-options: nosniff`。
+- ⚠️ Cloudflare edge 對不同 query 仍可能回傳不同 HTML／資產版本（例如 `deploy=8a4f72b` 可讀本版、其他 query 仍可能命中前版）；尚未取得 purge API／Dashboard 操作證據，因此不宣稱所有無 query 使用者已立即切換。
+- ⚠️ 尚未取得實體手機／iPad／桌機 screenshot E2E；本環境 Vite dev server 仍受 `listen EPERM` 限制。Supabase、LINE、付款資料與使用者資料未修改。
