@@ -7,6 +7,7 @@ export default function TopNav() {
   const { session } = useSession();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const touchNav = typeof navigator !== "undefined" && navigator.maxTouchPoints > 0;
 
   function closeMenu() {
     setMenuOpen(false);
@@ -19,7 +20,7 @@ export default function TopNav() {
   }
 
   return (
-    <nav className="top-nav">
+    <nav className={`top-nav${touchNav ? " touch-nav" : ""}`}>
       <div className="brand-lockup">
         <a href="/" className="brand brand--site" onClick={closeMenu}>
           聚場台灣

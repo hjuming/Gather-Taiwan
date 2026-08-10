@@ -203,6 +203,47 @@ nav.top-nav .brand--tool {
   }
 }
 
+/* iPadOS「要求桌面版網站」可能回報桌面 viewport，觸控能力仍優先使用抽屜導覽。 */
+nav.top-nav.touch-nav {
+  position: relative;
+  width: min(920px, calc(100% - 32px));
+  padding: 16px 0;
+}
+
+nav.top-nav.touch-nav .menu-toggle {
+  display: inline-flex;
+}
+
+nav.top-nav.touch-nav .top-nav-menu {
+  position: absolute;
+  top: calc(100% - 4px);
+  right: 0;
+  z-index: 20;
+  display: none;
+  min-width: 200px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px !important;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 12px 28px rgb(27 23 18 / 14%);
+}
+
+nav.top-nav.touch-nav .top-nav-menu.is-open {
+  display: flex;
+}
+
+nav.top-nav.touch-nav .top-nav-menu a,
+nav.top-nav.touch-nav .top-nav-menu .btn-text {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-align: left;
+}
+
 .stack {
   display: flex;
   flex-direction: column;

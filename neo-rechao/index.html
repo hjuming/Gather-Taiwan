@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  if (navigator.maxTouchPoints > 0) document.documentElement.dataset.touchNav = "true";
+</script>
 <title>新熱炒運動 Neo-Rechao｜Gather Taiwan</title>
 <meta name="description" content="新熱炒運動 Neo-Rechao 以熱炒桌、碰杯聲、台灣音樂與城市夜晚整理台灣相聚文化，作為正在成形的城市聚場方向。">
 <meta name="keywords" content="新熱炒運動,Neo-Rechao,聚場台灣,Gather Taiwan,Signature Gathering,熱炒文化,台灣相聚文化,城市夜晚,品牌共創">
@@ -230,6 +233,14 @@
     .nav-links a{padding:18px 0;border-bottom:1px solid rgba(27,23,18,.14);font-size:16px;color:var(--ink)}
     .drawer-note{display:block;margin-top:18px;font-size:13px;line-height:1.7;color:var(--muted)}
   }
+</style>
+<style>
+  html[data-touch-nav] body.nav-open{overflow:hidden}
+  html[data-touch-nav] .nav-toggle{display:flex!important;flex:0 0 44px;position:relative;z-index:90;flex-direction:column;justify-content:center;margin-left:auto;min-width:44px;min-height:44px;touch-action:manipulation}
+  html[data-touch-nav] .nav-links{position:fixed;inset:68px 0 auto auto;z-index:80;display:flex;flex-direction:column;align-items:stretch;gap:0;width:min(420px,calc(100vw - 24px));max-height:calc(100dvh - 84px);overflow:auto;padding:24px 28px 28px;background:var(--paper);border-left:1px solid var(--line);border-bottom:1px solid var(--line);box-shadow:-24px 24px 80px rgba(27,23,18,.32);opacity:0;visibility:hidden;pointer-events:none}
+  html[data-touch-nav] .nav-links.open{opacity:1;visibility:visible;pointer-events:auto}
+  html[data-touch-nav] .nav-links a{padding:18px 0;border-bottom:1px solid var(--line);font-size:16px;color:var(--ink)}
+  html[data-touch-nav] .drawer-note{display:block;margin-top:18px;font-size:13px;line-height:1.7;color:var(--muted)}
 </style>
 </head>
 <body>
