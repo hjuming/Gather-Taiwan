@@ -126,6 +126,21 @@ export async function getMyRegistrations(): Promise<(RegistrationRow & { events:
   return (data as unknown as (RegistrationRow & { events: EventRow })[]) ?? [];
 }
 
+/** Events owned by an organizer identity the current user belongs to. */
+export async function getMyHostedEvents(): Promise<EventRow[]> {
+  const memberships = await getMyOrganizers();
+  const organizerIds = [...new Set(memberships.map((membership) => membership.organizer_id))];
+  if (organizerIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("events")
+    .select(EVENT_COLUMNS)
+    .in("organizer_id", organizerIds)
+    .order("starts_at", { ascending: false });
+  if (error) throw error;
+  return (data as unknown as EventRow[]) ?? [];
+}
+
 export async function registerForEvent(
   eventId: string,
   answers: Record<string, unknown> = {},

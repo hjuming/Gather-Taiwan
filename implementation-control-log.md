@@ -1435,3 +1435,12 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ✅ 帶 cache-busting query 的正式 HTML 回傳新資產 `index-CuHTGEct.js`／`index-BhNlHoS5.css`；`/app/assets/gather-event-hero-default-v1.png` 回傳 `image/png`、1672×941。
 - ⚠️ Cloudflare edge 對不同 query 仍可能命中舊 HTML（例如 `deploy=613a951` 與 `v=613a951` 命中不同資產）；尚未取得 purge API／Dashboard 操作證據，因此不宣稱所有無 query 使用者已立即切換。
 - ⚠️ 未做 Supabase migration、Storage、RLS、Auth、LINE Developers 設定變更；自訂 HERO、參加者自填手機／Email／LINE 與 LINE Messaging 對話管理仍是後續工作。
+
+## 2026-08-10：主辦活動入口補齊（待部署）
+
+- ✅ 根因確認：導覽列原本只有「我的報名」（參加者清單），沒有主辦活動查詢路由；建立活動後只靠當下活動網址回到管理頁。
+- ✅ 新增 `/me/hosting` 主辦人工作區與 `getMyHostedEvents()`；依目前登入者所屬 organizer membership 讀取其可管理活動，保留 RLS 權限邊界。
+- ✅ 登入後 TopNav 新增「我發起的活動」；每場列出公開狀態、時間、地點、人數，並提供「管理活動」與「查看活動頁」入口。
+- ✅ 未登入訪問會導向登入，登入後回到 `/me/hosting`；無活動時提供「發起一場聚會」入口。
+- ✅ 本地驗證：Vitest `69 passed / 1 skipped`、typecheck、lint、`git diff --check` PASS。
+- ⚠️ 尚未部署；未修改 Supabase schema、RLS、Auth 或資料內容。正式環境需部署後才能看到新入口。

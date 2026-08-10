@@ -51,6 +51,9 @@ export default function TopNav() {
         </Link>
         {session ? (
           <>
+            <Link to="/me/hosting" onClick={closeMenu}>
+              我發起的活動
+            </Link>
             <Link to="/me/registrations" onClick={closeMenu}>
               我的報名
             </Link>

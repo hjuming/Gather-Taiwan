@@ -5,6 +5,7 @@ import AuthPage from "./pages/AuthPage";
 import EventCreatePage from "./pages/EventCreatePage";
 import EventPage from "./pages/EventPage";
 import MyRegistrationsPage from "./pages/MyRegistrationsPage";
+import MyHostedEventsPage from "./pages/MyHostedEventsPage";
 import LineAuthCompletePage from "./pages/LineAuthCompletePage";
 import SiteFooter from "./components/SiteFooter";
 
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/events/new" element={<EventCreatePage />} />
         <Route path="/e/:slug" element={<EventPage />} />
         <Route path="/me/registrations" element={<MyRegistrationsPage />} />
+        <Route path="/me/hosting" element={<MyHostedEventsPage />} />
       </Routes>
       <SiteFooter />
     </BrowserRouter>
