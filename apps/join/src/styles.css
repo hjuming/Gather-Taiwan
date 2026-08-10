@@ -144,7 +144,7 @@ nav.top-nav .brand--tool {
   line-height: 1;
 }
 
-@media (max-width: 900px), (pointer: coarse), (any-pointer: coarse) {
+@media (max-width: 1366px), (pointer: coarse), (any-pointer: coarse) {
   nav.top-nav {
     position: relative;
     width: min(920px, calc(100% - 32px));
