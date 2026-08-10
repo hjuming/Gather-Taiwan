@@ -1455,3 +1455,11 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ✅ 加入 touch-action、focus-visible、aria-live、skip link、scroll margin、prefers-reduced-motion 與 HERO 圖尺寸宣告，對齊 Web Interface Guidelines。
 - ✅ 本地驗證：Vitest `69 passed / 1 skipped`、typecheck、lint、build、smoke（59 audited files）、`git diff --check` PASS。
 - ⚠️ 尚未部署；本輪未修改 Supabase、LINE、付款資料或任何使用者資料。瀏覽器／實機 screenshot E2E 仍受本環境 Vite `listen EPERM` 限制，需部署後以手機、iPad 直式與桌機橫式再驗收。
+
+## 2026-08-10：5f455de 聚場台灣前台體驗重設部署完成
+
+- ✅ Git commit `5f455de` 已推送至 `origin/codex/gather-mvp`。
+- ✅ Cloudflare Worker `gather-join` 已部署，Version ID：`290529fc-5443-454c-9a06-cc669b2ca867`。
+- ✅ 新 JS `index-keRCsIuJ.js` 與 CSS `index-BN21jZCo.css` 已由正式資產端點讀回；JS 含「相招，聚一場。」「我發起的聚會」「一起來的人」「替朋友留名」，CSS 含 `mobile-action-dock`、`section-rail`、`scroll-tabs`。
+- ⚠️ Cloudflare edge 仍可能讓首頁 HTML 暫時命中前一版資產；本次未操作 purge。若看不到新版，請重新整理、使用無痕視窗，或等待 edge cache 更新。
+- ⚠️ 尚未取得實體手機／iPad／桌機 screenshot E2E；本環境 Vite dev server 仍受 `listen EPERM` 限制。Supabase、LINE、付款資料與使用者資料均未修改。
