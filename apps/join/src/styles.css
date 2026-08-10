@@ -76,6 +76,7 @@ nav.top-nav {
   margin: 0 auto;
   padding: 24px 0;
   font-size: 0.9rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .brand-lockup {
@@ -128,20 +129,33 @@ nav.top-nav .brand--tool {
 
 .menu-toggle {
   display: none;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
   width: 44px;
   height: 44px;
   padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--fg);
+  border: 0;
+  background: transparent;
 }
 
-.menu-toggle__icon {
-  font-size: 1.45rem;
-  line-height: 1;
+.menu-toggle__bar {
+  display: block;
+  height: 2px;
+  margin: 6px 0;
+  background: var(--fg);
+  transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+.menu-toggle[aria-expanded="true"] .menu-toggle__bar:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+
+.menu-toggle[aria-expanded="true"] .menu-toggle__bar:nth-child(2) {
+  opacity: 0;
+}
+
+.menu-toggle[aria-expanded="true"] .menu-toggle__bar:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
 }
 
 @media (max-width: 1366px), (pointer: coarse), (any-pointer: coarse) {
@@ -592,7 +606,7 @@ button:disabled {
 }
 
 .site-footer__inner a {
-  color: #d4ad73;
+  color: #b98b52;
 }
 
 /* Event detail: editorial mobile-first layout */

@@ -6,6 +6,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--dir", "apps/join", "dev"],
       "port": 5173
+    },
+    {
+      "name": "gather-static",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8791"],
+      "port": 8791
     }
   ]
 }

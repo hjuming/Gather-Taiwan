@@ -39,9 +39,9 @@ export default function TopNav() {
         aria-label={menuOpen ? "關閉選單" : "開啟選單"}
         onClick={() => setMenuOpen((open) => !open)}
       >
-        <span aria-hidden="true" className="menu-toggle__icon">
-          {menuOpen ? "×" : "☰"}
-        </span>
+        <span aria-hidden="true" className="menu-toggle__bar" />
+        <span aria-hidden="true" className="menu-toggle__bar" />
+        <span aria-hidden="true" className="menu-toggle__bar" />
       </button>
       <div id="top-nav-menu" className={`actions top-nav-menu${menuOpen ? " is-open" : ""}`} style={{ gap: 16 }}>
         <a href="/gatherings/" onClick={closeMenu}>
