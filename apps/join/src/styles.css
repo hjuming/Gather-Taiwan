@@ -1648,7 +1648,7 @@ nav.top-nav .top-nav-menu a[aria-current="page"] {
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  nav.top-nav {
+  .top-nav-inner {
     width: min(100% - 28px, 1120px);
   }
 
