@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useSession } from "../lib/useSession";
@@ -5,28 +6,52 @@ import { useSession } from "../lib/useSession";
 export default function TopNav() {
   const { session } = useSession();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  function closeMenu() {
+    setMenuOpen(false);
+  }
 
   async function handleSignOut() {
     await supabase.auth.signOut();
+    closeMenu();
     navigate("/");
   }
 
   return (
     <nav className="top-nav">
-      <Link to="/" className="brand" style={{ textDecoration: "none" }}>
+      <Link to="/" className="brand" style={{ textDecoration: "none" }} onClick={closeMenu}>
         來聚一場
       </Link>
-      <div className="actions" style={{ gap: 16 }}>
-        <Link to="/events/new">發起活動</Link>
+      <button
+        type="button"
+        className="menu-toggle"
+        aria-expanded={menuOpen}
+        aria-controls="top-nav-menu"
+        aria-label={menuOpen ? "關閉選單" : "開啟選單"}
+        onClick={() => setMenuOpen((open) => !open)}
+      >
+        <span aria-hidden="true" className="menu-toggle__icon">
+          {menuOpen ? "×" : "☰"}
+        </span>
+      </button>
+      <div id="top-nav-menu" className={`actions top-nav-menu${menuOpen ? " is-open" : ""}`} style={{ gap: 16 }}>
+        <Link to="/events/new" onClick={closeMenu}>
+          發起活動
+        </Link>
         {session ? (
           <>
-            <Link to="/me/registrations">我的報名</Link>
+            <Link to="/me/registrations" onClick={closeMenu}>
+              我的報名
+            </Link>
             <button type="button" className="btn-text" onClick={handleSignOut}>
               登出
             </button>
           </>
         ) : (
-          <Link to="/auth">登入</Link>
+          <Link to="/auth" onClick={closeMenu}>
+            登入
+          </Link>
         )}
       </div>
     </nav>

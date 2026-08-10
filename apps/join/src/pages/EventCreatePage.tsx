@@ -2,15 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { createEvent, createOrganizer, getMyOrganizers, type OrganizerMembership } from "../lib/api";
 import { useSession } from "../lib/useSession";
-
-function slugify(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9一-鿿]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
-}
+import { createSlug } from "../lib/slug";
 
 function defaultDateTimeLocal(hoursFromNow: number): string {
   const d = new Date(Date.now() + hoursFromNow * 60 * 60 * 1000);
@@ -74,7 +66,7 @@ export default function EventCreatePage() {
     }
     setCreatingOrganizer(true);
     try {
-      const slug = `${slugify(newOrganizerName)}-${Math.random().toString(36).slice(2, 6)}`;
+      const slug = createSlug(newOrganizerName, "organizer", 63);
       const id = await createOrganizer(slug, newOrganizerName.trim());
       const rows = await getMyOrganizers();
       setOrganizers(rows);
@@ -105,7 +97,7 @@ export default function EventCreatePage() {
 
     setBusy(true);
     try {
-      const slug = `${slugify(title)}-${Math.random().toString(36).slice(2, 6)}`;
+      const slug = createSlug(title, "event", 95);
       const event_ = await createEvent({
         organizerId,
         slug,

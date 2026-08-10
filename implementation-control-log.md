@@ -1360,3 +1360,25 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
   `public`、`anon`、`authenticated`，也未開放 legal_name、birth_date、phone 等欄位。
 - ⚠️ 本地 migration 已更新，但 production 目前仍是前一版 grant；必須在 Supabase
   SQL Editor 套用一條補充 GRANT 並 read-back，再重試 E2E。
+
+## 2026-08-10：中文主辦名稱建立失敗修正
+
+- 觸發：使用「泰山高中同學會」建立主辦身份，畫面顯示「建立主辦身份失敗」。
+- 真實重現：正式 Supabase 交易內以 synthetic authenticated user 呼叫
+  `create_organizer('泰山高中同學會-ab12', '泰山高中同學會')`，回傳
+  `organizer_slug_format` check constraint violation；同一交易驗證 ASCII slug 可成功建立並查回名單。
+- 排除：正式 `create_organizer` RPC 存在；`authenticated` 有 EXECUTE、`anon` 無 EXECUTE；P1-04 RLS verifier 9/9 PASS。未修改遠端權限或資料。
+- 根因：前端 `slugify` 錯誤保留中文，但 DB slug 契約只允許 ASCII `[a-z0-9-]`。
+- 變更：新增 `src/lib/slug.ts`；organizer slug 限制 63 字元、event slug 限制 95 字元；純中文名稱使用 ASCII fallback 加短隨機尾碼；新增 slug contract tests。
+- 驗證：先 RED 後 GREEN；完整 Vitest `61 passed / 1 skipped`、security 14 passed、typecheck/lint/build/smoke（51 audited files）PASS。
+- ⚠️ 正式網域尚未部署本次修正；部署前不得宣稱使用者實測已恢復。
+- 回滾：回滾本次 `slug.ts`、`EventCreatePage.tsx`、`slug.test.ts` 及本紀錄即可，未涉及 schema、Auth 或付款資料。
+
+## 2026-08-10：iPad 直式 TopNav 漢堡選單修正
+
+- 觸發：iPad 直式瀏覽時，右上方沒有可操作的漢堡選單。
+- 根因：`TopNav` 原本只有水平連結，沒有 menu toggle、開關狀態或 compact breakpoint；不是按鈕被裁切。
+- 變更：`TopNav.tsx` 新增可存取的 toggle（`aria-expanded`／`aria-controls`）、展開／收合狀態與點擊連結後關閉；`styles.css` 在 `max-width: 900px` 顯示 44px 觸控按鈕及右側選單面板；新增 `TopNav.test.tsx` 契約測試。
+- 驗證：導覽測試先 RED 後 GREEN；完整 Vitest `59 passed / 1 skipped`、typecheck、lint、build、smoke（49 audited files）PASS；build bundle 已包含 `max-width: 900px` 與 `menu-toggle` 規則。
+- ⚠️ 實體 iPad 觸控與旋轉尚未在本輪取得裝置錄影；正式網域尚未因本輪變更重新部署。
+- 回滾：回滾本次三個檔案的 commit 即可，未涉及資料庫、Auth、Cloudflare 或使用者資料。
