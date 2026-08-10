@@ -1415,3 +1415,15 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ✅ Git commit `4369e96` 已推送至 `origin/codex/gather-mvp`；Cloudflare Worker 最新 Version ID：`ecc053d0-47e3-4420-87f6-c0687819f0bc`。
 - ✅ 以快取繞過 query read-back：`/app/?v=4369e96` 回傳新資產 `index-BE2VP-KJ.js`，且資產內容含 24 小時分享格式。
 - ⚠️ 不帶 query 的 `/app/` 仍由 Cloudflare edge 回傳前一版 `index-U3D3piE0.js`；匿名 PURGE 回應 400，尚未取得 purge API／Dashboard 操作證據。完成 purge 前，不宣稱所有無 query 使用者已切換新資產。
+
+## 2026-08-10：活動頁 v2／日期編碼分享／名單管理（待部署）
+
+- ✅ 活動頁改為手機優先的 Warm Minimalism 版型：預設 HERO、活動摘要、時間、Google Maps 地點、費用、人數上限與一致的分享按鈕；分享到 LINE 使用完整活動文案，不再只傳活動網址。
+- ✅ 分享文案包含活動主題、摘要、台北時間（24 小時制）、Google Maps Markdown 地點連結、地址、費用、人數上限與活動網址。
+- ✅ 新建立活動的 slug 改為帶日期的可讀格式（例如 `event-20260817-xxxx`）。日期只改善辨識與分享，不作為私密活動授權；既有活動 slug 不變。
+- ✅ 新增系統預設 HERO 素材 `apps/join/public/assets/gather-event-hero-default-v1.png`（1672×941，無文字／Logo／可辨識人物）；主辦人自訂 HERO 尚未施工。
+- ✅ 名單管理新增總人數、已確認、未確認、邀請中、候補統計，並保留手動名單聯絡方式；線上報名不自動揭露 `users` 的手機／Email／LINE 身分，避免跨使用者隱私越權。
+- ✅ 本地驗證：Vitest `69 passed / 1 skipped`、typecheck、lint、build、smoke（58 audited files）、`git diff --check` PASS；build 已輸出 HERO asset。
+- ⚠️ 尚未部署；本輪未修改 Supabase migration、Storage、RLS、Auth、LINE Developers 或 Cloudflare 設定。自訂 HERO 與參加者自填聯絡欄位需另行核准資料模型／RLS 後施工。
+- ⚠️ Vite dev server 在本執行環境因 `listen EPERM` 無法啟動，未取得瀏覽器／實體手機 screenshot E2E；不能以本地 build 代替行動裝置驗收。
+- 回滾：回滾本輪前端、素材與文件變更即可，未涉及遠端資料庫或使用者資料。

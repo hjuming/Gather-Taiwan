@@ -19,6 +19,8 @@ import RosterManager from "../components/RosterManager";
 import { validateEventAnswers, type EventAnswer } from "../lib/event-fields";
 import { copyText, getEventShareText, getEventShareUrl, getGoogleMapsSearchUrl, getLineShareUrl } from "../lib/event-links";
 
+const DEFAULT_HERO_IMAGE = `${import.meta.env.BASE_URL}assets/gather-event-hero-default-v1.png`;
+
 const VISIBILITY_LABEL: Record<EventRow["visibility"], string> = {
   public: "公開活動",
   unlisted: "不公開列表",
@@ -255,8 +257,8 @@ export default function EventPage() {
         await navigator.share({ title: eventRow.title, text, url });
         setNotice("已開啟分享面板");
       } else {
-        await copyText(url);
-        setNotice("活動連結已複製，可以貼到 LINE 群組或聊天室");
+        await copyText(text);
+        setNotice("活動分享內容已複製，可以貼到 LINE 群組或聊天室");
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
@@ -268,187 +270,174 @@ export default function EventPage() {
     setError(null);
     try {
       await copyText(getEventShareUrl((event as EventRow).slug));
-      setNotice("活動連結已複製");
+      setNotice("活動／邀請連結已複製");
     } catch {
       setError("複製失敗，請手動複製瀏覽器網址");
     }
   }
 
-  return (
-    <div className="page">
-      <p className="eyebrow">{VISIBILITY_LABEL[event.visibility]}</p>
-      <h1>{event.title}</h1>
-      {event.summary && <p style={{ color: "var(--muted)" }}>{event.summary}</p>}
+  async function handleCopyShareText() {
+    setError(null);
+    try {
+      const eventRow = event as EventRow;
+      await copyText(getEventShareText(eventRow, getEventShareUrl(eventRow.slug)));
+      setNotice("完整活動資訊已複製");
+    } catch {
+      setError("複製失敗，請改用分享到 LINE");
+    }
+  }
 
-      <div className="stack--tight" style={{ marginBottom: 24 }}>
-        <div className="meta-line">
-          <strong>時間</strong>
-          <span>{formatDateRange(event.starts_at, event.ends_at)}</span>
+  const eventUrl = getEventShareUrl(event.slug);
+  const mapsUrl = getGoogleMapsSearchUrl(event);
+  const shareText = getEventShareText(event, eventUrl);
+
+  return (
+    <div className="event-page">
+      <section className="event-hero" aria-labelledby="event-title">
+        <img src={DEFAULT_HERO_IMAGE} alt="溫暖餐桌上的相聚時光" />
+        <div className="event-hero__veil" />
+        <div className="event-hero__copy">
+          <p className="eyebrow">{VISIBILITY_LABEL[event.visibility]}</p>
+          <h1 id="event-title">{event.title}</h1>
+          <p>{event.summary || "相招來聚會"}</p>
         </div>
-        {event.location_name && (
-          <div className="meta-line">
-            <strong>地點</strong>
-            <span>
-              <a
-                className="map-link"
-                href={getGoogleMapsSearchUrl(event) ?? undefined}
-                target="_blank"
-                rel="noreferrer"
-              >
+      </section>
+
+      <div className="event-page__body">
+        {notice && <div className="banner banner--success">{notice}</div>}
+        {error && <div className="banner banner--error">{error}</div>}
+        {isCancelled && <div className="banner banner--error">此活動已由主辦人取消</div>}
+
+        <section className="event-facts" aria-label="活動基本資料">
+          <div className="event-fact event-fact--wide">
+            <span className="event-fact__label">日期與時間</span>
+            <strong>{formatDateRange(event.starts_at, event.ends_at)}</strong>
+          </div>
+          <div className="event-fact event-fact--wide">
+            <span className="event-fact__label">地點</span>
+            {event.location_name ? (
+              <a href={mapsUrl ?? undefined} target="_blank" rel="noreferrer">
                 {event.location_name}
               </a>
-              {event.location_address ? `・${event.location_address}` : ""}
-            </span>
+            ) : (
+              <strong>尚未提供</strong>
+            )}
+            {event.location_address && <span>{event.location_address}</span>}
           </div>
-        )}
-        <div className="meta-line">
-          <strong>費用</strong>
-          <span>{Number(event.fee_amount) > 0 ? `NT$ ${event.fee_amount}` : "免費"}</span>
-        </div>
-        {event.capacity && (
-          <div className="meta-line">
-            <strong>人數上限</strong>
-            <span>{event.capacity} 人</span>
+          <div className="event-fact">
+            <span className="event-fact__label">費用</span>
+            <strong>{Number(event.fee_amount) > 0 ? `NT$ ${event.fee_amount}` : "免費"}</strong>
           </div>
-        )}
-        {event.min_age && (
-          <div className="meta-line">
-            <strong>年齡限制</strong>
-            <span>{event.min_age} 歲以上</span>
+          <div className="event-fact">
+            <span className="event-fact__label">人數上限</span>
+            <strong>{event.capacity ? `${event.capacity} 人` : "不限人數"}</strong>
           </div>
-        )}
-      </div>
-
-      <div className="event-share" aria-label="分享活動">
-        <button type="button" className="btn-primary" onClick={handleShare}>
-          分享活動
-        </button>
-        <button type="button" className="btn-secondary" onClick={handleCopyLink}>
-          複製活動連結
-        </button>
-        <a
-          className="btn-secondary event-share__line"
-          href={getLineShareUrl(getEventShareText(event, getEventShareUrl(event.slug)))}
-          target="_blank"
-          rel="noreferrer"
-        >
-          分享到 LINE
-        </a>
-      </div>
-
-      {notice && <div className="banner banner--success">{notice}</div>}
-      {error && <div className="banner banner--error">{error}</div>}
-
-      {isCancelled && <div className="banner banner--error">此活動已由主辦人取消</div>}
-
-      {event.description && (
-        <div className="card" style={{ marginBottom: 24 }}>
-          <h2>活動說明</h2>
-          <SafeRichText html={event.description} />
-        </div>
-      )}
-
-      {event.payment_instructions && (
-        <div className="card" style={{ marginBottom: 24 }}>
-          <h2>收款說明</h2>
-          <SafeRichText html={event.payment_instructions} />
-          {session && !showReportField && (
-            <button type="button" className="btn-text" onClick={() => setShowReportField(true)}>
-              檢舉這則收款說明
-            </button>
+          {event.min_age && (
+            <div className="event-fact">
+              <span className="event-fact__label">年齡限制</span>
+              <strong>{event.min_age} 歲以上</strong>
+            </div>
           )}
-          {showReportField && (
-            <form className="stack--tight" onSubmit={handleReport}>
-              <textarea
-                value={reportNote}
-                onChange={(e) => setReportNote(e.target.value)}
-                placeholder="說明可疑之處（選填）"
-              />
-              <div className="actions">
-                <button type="submit" className="btn-secondary" disabled={busy}>
-                  送出檢舉
-                </button>
-              </div>
+        </section>
+
+        <section className="event-share event-share--full" aria-label="分享活動">
+          <button type="button" className="btn-primary" onClick={handleShare}>
+            分享活動
+          </button>
+          <a className="btn-secondary" href={getLineShareUrl(shareText)} target="_blank" rel="noreferrer">
+            分享到 LINE
+          </a>
+          <button type="button" className="btn-secondary" onClick={handleCopyShareText}>
+            複製分享內容
+          </button>
+          <button type="button" className="btn-text" onClick={handleCopyLink}>
+            複製活動／邀請連結
+          </button>
+        </section>
+        <p className="event-share__note">新建立的活動連結會帶有日期，例如 `event-20260817-xxxx`；私密活動仍以邀請權限判斷，網址本身不會繞過限制。</p>
+
+        {event.description && (
+          <section className="event-section">
+            <p className="section-kicker">About this gathering</p>
+            <h2>活動說明</h2>
+            <div className="event-richtext"><SafeRichText html={event.description} /></div>
+          </section>
+        )}
+
+        {event.payment_instructions && (
+          <section className="event-section event-section--quiet">
+            <p className="section-kicker">Organizer note</p>
+            <h2>收款說明</h2>
+            <div className="event-richtext"><SafeRichText html={event.payment_instructions} /></div>
+            {session && !showReportField && (
+              <button type="button" className="btn-text" onClick={() => setShowReportField(true)}>
+                檢舉這則收款說明
+              </button>
+            )}
+            {showReportField && (
+              <form className="stack--tight" onSubmit={handleReport}>
+                <textarea value={reportNote} onChange={(e) => setReportNote(e.target.value)} placeholder="說明可疑之處（選填）" />
+                <button type="submit" className="btn-secondary" disabled={busy}>送出檢舉</button>
+              </form>
+            )}
+          </section>
+        )}
+
+        <section className="event-register" aria-labelledby="registration-title">
+          <div className="event-section__heading">
+            <div>
+              <p className="section-kicker">Join the table</p>
+              <h2 id="registration-title">報名</h2>
+            </div>
+            {isOrganizerAdmin && <span className="status-pill status-pill--confirmed">主辦人</span>}
+          </div>
+
+          {isOrganizerAdmin && (
+            <div className="banner banner--info event-admin-note">
+              你是這場活動的主辦人。
+              {!isCancelled && <button type="button" className="btn-text" onClick={handleCancelEvent} disabled={busy}>取消整場活動</button>}
+            </div>
+          )}
+
+          {myRegistration ? (
+            <div className="stack">
+              <span className={`status-pill ${myRegistration.status === "confirmed" ? "status-pill--confirmed" : ""}`}>
+                {REGISTRATION_STATUS_LABEL[myRegistration.status]}
+              </span>
+              {["offered", "pending_organizer_confirmation", "confirmed", "waitlisted"].includes(myRegistration.status) && (
+                <div className="actions">
+                  {Number(event.fee_amount) > 0 && !myRegistration.payment_declared_at && (
+                    <button type="button" className="btn-secondary" onClick={handleDeclarePayment} disabled={busy}>我已完成付款</button>
+                  )}
+                  <button type="button" className="btn-secondary" onClick={handleCancelRegistration} disabled={busy}>取消我的報名</button>
+                </div>
+              )}
+              {myRegistration.payment_declared_at && <p className="hint">已聲明付款：{new Date(myRegistration.payment_declared_at).toLocaleString("zh-TW")}</p>}
+            </div>
+          ) : isOpen ? (
+            <form onSubmit={handleRegister} className="stack">
+              {session && fields.length > 0 && (
+                <div className="stack--tight">
+                  <h3>報名資料</h3>
+                  <p className="hint">請填寫主辦人需要的資料；標示「必填」的欄位不能留白。</p>
+                  {fields.map((field) => (
+                    <EventFieldInput key={field.id} field={field} value={answers[field.field_key]} onChange={(value) => setAnswers((previous) => ({ ...previous, [field.field_key]: value }))} />
+                  ))}
+                </div>
+              )}
+              <button type="submit" className="btn-primary event-register__cta" disabled={busy}>{busy ? "送出中…" : session ? "我要報名" : "登入後報名"}</button>
             </form>
-          )}
-        </div>
-      )}
-
-      <div className="card">
-        <h2>報名</h2>
+          ) : <p className="hint">目前未開放報名</p>}
+        </section>
 
         {isOrganizerAdmin && (
-          <div className="banner banner--info" style={{ marginBottom: 16 }}>
-            你是這場活動的主辦人。
-            {!isCancelled && (
-              <>
-                {" "}
-                <button type="button" className="btn-text" onClick={handleCancelEvent} disabled={busy}>
-                  取消整場活動
-                </button>
-              </>
-            )}
-          </div>
-        )}
-
-        {myRegistration ? (
-          <div className="stack">
-            <span
-              className={`status-pill ${myRegistration.status === "confirmed" ? "status-pill--confirmed" : ""}`}
-            >
-              {REGISTRATION_STATUS_LABEL[myRegistration.status]}
-            </span>
-            {["offered", "pending_organizer_confirmation", "confirmed", "waitlisted"].includes(
-              myRegistration.status,
-            ) && (
-              <div className="actions">
-                {Number(event.fee_amount) > 0 && !myRegistration.payment_declared_at && (
-                  <button type="button" className="btn-secondary" onClick={handleDeclarePayment} disabled={busy}>
-                    我已完成付款
-                  </button>
-                )}
-                <button type="button" className="btn-secondary" onClick={handleCancelRegistration} disabled={busy}>
-                  取消我的報名
-                </button>
-              </div>
-            )}
-            {myRegistration.payment_declared_at && (
-              <p className="hint">已於 {new Date(myRegistration.payment_declared_at).toLocaleString("zh-TW")} 聲明付款</p>
-            )}
-          </div>
-        ) : isOpen ? (
-          <form onSubmit={handleRegister} className="stack">
-            {session && fields.length > 0 && (
-              <div className="stack--tight">
-                <h3>報名資料</h3>
-                <p className="hint">請填寫主辦人需要的資料；標示「必填」的欄位不能留白。</p>
-                {fields.map((field) => (
-                  <EventFieldInput
-                    key={field.id}
-                    field={field}
-                    value={answers[field.field_key]}
-                    onChange={(value) => setAnswers((previous) => ({ ...previous, [field.field_key]: value }))}
-                  />
-                ))}
-              </div>
-            )}
-            <div className="actions">
-              <button type="submit" className="btn-primary" disabled={busy}>
-                {busy ? "送出中…" : session ? "我要報名" : "登入後報名"}
-              </button>
-            </div>
-          </form>
-        ) : (
-          <p style={{ color: "var(--muted)" }}>目前未開放報名</p>
+          <section className="event-section roster-section">
+            <p className="section-kicker">Organizer workspace</p>
+            <h2>參加者名單管理</h2>
+            <RosterManager eventId={event.id} capacity={event.capacity} />
+          </section>
         )}
       </div>
-
-      {isOrganizerAdmin && (
-        <div className="card" style={{ marginTop: 24 }}>
-          <h2>參加者名單管理</h2>
-          <RosterManager eventId={event.id} />
-        </div>
-      )}
     </div>
   );
 }

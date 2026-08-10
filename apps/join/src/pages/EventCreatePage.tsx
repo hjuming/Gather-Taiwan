@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { createEvent, createOrganizer, getMyOrganizers, type OrganizerMembership } from "../lib/api";
 import { useSession } from "../lib/useSession";
-import { createSlug } from "../lib/slug";
+import { createEventSlug, createSlug } from "../lib/slug";
 import DateTimeField from "../components/DateTimeField";
 import {
   dateTimePartsToTaipeiIso,
@@ -113,7 +113,7 @@ export default function EventCreatePage() {
 
     setBusy(true);
     try {
-      const slug = createSlug(title, "event", 95);
+      const slug = createEventSlug(title, startsAt.date, 95);
       const event_ = await createEvent({
         organizerId,
         slug,

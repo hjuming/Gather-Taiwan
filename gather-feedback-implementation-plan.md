@@ -36,3 +36,10 @@
 - 原生日期／時間控制項的外觀受 OS 影響；因此時間改用自有 24 小時選單，避免 iPad 顯示上午／下午微調器。
 - 同日預設若使用者在台北時間 21:30 後開啟表單，會自動順延至翌日，避免預設值落在過去。
 - LINE Messaging API 需要 Cloudflare、LINE Developers 與資料庫／權限變更；本輪不直接改動這些 production 設定。
+
+## 2026-08-10 活動頁 v2 補充
+
+- 活動頁改為手機優先的 editorial layout，包含預設 HERO、活動基本資料、完整分享內容與主辦人名單工作區。
+- 分享 slug 新活動改為 `event-YYYYMMDD-xxxx`，日期只是可讀識別，不取代 private event 的 token／權限檢查。
+- 預設 HERO 已放入 `apps/join/public/assets/gather-event-hero-default-v1.png`。主辦人自訂圖片要正式落地，仍需 Supabase Storage bucket、`hero_image_url` 欄位、RLS／檔案大小與 MIME 驗證；依目前「暫停 Supabase 專案操作」指示，本輪不套用遠端 migration。
+- 參加者聯絡資訊只顯示報名流程中明確提供或主辦人手動填入的 `manual_contact`；資料庫目前不授權 organizer 直接讀取其他使用者的手機、Email 或 LINE identity。

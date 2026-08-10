@@ -13,3 +13,9 @@ export function createSlug(value: string, fallback: string, maxLength: number): 
   const base = candidate.slice(0, maxBaseLength).replace(/-+$/, "") || "item";
   return `${base}-${suffix}`;
 }
+
+/** Shared links expose the date for readability; authorization never relies on the slug. */
+export function createEventSlug(title: string, startsAtDate: string, maxLength: number): string {
+  const dateCode = startsAtDate.replace(/[^0-9]/g, "").slice(0, 8) || "00000000";
+  return createSlug(`event-${dateCode}-${title}`, `event-${dateCode}`, maxLength);
+}
