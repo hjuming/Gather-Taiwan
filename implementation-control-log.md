@@ -1499,3 +1499,13 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ✅ 原生分享改為只傳一份純文字邀請，避免同時傳 `text` 與 `url` 造成部分 LINE／iPad 分享目標重複顯示活動網址。
 - ✅ 測試補上純文字與無 Markdown／無 Maps URL 驗收；typecheck、lint、Vitest `71 passed / 1 skipped`、build、smoke 均 PASS。
 - ⚠️ 尚未部署；實際 LINE 客戶端換行與自動辨識活動網址仍需正式環境 E2E。
+
+## 2026-08-10：iPadOS 桌面模式漢堡導覽修正部署
+
+- ✅ 外部只讀稽核確認根因：導覽切換只依賴 viewport／pointer media query；iPadOS 桌面模式可能回報桌面 viewport，導致 `.nav-toggle` 維持 `display:none`。
+- ✅ 靜態主站五頁加入觸控能力早期標記 `data-touch-nav` 與抽屜導覽 fallback；來聚一場 React `TopNav` 同步加入 `.touch-nav` fallback。桌機仍保留完整橫向導覽。
+- ✅ `0e0c7f5` 的 `max-width:1366px` 平板 fallback 保留；本次 commit `a67d38d` 已推送至 `origin/codex/gather-mvp`。
+- ✅ Worker production version `45b790b8-bf59-40d5-a090-b8925d88d8f7` 已部署至 `gather.wedopr.com/app/*`。
+- ✅ Cloudflare Pages production deployment `22527b61-ce76-4ca9-9225-ec8365bd43a2`（source `a67d38d`）已部署；`/`、`/gatherings/` 正式 HTML 回讀 `navigator.maxTouchPoints` 與 `html[data-touch-nav]`；`/app/` 回讀 `index-s6CRvfvH.css`。
+- ✅ 驗證：typecheck、lint、Vitest `71 passed / 1 skipped`、build、static touch-nav contract、`git diff --check` PASS。
+- ⚠️ 尚未取得實體 iPad screenshot E2E；請在正式網域強制重新整理一次，並分別驗證直式／橫式右上角漢堡可見、可開啟、可關閉。若仍看到舊版，先使用無痕視窗再回報當下 URL 與 Safari 是否開啟「要求桌面版網站」。

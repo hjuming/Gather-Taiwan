@@ -93,6 +93,14 @@ pnpm smoke
 - 本地驗證：`58 passed / 1 skipped`、typecheck/lint/build/smoke 全部 PASS。
 - 仍不可宣稱：完整失敗矩陣、Cloudflare Access staging、P2-02 migration ledger 同步。
 
+## 2026-08-10 iPad 導覽修正部署
+
+- ✅ `TopNav` 以 `navigator.maxTouchPoints` 標記觸控裝置；iPadOS「要求桌面版網站」即使回報桌面寬度，仍使用漢堡抽屜導覽。
+- ✅ Worker production version：`45b790b8-bf59-40d5-a090-b8925d88d8f7`，路由為 `gather.wedopr.com/app/*`。
+- ✅ 正式資產回讀：`/app/assets/index-s6CRvfvH.css` 含 `.touch-nav` 規則；`/app/` HTTP 200、`cache-control: no-store`。
+- ✅ 本地驗證：typecheck、lint、Vitest `71 passed / 1 skipped`、production build、static touch-nav contract、`git diff --check` PASS。
+- ⚠️ 仍需使用實體 iPad 直式／橫式點擊漢堡與抽屜項目完成視覺 E2E；本次未修改 Supabase、LINE、付款資料或使用者資料。
+
 ## 2026-08-08 可接續進度：自訂報名欄位
 
 - 活動頁會讀取既有 `event_fields`，依 `short_text`、`long_text`、`single_choice`、
