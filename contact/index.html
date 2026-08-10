@@ -71,7 +71,7 @@
   .nav-links{display:flex;align-items:center;gap:20px}
   .nav-links a{font-size:13px;font-weight:800;color:rgba(27,23,18,.68)}
   .nav-links a:last-child{padding:10px 14px;border:1px solid var(--line);color:var(--ink);background:rgba(255,250,240,.72)}
-  .nav-toggle{display:none;width:42px;height:42px;border:0;background:transparent;padding:8px}
+  .nav-toggle{display:none;width:42px;height:42px;border:0;background:transparent;padding:0}
   .nav-toggle span{display:block;height:2px;margin:6px 0;background:var(--ink)}
   .drawer-note{display:none}
   .eyebrow{font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--brick)}
@@ -164,6 +164,17 @@
   html[data-touch-nav] .nav-links.open{opacity:1;visibility:visible;pointer-events:auto}
   html[data-touch-nav] .nav-links a{padding:18px 0;border-bottom:1px solid var(--line);font-size:16px;color:var(--ink)}
   html[data-touch-nav] .drawer-note{display:block;margin-top:18px;font-size:13px;line-height:1.7;color:var(--muted)}
+</style>
+<style>
+  /* 不依賴 JS 的備援：inline script 若因任何原因未執行，iOS 系 WebKit 仍會透過此特徵查詢維持可觸控導覽。 */
+  @supports (-webkit-touch-callout:none){
+    body.nav-open{overflow:hidden}
+    .nav-toggle{display:flex!important;flex:0 0 44px;position:relative;z-index:90;flex-direction:column;justify-content:center;margin-left:auto;min-width:44px;min-height:44px;touch-action:manipulation}
+    .nav-links{position:fixed;inset:68px 0 auto auto;z-index:80;display:flex;flex-direction:column;align-items:stretch;gap:0;width:min(520px,calc(100vw - 24px));max-height:calc(100dvh - 84px);overflow:auto;padding:24px 28px 28px;background:var(--paper);border-left:1px solid var(--line);border-bottom:1px solid var(--line);box-shadow:-24px 24px 80px rgba(27,23,18,.32);opacity:0;visibility:hidden;pointer-events:none}
+    .nav-links.open{opacity:1;visibility:visible;pointer-events:auto}
+    .nav-links a{padding:18px 0;border-bottom:1px solid var(--line);font-size:16px;color:var(--ink)}
+    .drawer-note{display:block;margin-top:18px;font-size:13px;line-height:1.7;color:var(--muted)}
+  }
 </style>
 </head>
 <body>
