@@ -133,30 +133,33 @@ export default function RosterManager({ eventId, capacity }: { eventId: string; 
   return (
     <div className="roster-manager">
       <p className="hint roster-manager__privacy">
-        這裡顯示活動名單與參加者主動提供的聯絡方式。系統不會自動揭露參加者帳號的手機、Email 或 LINE 身分；請在報名欄位或手動名單中取得對方同意後再填寫。
+        這份名單只放參加者自己留下的聯絡方式。手機、Email 或 LINE 只有在對方願意提供時，才會出現在這裡。
       </p>
 
-      {error && <div className="banner banner--error">{error}</div>}
+      {error && <div className="banner banner--error" role="alert">{error}</div>}
 
       <div className="roster-stats" aria-label="參加者統計">
-        <div><span>總人數</span><strong>{stats.total}{capacity ? ` / ${capacity}` : ""}</strong></div>
-        <div><span>已確認</span><strong>{stats.confirmed}</strong></div>
-        <div><span>未確認</span><strong>{stats.pending}</strong></div>
+        <div><span>會來的人</span><strong>{stats.total}{capacity ? ` / ${capacity}` : ""}</strong></div>
+        <div><span>已答應</span><strong>{stats.confirmed}</strong></div>
+        <div><span>等回覆</span><strong>{stats.pending}</strong></div>
         <div><span>邀請中</span><strong>{stats.invited}</strong></div>
         <div><span>候補</span><strong>{stats.waitlisted}</strong></div>
       </div>
 
-      <form onSubmit={handleAdd} className="roster-add-form">
-        <div className="field">
-          <label htmlFor="roster-name">姓名</label>
-          <input id="roster-name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="例如：王小明" />
-        </div>
-        <div className="field">
-          <label htmlFor="roster-contact">聯絡方式（參加者自願提供）</label>
-          <input id="roster-contact" type="text" value={contact} onChange={(e) => setContact(e.target.value)} placeholder="手機／Email／LINE" />
-        </div>
-        <button type="submit" className="btn-secondary" disabled={busy}>加入名單</button>
-      </form>
+      <details className="roster-add" open>
+        <summary>替朋友留名</summary>
+        <form onSubmit={handleAdd} className="roster-add-form">
+          <div className="field">
+            <label htmlFor="roster-name">姓名</label>
+            <input id="roster-name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="例如：王小明" />
+          </div>
+          <div className="field">
+            <label htmlFor="roster-contact">聯絡方式（對方願意提供時再填）</label>
+            <input id="roster-contact" type="text" value={contact} onChange={(e) => setContact(e.target.value)} placeholder="手機／Email／LINE" />
+          </div>
+          <button type="submit" className="btn-secondary" disabled={busy}>把名字放上桌</button>
+        </form>
+      </details>
 
       <div className="registration-list">
         {activeRoster.length === 0 && <p className="hint">目前沒有有效報名紀錄。</p>}

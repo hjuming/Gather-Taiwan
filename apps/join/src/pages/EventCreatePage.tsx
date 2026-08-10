@@ -144,9 +144,9 @@ export default function EventCreatePage() {
   if (organizers.length === 0) {
     return (
       <div className="page">
-        <p className="eyebrow">來聚一場</p>
-        <h1>先建立主辦身份</h1>
-        <p style={{ color: "var(--muted)" }}>建立一次即可，之後開新活動都會用這個身份。</p>
+        <p className="eyebrow">先留下一個名字</p>
+        <h1>這場聚會，由誰發起？</h1>
+        <p style={{ color: "var(--muted)" }}>留下一個大家認得的名字，之後每一次相約，都可以沿用。</p>
         {error && <div className="banner banner--error">{error}</div>}
         <form className="stack card" onSubmit={handleCreateOrganizer}>
           <div className="field">
@@ -162,7 +162,7 @@ export default function EventCreatePage() {
           </div>
           <div className="actions">
             <button type="submit" className="btn-primary" disabled={creatingOrganizer}>
-              {creatingOrganizer ? "建立中…" : "建立主辦身份"}
+              {creatingOrganizer ? "準備中…" : "留下這個名字"}
             </button>
           </div>
         </form>
@@ -171,9 +171,22 @@ export default function EventCreatePage() {
   }
 
   return (
-    <div className="page page--wide">
-      <p className="eyebrow">建立新活動</p>
-      <h1>{title.trim() || "新的聚場"}</h1>
+    <div className="page page--wide create-page">
+      <header className="create-header">
+        <div>
+          <p className="eyebrow">準備一場聚會</p>
+          <h1>{title.trim() || "新的聚會"}</h1>
+          <p>有些台灣記憶，是從一張桌開始的。先把想見的人，約在同一個時間與地點。</p>
+        </div>
+        <span className="create-header__date">台北時間<br /><strong>24 小時制</strong></span>
+      </header>
+
+      <nav className="section-rail create-section-rail" aria-label="建立活動步驟">
+        <a href="#create-basics">相聚內容</a>
+        <a href="#create-time">見面時間</a>
+        <a href="#create-access">誰可以來</a>
+        <a href="#create-fee">到場方式</a>
+      </nav>
 
       {error && (
         <div className="banner banner--error" role="alert">
@@ -184,7 +197,7 @@ export default function EventCreatePage() {
       <form className="stack" onSubmit={handleSubmit}>
         {organizers.length > 1 && (
           <div className="field">
-            <label htmlFor="organizer">主辦身份</label>
+            <label htmlFor="organizer">這場聚會的名字</label>
             <select id="organizer" value={organizerId} onChange={(event) => setOrganizerId(event.target.value)}>
               {organizers.map((o) => (
                 <option key={o.organizer_id} value={o.organizer_id}>
@@ -195,8 +208,8 @@ export default function EventCreatePage() {
           </div>
         )}
 
-        <div className="card stack">
-          <h2>基本資訊</h2>
+        <section id="create-basics" className="card stack form-section">
+          <h2>聚會主題與場景</h2>
           <div className="field">
             <label htmlFor="title">活動名稱</label>
             <input id="title" type="text" value={title} onChange={(event) => setTitle(event.target.value)} required />
@@ -236,19 +249,19 @@ export default function EventCreatePage() {
               />
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className="card stack">
-          <h2>時間</h2>
+        <section id="create-time" className="card stack form-section">
+          <h2>什麼時候見面</h2>
           <p className="hint">台北時間，使用 24 小時制。預設為當日 18:30–21:30。</p>
           <div className="row">
             <DateTimeField id="startsAt" label="開始時間" value={startsAt} onChange={setStartsAt} />
             <DateTimeField id="endsAt" label="結束時間" value={endsAt} onChange={setEndsAt} />
           </div>
-        </div>
+        </section>
 
-        <div className="card stack">
-          <h2>公開範圍與報名方式</h2>
+        <section id="create-access" className="card stack form-section">
+          <h2>誰可以來</h2>
           <div className="field">
             <label htmlFor="visibility">公開範圍</label>
             <select
@@ -269,7 +282,7 @@ export default function EventCreatePage() {
               onChange={(event) => setConfirmationMode(event.target.value as typeof confirmationMode)}
             >
               <option value="instant">立即確認（額滿前自動確認）</option>
-              <option value="organizer_confirmed">主辦人逐一確認</option>
+              <option value="organizer_confirmed">由你親自確認每一位</option>
             </select>
           </div>
           <div className="check-field">
@@ -324,10 +337,10 @@ export default function EventCreatePage() {
               />
             </div>
           )}
-        </div>
+        </section>
 
-        <div className="card stack">
-          <h2>費用與收款說明</h2>
+        <section id="create-fee" className="card stack form-section">
+          <h2>到場方式與費用</h2>
           <div className="field">
             <label htmlFor="feeAmount">費用（TWD，0 表示免費）</label>
             <input
@@ -348,11 +361,12 @@ export default function EventCreatePage() {
               placeholder="例如：現場收費 / 匯款帳號…（平台不代收，僅顯示你填寫的說明）"
             />
           </div>
-        </div>
+        </section>
 
-        <div className="actions">
+        <div className="actions create-submit">
+          <span>建立後可在「我發起的聚會」找到這一場</span>
           <button type="submit" className="btn-primary" disabled={busy}>
-            {busy ? "建立中…" : "建立活動"}
+            {busy ? "準備中…" : "把這場聚會建立起來"}
           </button>
         </div>
       </form>

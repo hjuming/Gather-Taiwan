@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useSession } from "../lib/useSession";
 
@@ -46,17 +46,17 @@ export default function TopNav() {
         <a href="/gatherings/" onClick={closeMenu}>
           聚場地圖
         </a>
-        <Link to="/events/new" onClick={closeMenu}>
+        <NavLink to="/events/new" onClick={closeMenu}>
           發起活動
-        </Link>
+        </NavLink>
         {session ? (
           <>
-            <Link to="/me/hosting" onClick={closeMenu}>
-              我發起的活動
-            </Link>
-            <Link to="/me/registrations" onClick={closeMenu}>
+            <NavLink to="/me/hosting" onClick={closeMenu}>
+              我發起的聚會
+            </NavLink>
+            <NavLink to="/me/registrations" onClick={closeMenu}>
               我的報名
-            </Link>
+            </NavLink>
             <button type="button" className="btn-text" onClick={handleSignOut}>
               登出
             </button>

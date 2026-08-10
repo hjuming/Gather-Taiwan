@@ -12,16 +12,19 @@ import SiteFooter from "./components/SiteFooter";
 export default function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
+      <a className="skip-link" href="#main-content">跳到主要內容</a>
       <TopNav />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/auth/line/complete" element={<LineAuthCompletePage />} />
-        <Route path="/events/new" element={<EventCreatePage />} />
-        <Route path="/e/:slug" element={<EventPage />} />
-        <Route path="/me/registrations" element={<MyRegistrationsPage />} />
-        <Route path="/me/hosting" element={<MyHostedEventsPage />} />
-      </Routes>
+      <main id="main-content">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/auth/line/complete" element={<LineAuthCompletePage />} />
+          <Route path="/events/new" element={<EventCreatePage />} />
+          <Route path="/e/:slug" element={<EventPage />} />
+          <Route path="/me/registrations" element={<MyRegistrationsPage />} />
+          <Route path="/me/hosting" element={<MyHostedEventsPage />} />
+        </Routes>
+      </main>
       <SiteFooter />
     </BrowserRouter>
   );

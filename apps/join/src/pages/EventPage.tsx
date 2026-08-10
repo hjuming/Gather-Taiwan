@@ -294,7 +294,7 @@ export default function EventPage() {
   return (
     <div className="event-page">
       <section className="event-hero" aria-labelledby="event-title">
-        <img src={DEFAULT_HERO_IMAGE} alt="溫暖餐桌上的相聚時光" />
+        <img src={DEFAULT_HERO_IMAGE} alt="溫暖餐桌上的相聚時光" width="1672" height="941" fetchPriority="high" />
         <div className="event-hero__veil" />
         <div className="event-hero__copy">
           <p className="eyebrow">{VISIBILITY_LABEL[event.visibility]}</p>
@@ -304,11 +304,19 @@ export default function EventPage() {
       </section>
 
       <div className="event-page__body">
-        {notice && <div className="banner banner--success">{notice}</div>}
-        {error && <div className="banner banner--error">{error}</div>}
+        {notice && <div className="banner banner--success" aria-live="polite">{notice}</div>}
+        {error && <div className="banner banner--error" role="alert">{error}</div>}
         {isCancelled && <div className="banner banner--error">此活動已由主辦人取消</div>}
 
-        <section className="event-facts" aria-label="活動基本資料">
+        <nav className="section-rail" aria-label="活動內容導覽">
+          <a href="#event-details">活動資訊</a>
+          {event.description && <a href="#event-description">活動說明</a>}
+          {event.payment_instructions && <a href="#event-payment">收款說明</a>}
+          <a href="#registration-title">報名</a>
+          {isOrganizerAdmin && <a href="#roster-title">誰會來</a>}
+        </nav>
+
+        <section id="event-details" className="event-facts" aria-label="活動基本資料">
           <div className="event-fact event-fact--wide">
             <span className="event-fact__label">日期與時間</span>
             <strong>{formatDateRange(event.starts_at, event.ends_at)}</strong>
@@ -354,19 +362,19 @@ export default function EventPage() {
             複製活動／邀請連結
           </button>
         </section>
-        <p className="event-share__note">新建立的活動連結會帶有日期，例如 `event-20260817-xxxx`；私密活動仍以邀請權限判斷，網址本身不會繞過限制。</p>
+        <p className="event-share__note">連結會把日期留在網址裡，方便大家辨認；私密聚會仍需要邀請或密碼才能進入。</p>
 
         {event.description && (
-          <section className="event-section">
-            <p className="section-kicker">About this gathering</p>
+          <section id="event-description" className="event-section">
+            <p className="section-kicker">這場相聚</p>
             <h2>活動說明</h2>
             <div className="event-richtext"><SafeRichText html={event.description} /></div>
           </section>
         )}
 
         {event.payment_instructions && (
-          <section className="event-section event-section--quiet">
-            <p className="section-kicker">Organizer note</p>
+          <section id="event-payment" className="event-section event-section--quiet">
+            <p className="section-kicker">主人家的話</p>
             <h2>收款說明</h2>
             <div className="event-richtext"><SafeRichText html={event.payment_instructions} /></div>
             {session && !showReportField && (
@@ -386,15 +394,15 @@ export default function EventPage() {
         <section className="event-register" aria-labelledby="registration-title">
           <div className="event-section__heading">
             <div>
-              <p className="section-kicker">Join the table</p>
+              <p className="section-kicker">一起入席</p>
               <h2 id="registration-title">報名</h2>
             </div>
-            {isOrganizerAdmin && <span className="status-pill status-pill--confirmed">主辦人</span>}
+            {isOrganizerAdmin && <span className="status-pill status-pill--confirmed">這場聚會的主人</span>}
           </div>
 
           {isOrganizerAdmin && (
             <div className="banner banner--info event-admin-note">
-              你是這場活動的主辦人。
+              這是你邀請大家相見的聚會。
               {!isCancelled && <button type="button" className="btn-text" onClick={handleCancelEvent} disabled={busy}>取消整場活動</button>}
             </div>
           )}
@@ -419,7 +427,7 @@ export default function EventPage() {
               {session && fields.length > 0 && (
                 <div className="stack--tight">
                   <h3>報名資料</h3>
-                  <p className="hint">請填寫主辦人需要的資料；標示「必填」的欄位不能留白。</p>
+                  <p className="hint">留下這場聚會想知道的事；標示「必填」的欄位不能留白。</p>
                   {fields.map((field) => (
                     <EventFieldInput key={field.id} field={field} value={answers[field.field_key]} onChange={(value) => setAnswers((previous) => ({ ...previous, [field.field_key]: value }))} />
                   ))}
@@ -431,12 +439,17 @@ export default function EventPage() {
         </section>
 
         {isOrganizerAdmin && (
-          <section className="event-section roster-section">
-            <p className="section-kicker">Organizer workspace</p>
-            <h2>參加者名單管理</h2>
+          <section id="roster-title" className="event-section roster-section">
+            <p className="section-kicker">這張桌子，誰會來</p>
+            <h2>一起來的人</h2>
             <RosterManager eventId={event.id} capacity={event.capacity} />
           </section>
         )}
+      </div>
+
+      <div className="mobile-action-dock" aria-label="活動快捷操作">
+        <a href="#registration-title" className="btn-primary">{isOrganizerAdmin ? "回到報名區" : "我要報名"}</a>
+        <button type="button" className="btn-secondary" onClick={handleShare}>分享活動</button>
       </div>
     </div>
   );

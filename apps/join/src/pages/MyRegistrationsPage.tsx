@@ -4,12 +4,26 @@ import { cancelRegistration, getMyRegistrations } from "../lib/api";
 import { useSession } from "../lib/useSession";
 import { REGISTRATION_STATUS_LABEL, type EventRow, type RegistrationRow } from "../lib/types";
 
+type RegistrationView = "active" | "past";
+
+function formatRegistrationDate(event: EventRow): string {
+  return new Intl.DateTimeFormat("zh-TW", {
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: "Asia/Taipei",
+  }).format(new Date(event.starts_at));
+}
+
 export default function MyRegistrationsPage() {
   const { session, loading } = useSession();
   const navigate = useNavigate();
   const [rows, setRows] = useState<(RegistrationRow & { events: EventRow })[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [view, setView] = useState<RegistrationView>("active");
 
   async function load() {
     try {
@@ -49,61 +63,61 @@ export default function MyRegistrationsPage() {
     }
   }
 
-  return (
-    <div className="page">
-      <p className="eyebrow">我的報名</p>
-      <h1>我的活動</h1>
+  const visibleRows = view === "active" ? active : past;
 
-      {error && <div className="banner banner--error">{error}</div>}
+  return (
+    <div className="page page--wide registrations-page">
+      <header className="page-heading">
+        <div>
+          <p className="eyebrow">我參加的聚會</p>
+          <h1>那些準備見面的日子</h1>
+          <p>你已答應赴約、正在等候，或曾經坐過的那幾張桌子，都在這裡。</p>
+        </div>
+        <Link to="/events/new" className="btn-secondary">發起活動</Link>
+      </header>
+
+      {error && <div className="banner banner--error" role="alert">{error}</div>}
 
       {active.length === 0 && past.length === 0 ? (
         <p className="empty-state">還沒有任何報名紀錄。</p>
       ) : (
         <>
-          {active.length > 0 && (
-            <div className="registration-list" style={{ marginBottom: 32 }}>
-              {active.map((r) => (
-                <div key={r.id} className="card">
-                  <Link to={`/e/${r.events.slug}`} style={{ textDecoration: "none" }}>
-                    <h2 style={{ marginBottom: 6 }}>{r.events.title}</h2>
-                  </Link>
-                  <span
-                    className={`status-pill ${r.status === "confirmed" ? "status-pill--confirmed" : ""}`}
-                  >
-                    {REGISTRATION_STATUS_LABEL[r.status]}
-                  </span>
-                  <div className="actions" style={{ marginTop: 12 }}>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => handleCancel(r.id)}
-                      disabled={busyId === r.id}
-                    >
-                      取消報名
+          <div className="registration-overview" aria-label="報名總覽">
+            <span><strong>{active.length}</strong> 接下來要見面</span>
+            <span><strong>{past.length}</strong> 走過的聚會</span>
+          </div>
+          <div className="scroll-tabs" role="tablist" aria-label="報名紀錄篩選">
+            <button type="button" role="tab" aria-selected={view === "active"} className={view === "active" ? "is-active" : ""} onClick={() => setView("active")}>接下來要見面<span>{active.length}</span></button>
+            <button type="button" role="tab" aria-selected={view === "past"} className={view === "past" ? "is-active" : ""} onClick={() => setView("past")}>走過的聚會<span>{past.length}</span></button>
+          </div>
+          <div className="registration-list">
+            {visibleRows.length === 0 && <p className="empty-state">這個分類目前沒有紀錄。</p>}
+            {visibleRows.map((r) => (
+              <article key={r.id} className="card registration-card">
+                <div className="registration-card__head">
+                  <div>
+                    <span className={`status-pill ${r.status === "confirmed" ? "status-pill--confirmed" : "status-pill--muted"}`}>
+                      {REGISTRATION_STATUS_LABEL[r.status]}
+                    </span>
+                    <Link to={`/e/${r.events.slug}`}><h2>{r.events.title}</h2></Link>
+                  </div>
+                  <span className="registration-card__date">{formatRegistrationDate(r.events)}</span>
+                </div>
+                <div className="registration-card__meta">
+                  <span>{r.events.location_name || "地點待公布"}</span>
+                  <span>{r.events.capacity ? `${r.events.capacity} 人上限` : "不限人數"}</span>
+                </div>
+                {view === "active" && (
+                  <div className="actions registration-card__actions">
+                    <Link to={`/e/${r.events.slug}`} className="btn-secondary">查看活動</Link>
+                    <button type="button" className="btn-text" onClick={() => handleCancel(r.id)} disabled={busyId === r.id}>
+                      {busyId === r.id ? "取消中…" : "取消報名"}
                     </button>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {past.length > 0 && (
-            <div className="stack--tight">
-              <h2>過去紀錄</h2>
-              <div className="registration-list">
-                {past.map((r) => (
-                  <div key={r.id} className="card" style={{ opacity: 0.7 }}>
-                    <Link to={`/e/${r.events.slug}`} style={{ textDecoration: "none" }}>
-                      <strong>{r.events.title}</strong>
-                    </Link>
-                    <div>
-                      <span className="status-pill status-pill--muted">{REGISTRATION_STATUS_LABEL[r.status]}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+                )}
+              </article>
+            ))}
+          </div>
         </>
       )}
     </div>

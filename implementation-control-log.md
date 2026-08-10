@@ -1446,3 +1446,12 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ✅ Git commit `f5bc9bf` 已推送至 `origin/codex/gather-mvp`；Cloudflare Worker `gather-join` Version ID：`01dea043-b65c-4793-a1d2-c64d047a99d9`。
 - ✅ 帶 cache-busting query 的正式 HTML 已讀回新版資產；本次未修改 Supabase schema、RLS、Auth 或資料內容。
 - ⚠️ Cloudflare edge cache 仍可能讓無 query 的 HTML 暫時命中舊版本；若看不到新入口，請重新整理或使用無痕視窗。
+
+## 2026-08-10：聚場台灣前台體驗重設（待部署）
+
+- ✅ 依 Gather Taiwan 品牌設定重寫前台語氣：以「相招，聚一場。」、一張桌、早餐店鐵板聲、港邊海風、中秋炭香與熱炒碰杯聲作為首頁與聚會頁的場景基底；移除「工作區、流程、資訊密度、管理面板」等內部治理語言。
+- ✅ 新增手機優先互動骨架：跳到主要內容、水平滑動內容導覽、手機底部主要操作列、sticky 建立按鈕、可展開「替朋友留名」、報名／聚會篩選 tabs。
+- ✅ 活動頁、建立聚會、我發起的聚會、我參加的聚會、名單區與首頁套用同一套 Warm Minimalism 視覺規則；桌機保留高資訊密度，iPad 直式與手機改為單欄與可滑動控制。
+- ✅ 加入 touch-action、focus-visible、aria-live、skip link、scroll margin、prefers-reduced-motion 與 HERO 圖尺寸宣告，對齊 Web Interface Guidelines。
+- ✅ 本地驗證：Vitest `69 passed / 1 skipped`、typecheck、lint、build、smoke（59 audited files）、`git diff --check` PASS。
+- ⚠️ 尚未部署；本輪未修改 Supabase、LINE、付款資料或任何使用者資料。瀏覽器／實機 screenshot E2E 仍受本環境 Vite `listen EPERM` 限制，需部署後以手機、iPad 直式與桌機橫式再驗收。

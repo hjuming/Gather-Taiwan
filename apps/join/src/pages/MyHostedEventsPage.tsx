@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getMyHostedEvents } from "../lib/api";
 import { useSession } from "../lib/useSession";
@@ -11,6 +11,8 @@ const STATUS_LABEL: Record<EventRow["status"], string> = {
   cancelled: "已取消",
   cancellation_exception: "取消需處理",
 };
+
+type HostedFilter = "all" | "upcoming" | "past" | "cancelled";
 
 function formatEventDate(event: EventRow): string {
   const date = new Intl.DateTimeFormat("zh-TW", {
@@ -36,6 +38,7 @@ export default function MyHostedEventsPage() {
   const navigate = useNavigate();
   const [events, setEvents] = useState<EventRow[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<HostedFilter>("all");
 
   async function load() {
     setError(null);
@@ -56,25 +59,62 @@ export default function MyHostedEventsPage() {
     }
   }, [loading, session, navigate]);
 
+  const visibleEvents = useMemo(() => {
+    const now = Date.now();
+    return events.filter((event) => {
+      if (filter === "cancelled") return event.status === "cancelled";
+      if (filter === "upcoming") return event.status !== "cancelled" && new Date(event.ends_at).getTime() >= now;
+      if (filter === "past") return event.status !== "cancelled" && new Date(event.ends_at).getTime() < now;
+      return true;
+    });
+  }, [events, filter]);
+
+  const filterItems: { id: HostedFilter; label: string; count: number }[] = [
+    { id: "all", label: "全部", count: events.length },
+    { id: "upcoming", label: "即將到來", count: events.filter((event) => event.status !== "cancelled" && new Date(event.ends_at).getTime() >= Date.now()).length },
+    { id: "past", label: "已結束", count: events.filter((event) => event.status !== "cancelled" && new Date(event.ends_at).getTime() < Date.now()).length },
+    { id: "cancelled", label: "已取消", count: events.filter((event) => event.status === "cancelled").length },
+  ];
+
   if (loading || !session) return null;
 
   return (
     <div className="page page--wide">
-      <p className="eyebrow">主辦人工作區</p>
-      <h1>我發起的活動</h1>
-      <p className="page-lede">從這裡進入活動頁，查看報名名單、複製分享內容，或管理這場聚會。</p>
+      <p className="eyebrow">我發起的聚會</p>
+      <h1>把每一場相聚，留在手邊</h1>
+      <p className="page-lede">從這裡回到你邀請大家相見的地方，看看誰會來，也把最新消息送回群組。</p>
 
-      {error && <div className="banner banner--error">讀取活動失敗：{error}</div>}
+      {error && <div className="banner banner--error" role="alert">讀取聚會失敗：{error}</div>}
 
       {events.length === 0 ? (
         <div className="card hosted-events-empty">
-          <h2>還沒有發起活動</h2>
+          <h2>還沒有發起聚會</h2>
           <p>建立第一場聚會後，之後都會在這裡找到。</p>
           <Link to="/events/new" className="btn-primary">發起一場聚會</Link>
         </div>
       ) : (
-        <div className="hosted-event-list">
-          {events.map((event) => (
+        <>
+          <div className="hosted-overview" aria-label="聚會總覽">
+            <span><strong>{events.length}</strong> 場聚會</span>
+            <span><strong>{filterItems[1].count}</strong> 場等著見面</span>
+          </div>
+          <div className="scroll-tabs" role="tablist" aria-label="活動篩選">
+            {filterItems.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={filter === item.id}
+                className={filter === item.id ? "is-active" : ""}
+                onClick={() => setFilter(item.id)}
+              >
+                {item.label}<span>{item.count}</span>
+              </button>
+            ))}
+          </div>
+          <div className="hosted-event-list">
+          {visibleEvents.length === 0 && <p className="empty-state">這個分類目前沒有聚會。</p>}
+          {visibleEvents.map((event) => (
             <article key={event.id} className="card hosted-event-card">
               <div className="hosted-event-card__heading">
                 <div>
@@ -91,12 +131,13 @@ export default function MyHostedEventsPage() {
                 <span><strong>人數</strong>{event.capacity ? `${event.capacity} 人` : "不限人數"}</span>
               </div>
               <div className="actions hosted-event-card__actions">
-                <Link to={`/e/${event.slug}`} className="btn-primary">管理活動</Link>
-                <Link to={`/e/${event.slug}`} className="btn-secondary">查看活動頁</Link>
+                <Link to={`/e/${event.slug}`} className="btn-primary">整理這場聚會</Link>
+                <Link to={`/e/${event.slug}`} className="btn-secondary">打開聚會頁</Link>
               </div>
             </article>
           ))}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
