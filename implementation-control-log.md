@@ -1409,3 +1409,9 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ✅ Cloudflare Worker `gather-join` 已部署，Version ID：`967c1185-b4c6-48cc-8aae-602569261ab6`，route：`gather.wedopr.com/app/*`。
 - ✅ 正式 read-back：`/app/` HTTP 200；新資產 `index-U3D3piE0.js`、`index-dwh2bXzo.css` HTTP 200；JS 含「分享活動／台北時間／LINE」，CSS 含 `date-time-field`、`event-share`、`site-footer`、`brand-lockup`。
 - ⚠️ 正式環境尚未以實體 iPad／手機完成建立活動表單、Google Maps、原生分享與 LINE 分享的實際觸控 E2E；LINE Messaging API 對話管理仍未施工。
+
+## 2026-08-10：4369e96 24 小時格式修正部署
+
+- ✅ Git commit `4369e96` 已推送至 `origin/codex/gather-mvp`；Cloudflare Worker 最新 Version ID：`ecc053d0-47e3-4420-87f6-c0687819f0bc`。
+- ✅ 以快取繞過 query read-back：`/app/?v=4369e96` 回傳新資產 `index-BE2VP-KJ.js`，且資產內容含 24 小時分享格式。
+- ⚠️ 不帶 query 的 `/app/` 仍由 Cloudflare edge 回傳前一版 `index-U3D3piE0.js`；匿名 PURGE 回應 400，尚未取得 purge API／Dashboard 操作證據。完成 purge 前，不宣稱所有無 query 使用者已切換新資產。
