@@ -1427,3 +1427,11 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ⚠️ 尚未部署；本輪未修改 Supabase migration、Storage、RLS、Auth、LINE Developers 或 Cloudflare 設定。自訂 HERO 與參加者自填聯絡欄位需另行核准資料模型／RLS 後施工。
 - ⚠️ Vite dev server 在本執行環境因 `listen EPERM` 無法啟動，未取得瀏覽器／實體手機 screenshot E2E；不能以本地 build 代替行動裝置驗收。
 - 回滾：回滾本輪前端、素材與文件變更即可，未涉及遠端資料庫或使用者資料。
+
+## 2026-08-10：613a951 正式部署完成
+
+- ✅ Git commit `613a951` 已推送至 `origin/codex/gather-mvp`。
+- ✅ Cloudflare Worker `gather-join` 已部署，Version ID：`41fb93c1-3da2-4509-9743-f56ad57f1d2d`（Wrangler deployment read-back）。
+- ✅ 帶 cache-busting query 的正式 HTML 回傳新資產 `index-CuHTGEct.js`／`index-BhNlHoS5.css`；`/app/assets/gather-event-hero-default-v1.png` 回傳 `image/png`、1672×941。
+- ⚠️ Cloudflare edge 對不同 query 仍可能命中舊 HTML（例如 `deploy=613a951` 與 `v=613a951` 命中不同資產）；尚未取得 purge API／Dashboard 操作證據，因此不宣稱所有無 query 使用者已立即切換。
+- ⚠️ 未做 Supabase migration、Storage、RLS、Auth、LINE Developers 設定變更；自訂 HERO、參加者自填手機／Email／LINE 與 LINE Messaging 對話管理仍是後續工作。
