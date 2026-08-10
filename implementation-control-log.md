@@ -1374,6 +1374,14 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ⚠️ 正式網域尚未部署本次修正；部署前不得宣稱使用者實測已恢復。
 - 回滾：回滾本次 `slug.ts`、`EventCreatePage.tsx`、`slug.test.ts` 及本紀錄即可，未涉及 schema、Auth 或付款資料。
 
+## 2026-08-10：7f7968b 正式部署完成
+
+- ✅ Git commit `7f7968b` 已推送至 `origin/codex/gather-mvp`，工作樹乾淨。
+- ✅ Cloudflare Worker `gather-join` 已部署，Version ID：`a71cf662-2119-4f97-9b03-2f6b3d92d332`，route：`gather.wedopr.com/app/*`。
+- ✅ 正式 read-back：`/app/`、`/app/auth` HTTP 200；新版 CSS/JS 資產 HTTP 200；CSS 含 `max-width:900px`／`menu-toggle`，JS 含 ASCII slug fallback。
+- ✅ 本次沒有 migration、Supabase 權限、Auth、Cloudflare secret 或付款資料變更。
+- ⚠️ 實體 iPad 觸控尚未取得錄影；需使用者重新整理正式頁面後實測漢堡選單與中文主辦身份建立。
+
 ## 2026-08-10：iPad 直式 TopNav 漢堡選單修正
 
 - 觸發：iPad 直式瀏覽時，右上方沒有可操作的漢堡選單。
