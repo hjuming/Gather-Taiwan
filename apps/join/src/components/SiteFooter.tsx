@@ -5,6 +5,10 @@ export default function SiteFooter() {
         <div>
           <strong>聚場台灣 Gather Taiwan</strong>
           <span>相招，聚一場。</span>
+          <span>
+            © 2026 Gather Taiwan.{" "}
+            <a href="https://www.wedopr.com/">WEDO International Marketing Group.</a>
+          </span>
         </div>
         <nav aria-label="頁尾導覽">
           <a href="/">聚場台灣首頁</a>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createEvent, createOrganizer, getMyOrganizers, type OrganizerMembership } from "../lib/api";
 import { useSession } from "../lib/useSession";
 import { createEventSlug, createSlug } from "../lib/slug";
+import { getGoogleMapsEmbedUrl } from "../lib/event-links";
 import DateTimeField from "../components/DateTimeField";
 import {
   dateTimePartsToTaipeiIso,
@@ -170,6 +171,8 @@ export default function EventCreatePage() {
     );
   }
 
+  const mapEmbedUrl = getGoogleMapsEmbedUrl({ location_name: locationName, location_address: locationAddress });
+
   return (
     <div className="page page--wide create-page">
       <header className="create-header">
@@ -255,10 +258,8 @@ export default function EventCreatePage() {
         <section id="create-time" className="card stack form-section">
           <h2>什麼時候見面</h2>
           <p className="hint">台北時間，使用 24 小時制。預設為當日 18:30–21:30。</p>
-          <div className="row">
-            <DateTimeField id="startsAt" label="開始時間" value={startsAt} onChange={setStartsAt} />
-            <DateTimeField id="endsAt" label="結束時間" value={endsAt} onChange={setEndsAt} />
-          </div>
+          <DateTimeField id="startsAt" label="開始時間" value={startsAt} onChange={setStartsAt} />
+          <DateTimeField id="endsAt" label="結束時間" value={endsAt} onChange={setEndsAt} />
         </section>
 
         <section id="create-access" className="card stack form-section">
@@ -382,6 +383,17 @@ export default function EventCreatePage() {
               <div><dt>席次</dt><dd>{hasCapacity ? `${capacity} 人` : "不限人數"}</dd></div>
               <div><dt>到場</dt><dd>{Number(feeAmountInput) > 0 ? `NT$ ${feeAmountInput}` : "免費"}</dd></div>
             </dl>
+            {mapEmbedUrl && (
+              <div className="create-preview__map">
+                <iframe
+                  key={mapEmbedUrl}
+                  src={mapEmbedUrl}
+                  title="活動地點地圖預覽"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+            )}
             <p className="create-preview__note">建立後，這段相聚會有自己的連結，可以送進 LINE 群組。</p>
           </div>
         </aside>

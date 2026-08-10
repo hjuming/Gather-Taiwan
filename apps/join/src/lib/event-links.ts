@@ -1,9 +1,22 @@
 import type { EventRow } from "./types";
 
+function buildLocationQuery(location: { location_name?: string | null; location_address?: string | null }): string | null {
+  const query = [location.location_name?.trim(), location.location_address?.trim()].filter(Boolean).join(" ");
+  return query || null;
+}
+
 export function getGoogleMapsSearchUrl(event: Pick<EventRow, "location_name" | "location_address">): string | null {
   if (!event.location_name?.trim()) return null;
-  const query = [event.location_name.trim(), event.location_address?.trim()].filter(Boolean).join(" ");
+  const query = buildLocationQuery(event);
+  if (!query) return null;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
+// 免金鑰的 Google 地圖內嵌預覽；不提供地址自動完成建議，只依目前輸入內容顯示對應地圖。
+export function getGoogleMapsEmbedUrl(location: { location_name?: string | null; location_address?: string | null }): string | null {
+  const query = buildLocationQuery(location);
+  if (!query) return null;
+  return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
 }
 
 export function getEventShareUrl(slug: string): string {

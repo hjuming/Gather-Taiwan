@@ -4,7 +4,7 @@ export interface SecurityHeadersInput {
 
 const SECURITY_HEADERS = {
   "Content-Security-Policy":
-    "default-src 'self'; connect-src 'self' https://anklbpkyesdmsubyfcna.supabase.co; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+    "default-src 'self'; connect-src 'self' https://anklbpkyesdmsubyfcna.supabase.co; frame-src https://www.google.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "no-referrer",
   "Permissions-Policy": "geolocation=(), camera=(), microphone=()",

@@ -1,11 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { getEventShareText, getGoogleMapsSearchUrl, getLineShareUrl } from "./event-links";
+import { getEventShareText, getGoogleMapsEmbedUrl, getGoogleMapsSearchUrl, getLineShareUrl } from "./event-links";
 
 describe("event sharing links", () => {
   it("builds a Google Maps search from venue name and address", () => {
     expect(getGoogleMapsSearchUrl({ location_name: "金色三麥 美麗華店", location_address: "台北市中山區敬業三路20號" }))
       .toContain("https://www.google.com/maps/search/?api=1&query=");
     expect(getGoogleMapsSearchUrl({ location_name: null, location_address: "台北" })).toBeNull();
+  });
+
+  it("builds a key-less Google Maps embed URL from whatever location text is available", () => {
+    const url = getGoogleMapsEmbedUrl({ location_name: "金色三麥 美麗華店", location_address: "台北市中山區敬業三路20號" });
+    expect(url).toContain("https://www.google.com/maps?q=");
+    expect(url).toContain("output=embed");
+    expect(url).toContain(encodeURIComponent("金色三麥 美麗華店"));
+
+    expect(getGoogleMapsEmbedUrl({ location_name: null, location_address: "台北市中山區" }))
+      .toContain(encodeURIComponent("台北市中山區"));
+    expect(getGoogleMapsEmbedUrl({ location_name: "  ", location_address: "  " })).toBeNull();
+    expect(getGoogleMapsEmbedUrl({})).toBeNull();
   });
 
   it("encodes a LINE share message", () => {

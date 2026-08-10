@@ -69,6 +69,16 @@ a {
 }
 
 nav.top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: rgba(251, 246, 234, 0.88);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+
+.top-nav-inner {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -76,7 +86,6 @@ nav.top-nav {
   margin: 0 auto;
   padding: 24px 0;
   font-size: 0.9rem;
-  border-bottom: 1px solid var(--border);
 }
 
 .brand-lockup {
@@ -159,8 +168,7 @@ nav.top-nav .brand--tool {
 }
 
 @media (max-width: 1366px), (pointer: coarse), (any-pointer: coarse) {
-  nav.top-nav {
-    position: relative;
+  .top-nav-inner {
     width: min(920px, calc(100% - 32px));
     padding: 16px 0;
   }
@@ -218,8 +226,7 @@ nav.top-nav .brand--tool {
 }
 
 /* iPadOS「要求桌面版網站」可能回報桌面 viewport，觸控能力仍優先使用抽屜導覽。 */
-nav.top-nav.touch-nav {
-  position: relative;
+nav.top-nav.touch-nav .top-nav-inner {
   width: min(920px, calc(100% - 32px));
   padding: 16px 0;
 }
@@ -261,8 +268,7 @@ nav.top-nav.touch-nav .top-nav-menu .btn-text {
 /* 不依賴 JS 的備援：React 若因任何原因未加上 .touch-nav（例如 maxTouchPoints 判定未執行），
    iOS 系 WebKit 仍會透過此特徵查詢維持可觸控導覽。 */
 @supports (-webkit-touch-callout: none) {
-  nav.top-nav {
-    position: relative;
+  .top-nav-inner {
     width: min(920px, calc(100% - 32px));
     padding: 16px 0;
   }
@@ -1057,9 +1063,7 @@ textarea:focus-visible {
   transform: translateY(0);
 }
 
-nav.top-nav {
-  position: relative;
-  z-index: 30;
+.top-nav-inner {
   width: min(1120px, calc(100% - 40px));
   padding: 22px 0 18px;
 }
@@ -1509,6 +1513,35 @@ nav.top-nav .top-nav-menu a[aria-current="page"] {
   font-variant-numeric: tabular-nums;
 }
 
+.create-preview__map iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border: 1px solid rgb(255 250 240 / 22%);
+  border-radius: 12px;
+}
+
+.event-map {
+  margin-top: 12px;
+}
+
+.event-map iframe {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 16 / 10;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.event-map__link {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 @media (min-width: 901px) {
   .page--wide {
     width: min(1480px, calc(100% - 80px));
@@ -1601,6 +1634,12 @@ nav.top-nav .top-nav-menu a[aria-current="page"] {
   .create-preview__note {
     color: rgb(255 250 240 / 58%) !important;
     font-size: 0.82rem;
+  }
+
+  .create-preview__map {
+    position: relative;
+    z-index: 1;
+    margin: 6px 0 28px;
   }
 }
 
@@ -1774,6 +1813,10 @@ nav.top-nav .top-nav-menu a[aria-current="page"] {
   .create-preview__note {
     color: rgb(255 250 240 / 62%) !important;
     font-size: 0.8rem;
+  }
+
+  .create-preview__map {
+    margin: 4px 0 20px;
   }
 
   .create-submit {

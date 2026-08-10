@@ -17,7 +17,14 @@ import { SafeRichText } from "../security/security";
 import { REGISTRATION_STATUS_LABEL, type EventFieldRow, type EventRow, type RegistrationRow } from "../lib/types";
 import RosterManager from "../components/RosterManager";
 import { validateEventAnswers, type EventAnswer } from "../lib/event-fields";
-import { copyText, getEventShareText, getEventShareUrl, getGoogleMapsSearchUrl, getLineShareUrl } from "../lib/event-links";
+import {
+  copyText,
+  getEventShareText,
+  getEventShareUrl,
+  getGoogleMapsEmbedUrl,
+  getGoogleMapsSearchUrl,
+  getLineShareUrl,
+} from "../lib/event-links";
 
 const DEFAULT_HERO_IMAGE = `${import.meta.env.BASE_URL}assets/gather-event-hero-default-v1.png`;
 
@@ -292,6 +299,7 @@ export default function EventPage() {
 
   const eventUrl = getEventShareUrl(event.slug);
   const mapsUrl = getGoogleMapsSearchUrl(event);
+  const mapEmbedUrl = getGoogleMapsEmbedUrl(event);
   const shareText = getEventShareText(event, eventUrl);
 
   return (
@@ -334,6 +342,14 @@ export default function EventPage() {
               <strong>尚未提供</strong>
             )}
             {event.location_address && <span>{event.location_address}</span>}
+            {mapEmbedUrl && (
+              <div className="event-map">
+                <iframe src={mapEmbedUrl} title="活動地點地圖" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+                <a href={mapsUrl ?? undefined} target="_blank" rel="noreferrer" className="event-map__link">
+                  在 Google 地圖開啟 ↗
+                </a>
+              </div>
+            )}
           </div>
           <div className="event-fact">
             <span className="event-fact__label">費用</span>

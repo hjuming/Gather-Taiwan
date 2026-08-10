@@ -184,7 +184,7 @@ describe("Worker asset response security headers", () => {
     expect(await response.text()).toBe("asset body");
     expect(response.headers.get("X-Asset")).toBe("preserved");
     expect(response.headers.get("Content-Security-Policy")).toBe(
-      "default-src 'self'; connect-src 'self' https://anklbpkyesdmsubyfcna.supabase.co; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+      "default-src 'self'; connect-src 'self' https://anklbpkyesdmsubyfcna.supabase.co; frame-src https://www.google.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
     );
     expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
     expect(response.headers.get("Referrer-Policy")).toBe("no-referrer");
