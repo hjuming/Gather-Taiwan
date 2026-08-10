@@ -67,6 +67,23 @@ migration 或 concurrency PASS。
 3) 完成 `T-01b`（LINE callback 與 E2E）
 4) 補齊 staging/production 部署與真實 Cloudflare Access 接線
 
+## 2026-08-10 Supabase 恢復後的 LINE callback 交接
+
+Supabase 操作已恢復並完成 LINE callback 所需的最小 production read-back。本輪也完成
+`event_fields` 參加者端動態表單：
+
+- `src/lib/event-fields.ts` 集中處理必填、選項白名單與 boolean 回答驗證。
+- `EventPage` 讀取既有欄位並渲染五種既定 `field_type`，通過驗證後傳入既有
+  `register_for_event(p_answers)`。
+- `src/lib/event-fields.test.ts` 覆蓋缺漏必填、false boolean、單選白名單與複選白名單。
+
+主辦端欄位建立／編輯 UI 尚未施工。LINE 正常授權 E2E 已 PASS，但拒絕、無 email、
+incognito、過期 state/nonce、第二帳號等失敗矩陣仍是待辦。
+
+本輪 P2-02 grant 以 Dashboard SQL 直接套用並完成 privilege read-back；本地
+`20260810010000_p2_02_line_service_role_grants.sql` 仍須依 migration 流程補 ledger
+同步，未同步前不得宣稱 migration ledger PASS。
+
 ## Migration 規則
 
 1. 每個 schema 變更只能新增 `supabase/migrations/<UTC timestamp>_<name>.sql`。
@@ -78,6 +95,10 @@ migration 或 concurrency PASS。
    transfer 修正即保留為獨立 ledger 版本，避免本地檔與雲端 checksum 漂移。
 7. P1-02 domain tables 尚無 policy 是刻意的 fail-closed Gate；只有 P1-04 驗收後才可
    grant 最小權限。不得為了 UI 開發先給 base-table DML。
+8. LINE callback 的 server-only 存取另以 `20260810010000_p2_02_line_service_role_grants.sql`
+   維持最小欄位 grant；不得把這些權限複製給 `anon`／`authenticated`，也不得把
+   `service_role` key 放進前端。若以 Dashboard SQL 緊急套用，必須在控制紀錄標註
+   「已套用但 ledger 尚待同步」，不可把直接執行當成 migration ledger PASS。
 
 ## Gather 雲端 DB Gate
 

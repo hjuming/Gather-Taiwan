@@ -1103,3 +1103,260 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
   loading、screenshot 回傳 viewport 0x0 等不穩定狀況，花了不少來回
   才成功操作 Cloudflare Dashboard 清快取。這是自動化工具本身的穩定性
   問題，跟 gather.wedopr.com／join app 的程式碼或架構無關。
+
+# 2026-08-08：LINE OAuth 正式站 Cloudflare 快取修復
+
+## 任務與高風險授權
+
+- 目標：修正正式瀏覽器請求 `/app/auth/line/start` 時命中 SPA HTML
+  快取、無法進入 LINE OAuth 的問題；建立精確 cache bypass、清除舊快取，
+  並重新完成 Chrome E2E。
+- 非目標：不修改 LINE channel id／secret、callback URL、Supabase Auth、
+  其他 WEDO 網域或全站快取策略；除非 E2E 證據顯示 LINE Console 設定確有
+  錯誤，否則不改 LINE Developers。
+- 使用者已於本次對話明確授權直接修改 Cloudflare 正式設定，並表示
+  Cloudflare 與 LINE Developers 已在瀏覽器登入。
+- 成功標準：瀏覽器型請求不再得到 `200 text/html`／`cf-cache-status: HIT`；
+  Chrome 點擊「使用 LINE 登入」後實際到達 `access.line.me`。
+- 回滾：刪除本次新增的精確 cache bypass 規則；清除 `/app/auth/line/*`
+  相關快取後恢復原設定。若新增規則造成其他 `/app/` 路徑異常，立即回滾。
+
+## 變更前證據
+
+- ✅ 已真實驗證：Chrome 與 Codex 內建瀏覽器點擊 LINE 按鈕後都停在
+  `/app/auth/line/start?redirect=%2F`，SPA console 顯示
+  `No routes matched location "/auth/line/start..."`。
+- ✅ 已真實驗證：普通 curl 對同一 URL 得到 Worker 的正確 `302` 與
+  `location: https://access.line.me/...`；加入瀏覽器 navigation headers 後
+  則得到 `200 text/html`、`cf-cache-status: HIT`，加入新 query 與
+  client `Cache-Control: no-cache/no-store` 仍然 HIT。
+- 判斷：先前「只要把 `<a>` 改為 JS button 即已修好」的結論不完整；
+  目前正式阻塞點是 Cloudflare 的瀏覽器型快取命中。確切規則來源仍待
+  Dashboard read-back，不把推論寫成已確認設定。
+
+## 2026-08-08 本輪執行狀態
+
+- ⚠️ 部分驗證：Chrome 中可看到使用者已開啟 LINE Developers Console；
+  本輪尚未宣稱或修改任何 LINE channel 設定，因為目前證據仍指向
+  Cloudflare cache。
+- ❌ 尚未執行 Cloudflare 變更：Chrome 的 Cloudflare 分頁實際停在
+  `dash.cloudflare.com/login`，重新整理後仍顯示登入表單，未取得可操作的
+  Dashboard session。依 secrets 與瀏覽器安全邊界，不讀取、猜測或代填
+  使用者密碼，也不把登入頁誤報成已登入。
+- 最小續接步驟：使用者在目前 Chrome 的 Cloudflare 分頁完成登入並回覆後，
+  從 Cache Rules read-back → 新增 `/app/auth/line/*` bypass → purge →
+  Chrome LINE E2E 繼續；本輪沒有 production mutation，因此暫無需回滾。
+
+## 2026-08-08 Gate 續作：Cloudflare 已登入後的正式變更與結果
+
+- ✅ Cache Rules read-back：部署 `Bypass HTML cache - gather LINE OAuth`，
+  條件為 `http.host eq "gather.wedopr.com"` 且
+  `starts_with(http.request.uri.path, "/app/auth/line/")`，動作為略過快取。
+- ✅ Page Rules read-back：新增並啟用唯一一條精準規則
+  `https://gather.wedopr.com/app/auth/line/*` → `快取等級: 略過`（頁面顯示
+  `1/3`，未觸碰其他網域）。
+- ✅ 已執行兩次前置字串清除：
+  `gather.wedopr.com/app/auth/line/`，以及為移除舊登入頁推測載入內容而清除
+  `gather.wedopr.com/app/`；Cloudflare 均回報「已成功收到清除快取要求，變更應會在 5 秒內生效」。
+- ✅ Cloudflare Rules Trace（GET）對
+  `https://gather.wedopr.com/app/auth/line/start?redirect=%2Ftrace-20260808`
+  同時命中 Page Rule、Cache Rule、`gather-join` Worker，Trace 結果為
+  `HTTP 狀態代碼: 302`。這證明規則評估與 Worker 路由的預期結果一致。
+- ✅ 已在 Cloudflare Speed → 內容最佳化確認 `Speed Brain` 原本為啟用；
+  本輪停用後重新載入頁面 read-back 為未勾選。這是已知會注入 Speculation Rules、
+  可能提前請求 OAuth GET 的功能；停用為針對本次 OAuth 故障的可回滾變更。
+- ⚠️ Chrome E2E 仍未 PASS：清除整個 `/app/` 並以新分頁重試後，點擊按鈕仍停在
+  `/app/auth/line/start?redirect=%2F`，console 仍有
+  `No routes matched location "/auth/line/start..."`。因此本輪不得宣稱已到達
+  `access.line.me`。Shell curl 後段遇到暫時性 DNS `Could not resolve host`，無法把
+  這段時間的 curl 結果當成新的成功證據。
+- 目前判斷：Cloudflare Trace 的 302 與瀏覽器仍讀到 SPA HTML 互相矛盾，剩餘嫌疑是
+  瀏覽器／邊緣仍持有舊的 200 變體，或實際瀏覽器請求與 Trace 的評估條件不同；
+  不再擴大 Cloudflare 變更，下一步應在 DNS 恢復後以帶瀏覽器 headers 的新請求取得
+  `status/content-type/cf-cache-status/location`，再決定是否需要改 Worker 回應或
+  清理 Page Rule。LINE Developers Console 本輪保持未修改。
+
+## 2026-08-08 續作：以原生 POST 啟動 LINE OAuth
+
+- 根因修正方向：GET `/app/auth/line/start` 在瀏覽器型請求上曾拿到錯誤的 SPA HTML，
+  即使 Cloudflare Trace 預期為 302；而 OAuth start 本身會設定一次性 state/nonce，
+  不應讓推測載入或邊緣 GET 快取介入。
+- 程式變更：登入入口改為同源原生
+  `POST /app/auth/line/start` 表單，將 `redirect` 放在 hidden input；Worker 原本的
+  `handleLineAuthStart` 已支援不依賴 HTTP method，因此不新增 token、secret 或資料欄位。
+  原生表單提交會由瀏覽器直接跟隨 Worker 的 302 到 `access.line.me`。
+- 測試先行：新增 `src/pages/AuthPage.test.tsx`；先確認舊實作紅燈，再完成最小修改後
+  綠燈，驗證 `method=post`、精準 action、redirect 欄位，以及不再使用
+  `window.location.href`。
+- 驗證：`typecheck`、`lint`、完整 Vitest（44 passed / 1 skipped）與 production
+  build 全部通過；接下來部署後必須用正式 Chrome 點擊按鈕，目標 URL 為
+  `https://access.line.me/oauth2/v2.1/authorize`。
+
+## 2026-08-08 Gate 續作：OAuth 路由與 Worker fallback 修正
+
+- ✅ 登入入口改為 `POST /app/auth/line/authorize`：前端以 same-origin
+  `fetch` 取得一次性 LINE authorize URL，再由 `window.location.assign` 導航；保留
+  原生 POST 表單作為無 JavaScript fallback。這避免 GET OAuth start 被預取，也避免
+  Chrome 將原生 POST 導航判定為 `ERR_BLOCKED_BY_CLIENT`。
+- ✅ LINE callback 同時保留舊路徑 `/app/auth/line/callback`，新增並採用
+  `/app/line/callback`；LINE Developers Console 已讀回兩條正式 callback URL。
+- ✅ 移除 Cloudflare Pages `not_found_handling: single-page-application`，改由 Worker
+  對非 `/assets/` 的 404 手動回傳 root HTML，並加上 `Cache-Control: no-store`。
+  瀏覽器型請求對 callback 的 read-back 已取得 Worker `302`、`cache-control: no-store`，
+  不再回到快取的 SPA HTML。
+- ✅ 修正 `__Host-gather-line-oauth-state` 與 nonce cookie 的 Path 為 `/`。`__Host-`
+  cookie 若非 Path=/ 會被瀏覽器拒收，原先因此造成 callback `state_mismatch`。
+- ✅ 版本 `7c798847-7584-4a78-aac2-fcd339e1c63b` 已部署；聚焦測試
+  `worker/line-auth.test.ts`、`worker/index.test.ts` 共 16 項通過。此前完整檢查亦為
+  typecheck、lint、48 passed / 1 skipped、build 全通過。
+- ✅ Cloudflare Page Rules 3/3 仍為 active：`/app/line/*`、`/app/auth*`、
+  `/app/auth/line/*` 均 bypass；Cache Rule 精準 bypass 仍 active；Speed Brain 已停用。
+  本輪暫時開啟的 Development Mode 已關閉（read-back `aria-checked=false`），並再次
+  執行全站 purge，Cloudflare 回報「已成功收到清除快取要求」。
+- ⚠️ 正式 Chrome E2E 已通過 LINE authorize、登入/同意及 callback state/nonce 驗證，
+  但 callback 目前在 Worker 查詢 Supabase `public.users` 時收到 HTTP 403，Worker tail
+  明確記錄 `Supabase users lookup failed: 403`（版本同上），尚未進入 session 完成頁。
+  Cloudflare secret 名稱 read-back 顯示 `SUPABASE_SERVICE_ROLE_KEY` 存在；Supabase
+  管理頁對目前登入帳號顯示「You do not have access to this project」，因此無法安全查證
+  或替換該密鑰。此為外部權限／secret 設定阻塞，不以猜測值折衷。
+
+## 2026-08-08：Supabase 暫停後的本地可交付切片
+
+- 使用者要求暫停 Supabase 專案操作；本輪未讀取、替換、部署或驗證任何 Supabase secret，
+  也未執行 migration、遠端 DB write 或管理 API。
+- 針對不依賴外部權限的 P1-10 前端缺口，完成 `event_fields` 參加者端表單：活動頁讀取
+  既有欄位，支援五種既定型別（短文字、長文字、單選、多選、boolean），並以純函式驗證
+  必填欄位與 options 白名單，再將答案傳給既有 `register_for_event(p_answers)`。
+- 先寫 `src/lib/event-fields.test.ts` 觀察缺少實作的 RED，再新增
+  `src/lib/event-fields.ts` 取得 GREEN；測試覆蓋缺漏必填、false boolean、單選與多選無效值。
+- 驗證結果：完整 Vitest `52 passed / 1 skipped`、typecheck PASS、lint PASS、build PASS、
+  smoke PASS（46 audited files）。Vite 僅保留既有 chunk size warning；Node 20 執行時有專案
+  要求 Node >=22 的既有 engine warning。
+- 未完成：主辦端建立／編輯 `event_fields` UI 尚未施工；此切片尚未部署，亦未宣稱真實 Supabase
+  資料已能建立或送出欄位。
+
+## 2026-08-10：LINE callback 依賴失敗的 fail-closed 修正（未部署）
+
+- 使用者仍要求暫停 Supabase 專案操作；本輪沒有讀取、修改或驗證 Supabase 專案、secret、
+  migration、遠端資料或管理 API。
+- 先新增 RED 測試：模擬 `/rest/v1/users` 回 HTTP 403 時，callback 必須導回
+  `line_error=account_provisioning_failed`，而不是讓 Worker 拋出 1101。
+- 以最小修改完成 GREEN：Supabase admin lookup／create／upsert／generate-link 失敗統一轉成
+  內部 `SupabaseAdminError(operation, status)`；callback 清除 OAuth cookies 後 fail-closed
+  導回登入頁。錯誤 log 只寫 operation/status，不讀取上游 body，避免帳號資訊、schema 訊息或
+  provider diagnostics 進入 Worker log。
+- 前端已新增對應文案：「LINE 登入暫時無法完成帳號建立，請稍後再試」。
+- 驗證結果：完整 Vitest `53 passed / 1 skipped`、typecheck PASS、lint PASS、build PASS、
+  smoke PASS（46 audited files）。測試以 spy 驗證 log 僅包含預期的
+  `users lookup / 403` operation/status，且不包含任何密鑰或上游 response body。
+- 本切片目前只在工作樹，未部署到 Cloudflare；正式 LINE 登入仍需 Supabase 專案恢復可用後，
+  重新執行真實 callback → session → app page E2E。
+
+## 2026-08-10：恢復 Gather Supabase 權限後的最小修復
+
+- ✅ 已在 Supabase Dashboard 的 `gather-taiwan` production 專案，以 `postgres` 角色執行
+  `P2-02` 三條最小 GRANT：`service_role` 僅可對 `public.users` 的
+  `id`／`line_user_id` 查詢，並對 `id`／`line_user_id`／`email`／`display_name`／
+  `email_verified_at` 做必要的 insert/update；未新增 `public`、`anon` 或
+  `authenticated` 的 table grant，也未修改 RLS policy。
+- ✅ SQL Editor 回報 `Success. No rows returned`；同一頁 read-back 取得 17 筆
+  `information_schema.column_privileges`，涵蓋上述欄位與 service_role 的必要權限。
+  未讀取、記錄或輸出任何 secret 值。
+- ✅ Cloudflare production Worker 的 `SUPABASE_SERVICE_ROLE_KEY` 已在變數頁以目前
+  `gather-taiwan` 專案新 secret key 完成輪替並按 Deploy；值只在受控瀏覽器記憶體中傳遞，
+  不進 Git、log、DOM 快照或本文件。
+- ⚠️ 本地 `apps/join/supabase/migrations/20260810010000_p2_02_line_service_role_grants.sql`
+  已建立並有 contract test，但本輪採 Dashboard SQL 直接套用，尚未以 CLI 方式寫入
+  migration ledger；不得將 ledger 視為已同步。後續須依 migration 流程補做 ledger
+  read-back 或由負責人裁決收斂方式。
+- ⏳ 尚待：部署含 fail-closed 修正的 Worker source，並重新完成正式網域 LINE
+  authorize → callback → session → app page E2E；在此之前不宣稱登入已恢復。
+
+## 2026-08-10：Supabase 新式 secret key header 相容性修正
+
+- ✅ 依 Supabase 官方 API key 文件查證：`sb_secret_…` 不是 JWT，必須只放在
+  `apikey` header；若把同一值再放進 `Authorization: Bearer`，API gateway 會嘗試
+  以 JWT 解析而拒絕請求。原 Worker 四個 admin request 同時送兩個 header，正是
+  production callback 持續 403 的原因。
+- ✅ 以最小 diff 移除 users lookup、admin user creation、public.users upsert、
+  generate_link 的 `Authorization` header；保留 `apikey` 與既有 fail-closed log。
+- ✅ 新增 regression assertion：所有 Supabase admin calls 必須有正確 `apikey`，且
+  `authorization` 必須為空，避免日後換回新式 key 時復發。
+- ⚠️ 本次修正尚未部署；下一步重新 build/deploy 後，再以正式 Chrome LINE E2E
+  驗證 callback 能否進入 session 完成頁。
+
+## 2026-08-10：前端 publishable key Bearer 相容性修正（待部署）
+
+- ✅ callback → `/app/auth/line/complete` 已成功；前端 `verifyOtp` 顯示 `Failed to fetch`。
+- ✅ Supabase 官方規則同樣適用 publishable key：它只能作 `apikey`，不能被當 JWT
+  放在 `Authorization: Bearer`。在 Supabase client 的 global fetch 加入最小 header
+  guard：只移除等於 publishable key 的 Bearer，真正 session JWT 保留。
+- ✅ 新增兩個測試，分別驗證 bootstrap request 不送 publishable Bearer，以及登入後的
+  access-token Bearer 不被誤刪。
+- ⏳ 尚待重新 build/deploy，再驗證 session 完成與 `/app/` authenticated DOM。
+
+## 2026-08-10：LINE magic-link verify 明確 API 路徑（待部署）
+
+- ✅ SDK `verifyOtp({ token_hash })` 在正式頁仍回 `Failed to fetch`，但同一 Supabase
+  verify endpoint 的 CORS／public API 可用；為消除 SDK 對 header 的不透明差異，改用
+  明確的 `apikey` POST `/auth/v1/verify`。
+- ✅ 收到的 access/refresh session 只立即交給 `supabase.auth.setSession`，不寫入
+  自訂 storage、不記錄 token；既有 `ensureUserProfile` 與 `sync_verified_email`
+  流程維持不變。
+- ⏳ 尚待重新 build/deploy，再驗證 `/app/` authenticated DOM。
+
+## 2026-08-10：CSP connect-src 阻擋 Supabase verify 修正（待部署）
+
+- ✅ 最終根因：Worker response security header 的 CSP 僅允許 `default-src 'self'`，
+  瀏覽器因此封鎖對 Gather Supabase project 的跨來源 `verify` fetch，表現為
+  `Failed to fetch`；CORS read-back 本身是 200 且允許 gather.wedopr.com。
+- ✅ 以最小白名單補上 `connect-src 'self' https://anklbpkyesdmsubyfcna.supabase.co`，
+  未放寬 script／frame／form 來源；同步更新 response-security contract test。
+- ⏳ 尚待部署後完成真正 `/app/` session E2E；此項完成前不標記登入 PASS。
+
+## 2026-08-10：LINE 完成頁預設 redirect 修正（待部署）
+
+- ✅ session 已建立，但 E2E 最終路徑讀回 `/app/app/`；原因是 Worker cookie 的預設
+  redirect 使用了 `/app/`，React Router basename 再加一次 `/app`。
+- ✅ 將 Worker 兩個 fallback redirect 統一改為 router root `/`；活動頁等顯式 redirect
+  仍照原值保留。
+- ⏳ 尚待部署並確認最終路徑精準為 `/app/`，且導覽列出現「我的報名／登出」。
+
+## 2026-08-10：LINE production E2E PASS
+
+- ✅ 先後完成並 read-back：Cloudflare cache bypass／Speed Brain off／purge、LINE
+  callback URL、專案 secret 輪替、Worker source 部署、Supabase service_role 權限、
+  CSP connect-src 白名單。
+- ✅ 正式 Chrome E2E（fresh auth page → LINE authorize → LINE account login →
+  Worker callback → Supabase verify → setSession）完成；最終 URL 精準為
+  `https://gather.wedopr.com/app/`，DOM 同時讀到「我的報名」與「登出」，沒有
+  `Failed to fetch`、`account_provisioning_failed` 或登入錯誤文字。
+- ✅ 最終 Cloudflare Worker version：`e0ba761b-a99f-4320-8d24-c3d29a18d38a`。
+- ✅ 最終本地證據：Vitest `58 passed / 1 skipped`、typecheck PASS、lint PASS、build PASS、
+  smoke PASS（48 audited files）、control-log validator PASS。
+- ⚠️ 本輪採 Supabase Dashboard SQL 直接套用 grant；P2-02 migration 檔已在工作樹，
+  但 migration ledger 尚未以 CLI 同步，後續維運需依 DEVELOPMENT.md 收斂 ledger。
+- ⚠️ 尚未做完整 LINE 失敗矩陣（拒絕、無 email、incognito、過期 state/nonce、第二帳號）；
+  本次只宣稱正常授權登入 PASS。
+
+## 2026-08-10：LINE email collision 的冪等 fallback
+
+- ✅ Production tail（以固定訊息篩選）讀回：`admin user creation`，HTTP `422`。
+  這不是 header 403；是 LINE 回傳 email 已被既有 Auth user 佔用，原流程沒有碰撞分支。
+- ✅ Worker 新增最小 recovery：第一次以 LINE email 建立失敗且 status=422 時，改用
+  `line+<line_user_id>@users.noreply.gather.wedopr.com` 建立獨立 auth user；該地址只作
+  server-side auth identity，不對參加者宣稱為其 email。既有 public profile 仍保存 LINE
+  回傳的 email 與 verified 布林值，並維持原付款／年齡紅線。
+- ✅ 已加 `admin user lookup` 讓既有 `line_user_id` 重新登入時以 Auth 實際 email
+  產生 magic link，不依賴使用者可編輯的 profile 欄位。
+- ⏳ 尚待重新測試、部署並以正式 Chrome E2E 驗證。
+
+## 2026-08-10：public.users upsert 權限補強（待遠端套用）
+
+- ✅ Production tail 讀回第二個明確失敗點：`public.users upsert`，HTTP `403`。
+- ✅ Worker upsert 明確加入 `return=minimal`，避免不必要的 row representation 權限要求。
+- ✅ P2-02 forward-only migration 補上 backend upsert 所需的非敏感 profile 欄位
+  `email_normalized`／`email`／`display_name`／`email_verified_at` SELECT 權限；仍未授予
+  `public`、`anon`、`authenticated`，也未開放 legal_name、birth_date、phone 等欄位。
+- ⚠️ 本地 migration 已更新，但 production 目前仍是前一版 grant；必須在 Supabase
+  SQL Editor 套用一條補充 GRANT 並 read-back，再重試 E2E。

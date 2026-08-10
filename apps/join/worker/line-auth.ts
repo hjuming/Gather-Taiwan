@@ -44,7 +44,7 @@ function readCookie(request: Request, name: string): string | null {
 
 export async function handleLineAuthStart(request: Request, env: LineAuthEnv): Promise<Response> {
   const url = new URL(request.url);
-  const redirectTo = url.searchParams.get("redirect") ?? "/app/";
+  const redirectTo = url.searchParams.get("redirect") ?? "/";
 
   const state = randomToken();
   const nonce = randomToken();
@@ -58,12 +58,20 @@ export async function handleLineAuthStart(request: Request, env: LineAuthEnv): P
   authorizeUrl.searchParams.set("scope", "profile openid email");
 
   const headers = new Headers({ Location: authorizeUrl.toString() });
-  const cookieBase = `HttpOnly; Secure; SameSite=Lax; Path=/app/auth/line; Max-Age=${OAUTH_TTL_SECONDS}`;
+  const cookieBase = `HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${OAUTH_TTL_SECONDS}`;
   headers.append("Set-Cookie", `${STATE_COOKIE}=${state}; ${cookieBase}`);
   headers.append(
     "Set-Cookie",
     `${NONCE_COOKIE}=${nonce}|${encodeURIComponent(redirectTo)}; ${cookieBase}`,
   );
+  if (request.method === "POST") {
+    headers.delete("Location");
+    headers.set("Content-Type", "application/json; charset=utf-8");
+    return new Response(JSON.stringify({ location: authorizeUrl.toString() }), {
+      status: 200,
+      headers,
+    });
+  }
   return new Response(null, { status: 302, headers });
 }
 
@@ -121,7 +129,27 @@ async function verifyIdToken(idToken: string, env: LineAuthEnv): Promise<LineVer
 
 interface SupabaseAdminUser {
   id: string;
-  email?: string;
+  email: string;
+}
+
+function syntheticLineEmail(lineUserId: string): string {
+  return `line+${lineUserId}@users.noreply.gather.wedopr.com`;
+}
+
+class SupabaseAdminError extends Error {
+  constructor(
+    readonly operation: string,
+    readonly status: number,
+  ) {
+    super(`Supabase ${operation} failed: ${status}`);
+    this.name = "SupabaseAdminError";
+  }
+}
+
+function throwSupabaseAdminError(operation: string, response: Response): never {
+  // Keep upstream response bodies out of Worker logs: they may contain account
+  // details, schema hints, or provider diagnostics that are not user-facing.
+  throw new SupabaseAdminError(operation, response.status);
 }
 
 async function findUserByLineId(lineUserId: string, env: LineAuthEnv): Promise<string | null> {
@@ -131,10 +159,9 @@ async function findUserByLineId(lineUserId: string, env: LineAuthEnv): Promise<s
   const response = await fetch(url, {
     headers: {
       apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
     },
   });
-  if (!response.ok) throw new Error(`Supabase users lookup failed: ${response.status}`);
+  if (!response.ok) throwSupabaseAdminError("users lookup", response);
   const rows = (await response.json()) as { id: string }[];
   return rows[0]?.id ?? null;
 }
@@ -148,14 +175,31 @@ async function createAuthUser(
     method: "POST",
     headers: {
       apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ email, email_confirm: emailConfirmed }),
   });
-  if (!response.ok) {
-    throw new Error(`Supabase admin user creation failed: ${response.status} ${await response.text()}`);
-  }
+  if (!response.ok) throwSupabaseAdminError("admin user creation", response);
+  return (await response.json()) as SupabaseAdminUser;
+}
+
+async function findAuthUserByEmail(email: string, env: LineAuthEnv): Promise<SupabaseAdminUser | null> {
+  const url = new URL(`${env.SUPABASE_URL}/auth/v1/admin/users`);
+  url.searchParams.set("page", "1");
+  url.searchParams.set("per_page", "1000");
+  const response = await fetch(url, {
+    headers: { apikey: env.SUPABASE_SERVICE_ROLE_KEY },
+  });
+  if (!response.ok) throwSupabaseAdminError("admin user list", response);
+  const data = (await response.json()) as { users?: SupabaseAdminUser[] };
+  return data.users?.find((user) => user.email.toLowerCase() === email.toLowerCase()) ?? null;
+}
+
+async function getAuthUserById(userId: string, env: LineAuthEnv): Promise<SupabaseAdminUser> {
+  const response = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+    headers: { apikey: env.SUPABASE_SERVICE_ROLE_KEY },
+  });
+  if (!response.ok) throwSupabaseAdminError("admin user lookup", response);
   return (await response.json()) as SupabaseAdminUser;
 }
 
@@ -171,9 +215,8 @@ async function upsertPublicUserRow(
     method: "POST",
     headers: {
       apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
       "Content-Type": "application/json",
-      Prefer: "resolution=merge-duplicates",
+      Prefer: "resolution=merge-duplicates,return=minimal",
     },
     body: JSON.stringify({
       id: userId,
@@ -183,9 +226,7 @@ async function upsertPublicUserRow(
       email_verified_at: emailVerified ? new Date().toISOString() : null,
     }),
   });
-  if (!response.ok) {
-    throw new Error(`Supabase public.users upsert failed: ${response.status} ${await response.text()}`);
-  }
+  if (!response.ok) throwSupabaseAdminError("public.users upsert", response);
 }
 
 async function generateMagicLinkTokenHash(email: string, env: LineAuthEnv): Promise<string> {
@@ -193,14 +234,11 @@ async function generateMagicLinkTokenHash(email: string, env: LineAuthEnv): Prom
     method: "POST",
     headers: {
       apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ type: "magiclink", email }),
   });
-  if (!response.ok) {
-    throw new Error(`Supabase generate_link failed: ${response.status} ${await response.text()}`);
-  }
+  if (!response.ok) throwSupabaseAdminError("generate_link", response);
   const data = (await response.json()) as { hashed_token?: string; properties?: { hashed_token?: string } };
   const hashedToken = data.hashed_token ?? data.properties?.hashed_token;
   if (!hashedToken) throw new Error("Supabase generate_link returned no hashed_token");
@@ -214,8 +252,8 @@ export async function handleLineAuthCallback(request: Request, env: LineAuthEnv)
   const lineError = url.searchParams.get("error");
 
   const clearCookies = new Headers();
-  clearCookies.append("Set-Cookie", `${STATE_COOKIE}=; HttpOnly; Secure; SameSite=Lax; Path=/app/auth/line; Max-Age=0`);
-  clearCookies.append("Set-Cookie", `${NONCE_COOKIE}=; HttpOnly; Secure; SameSite=Lax; Path=/app/auth/line; Max-Age=0`);
+  clearCookies.append("Set-Cookie", `${STATE_COOKIE}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`);
+  clearCookies.append("Set-Cookie", `${NONCE_COOKIE}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`);
 
   function failure(message: string): Response {
     const target = new URL(`${env.APP_BASE_URL}/auth`);
@@ -234,7 +272,7 @@ export async function handleLineAuthCallback(request: Request, env: LineAuthEnv)
     return failure("state_mismatch");
   }
   const [storedNonce, redirectToRaw] = nonceCookie.split("|");
-  const redirectTo = redirectToRaw ? decodeURIComponent(redirectToRaw) : "/app/";
+  const redirectTo = redirectToRaw ? decodeURIComponent(redirectToRaw) : "/";
 
   let claims: LineVerifyResponse;
   try {
@@ -251,14 +289,40 @@ export async function handleLineAuthCallback(request: Request, env: LineAuthEnv)
   const hasRealEmail = Boolean(claims.email);
   const email = claims.email ?? `line+${lineUserId}@users.noreply.gather.wedopr.com`;
 
-  let userId = await findUserByLineId(lineUserId, env);
-  if (!userId) {
-    const created = await createAuthUser(email, hasRealEmail, env);
-    userId = created.id;
-    await upsertPublicUserRow(userId, lineUserId, claims.name, claims.email, hasRealEmail, env);
-  }
+  let tokenHash: string;
+  try {
+    let userId = await findUserByLineId(lineUserId, env);
+    let authUser: SupabaseAdminUser;
+    if (!userId) {
+      try {
+        authUser = await createAuthUser(email, hasRealEmail, env);
+      } catch (error) {
+        // A previous email-login account may already own LINE's email. Keep
+        // LINE identity provisioning deterministic without merging accounts
+        // by falling back to a private, collision-resistant auth email.
+        if (!(error instanceof SupabaseAdminError) || error.status !== 422) throw error;
+        const fallbackEmail = syntheticLineEmail(lineUserId);
+        const existingFallback = await findAuthUserByEmail(fallbackEmail, env);
+        authUser = existingFallback ?? (await createAuthUser(fallbackEmail, true, env));
+      }
+      userId = authUser.id;
+      await upsertPublicUserRow(userId, lineUserId, claims.name, claims.email, hasRealEmail, env);
+    } else {
+      authUser = await getAuthUserById(userId, env);
+    }
 
-  const tokenHash = await generateMagicLinkTokenHash(email, env);
+    tokenHash = await generateMagicLinkTokenHash(authUser.email, env);
+  } catch (error) {
+    if (error instanceof SupabaseAdminError) {
+      console.error("LINE account provisioning dependency failed", {
+        operation: error.operation,
+        status: error.status,
+      });
+    } else {
+      console.error("LINE account provisioning dependency failed", { operation: "unknown" });
+    }
+    return failure("account_provisioning_failed");
+  }
 
   const target = new URL(`${env.APP_BASE_URL}/auth/line/complete`);
   target.searchParams.set("token_hash", tokenHash);

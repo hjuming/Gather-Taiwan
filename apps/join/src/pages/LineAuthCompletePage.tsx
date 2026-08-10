@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { supabase } from "../lib/supabase";
+import { supabase, verifyMagicLinkToken } from "../lib/supabase";
 import { ensureUserProfile } from "../lib/api";
 
 export default function LineAuthCompletePage() {
@@ -18,17 +18,16 @@ export default function LineAuthCompletePage() {
     }
 
     (async () => {
-      const { data, error: verifyError } = await supabase.auth.verifyOtp({
-        token_hash: tokenHash,
-        type: "magiclink",
-      });
-      if (verifyError || !data.session) {
-        setError(verifyError?.message ?? "登入驗證失敗");
+      let lineUser;
+      try {
+        lineUser = await verifyMagicLinkToken(tokenHash);
+      } catch (verifyError) {
+        setError(verifyError instanceof Error ? verifyError.message : "登入驗證失敗");
         return;
       }
 
       const lineName =
-        (data.user?.user_metadata?.name as string | undefined) ?? data.user?.email ?? "LINE 使用者";
+        (lineUser?.user_metadata?.name as string | undefined) ?? lineUser?.email ?? "LINE 使用者";
       try {
         await ensureUserProfile(lineName);
         await supabase.rpc("sync_verified_email");

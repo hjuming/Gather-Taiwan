@@ -40,6 +40,13 @@
 ## LINE Login
 
 - production 前在 LINE Console 逐字比對 callback URL，含 scheme、host、path、尾斜線
+- LINE callback 若 Supabase 帳號查詢、建立、profile upsert 或 magic-link 產生失敗，應導回
+  `line_error=account_provisioning_failed`；Worker log 只保留 operation/status，不讀取或輸出
+  Supabase 上游 response body。
+- LINE callback 使用的 `service_role` grant 只限 `public.users` 必要欄位；任何權限修正須以
+  forward-only migration 記錄，並在 Dashboard 直接套用時同步留下 SQL/read-back 證據。
+- 2026-08-10 正常 LINE production E2E 已通過，最終 URL 應為 `/app/` 且 DOM 有「我的報名」
+  與「登出」；若出現 `/app/app/`，優先檢查 callback redirect 是否誤帶 app basename。
   與大小寫。
 - Supabase custom OIDC callback 以 Dashboard 顯示的 read-only callback URL 為準，不猜測。
 - RLS 身分只信任 `auth.uid()` 與 server-validated claims，不信任可自行編輯的

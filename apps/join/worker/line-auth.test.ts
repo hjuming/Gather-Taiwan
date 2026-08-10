@@ -37,20 +37,24 @@ describe("handleLineAuthStart", () => {
     expect(setCookies.every((c) => c.includes("HttpOnly") && c.includes("Secure") && c.includes("SameSite=Lax"))).toBe(
       true,
     );
+    expect(setCookies.every((c) => c.includes("Path=/;"))).toBe(true);
     expect(location.searchParams.get("state")).toBe(cookieValue(response.headers, "__Host-gather-line-oauth-state"));
   });
 });
 
 describe("handleLineAuthCallback", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
+  let consoleErrorMock: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
+    consoleErrorMock = vi.spyOn(console, "error").mockImplementation(() => undefined);
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    consoleErrorMock.mockRestore();
   });
 
   function callbackRequest(params: Record<string, string>, cookies?: string): Request {
@@ -91,7 +95,11 @@ describe("handleLineAuthCallback", () => {
   function mockLineAndSupabase(overrides?: {
     verifyBody?: Partial<Record<string, unknown>>;
     userLookup?: unknown[];
+    userLookupStatus?: number;
+    adminUserStatuses?: number[];
+    adminUsers?: SupabaseAdminUserFixture[];
   }) {
+    let adminUserCall = 0;
     fetchMock.mockImplementation(async (input: string | URL) => {
       const url = typeof input === "string" ? input : input.toString();
       if (url === "https://api.line.me/oauth2/v2.1/token") {
@@ -116,10 +124,25 @@ describe("handleLineAuthCallback", () => {
         );
       }
       if (url.startsWith(`${env.SUPABASE_URL}/rest/v1/users?`)) {
-        return new Response(JSON.stringify(overrides?.userLookup ?? []), { status: 200 });
+        return new Response(JSON.stringify(overrides?.userLookup ?? []), {
+          status: overrides?.userLookupStatus ?? 200,
+        });
       }
-      if (url === `${env.SUPABASE_URL}/auth/v1/admin/users`) {
-        return new Response(JSON.stringify({ id: "new-user-uuid", email: "tester@line.example" }), { status: 200 });
+      if (url.startsWith(`${env.SUPABASE_URL}/auth/v1/admin/users`)) {
+        if (new URL(url).search) {
+          return new Response(JSON.stringify({ users: overrides?.adminUsers ?? [] }), { status: 200 });
+        }
+        const status = overrides?.adminUserStatuses?.[adminUserCall++] ?? 200;
+        return new Response(
+          JSON.stringify({
+            id: status === 200 && adminUserCall > 1 ? "synthetic-user-uuid" : "new-user-uuid",
+            email: status === 200 && adminUserCall > 1 ? "line+line-user-123@users.noreply.gather.wedopr.com" : "tester@line.example",
+          }),
+          { status },
+        );
+      }
+      if (url === `${env.SUPABASE_URL}/auth/v1/admin/users/existing-user-uuid`) {
+        return new Response(JSON.stringify({ id: "existing-user-uuid", email: "tester@line.example" }), { status: 200 });
       }
       if (url === `${env.SUPABASE_URL}/rest/v1/users`) {
         return new Response(null, { status: 201 });
@@ -130,6 +153,8 @@ describe("handleLineAuthCallback", () => {
       throw new Error(`unexpected fetch: ${url}`);
     });
   }
+
+  type SupabaseAdminUserFixture = { id: string; email: string };
 
   it("fails closed on nonce mismatch (replay protection)", async () => {
     mockLineAndSupabase({ verifyBody: { nonce: "different-nonce" } });
@@ -185,6 +210,14 @@ describe("handleLineAuthCallback", () => {
     expect(upsertBody.line_user_id).toBe("line-user-123");
     expect(upsertBody.email_verified_at).not.toBeNull();
 
+    const supabaseCalls = fetchMock.mock.calls.filter(([input]) => String(input).startsWith(env.SUPABASE_URL));
+    expect(supabaseCalls.length).toBeGreaterThan(0);
+    for (const [, init] of supabaseCalls) {
+      const headers = new Headers((init as RequestInit | undefined)?.headers);
+      expect(headers.get("apikey")).toBe(env.SUPABASE_SERVICE_ROLE_KEY);
+      expect(headers.get("authorization")).toBeNull();
+    }
+
     const clearedCookies = response.headers.getSetCookie();
     expect(clearedCookies.some((c) => c.startsWith("__Host-gather-line-oauth-state=;"))).toBe(true);
   });
@@ -203,6 +236,48 @@ describe("handleLineAuthCallback", () => {
     expect(createUserCall).toBeUndefined();
   });
 
+  it("falls back to a synthetic auth email when LINE email already belongs to another auth user", async () => {
+    mockLineAndSupabase({
+      userLookup: [],
+      adminUserStatuses: [422, 200],
+      adminUsers: [],
+    });
+    const response = await handleLineAuthCallback(
+      callbackRequest(
+        { code: "abc", state: "real-state" },
+        "__Host-gather-line-oauth-state=real-state; __Host-gather-line-oauth-nonce=real-nonce|%2Fapp%2F",
+      ),
+      env,
+    );
+
+    expect(response.status).toBe(302);
+    const createCalls = fetchMock.mock.calls.filter(([u]) => u === `${env.SUPABASE_URL}/auth/v1/admin/users`);
+    expect(createCalls).toHaveLength(2);
+    const fallbackBody = JSON.parse((createCalls[1][1] as RequestInit).body as string);
+    expect(fallbackBody.email).toBe("line+line-user-123@users.noreply.gather.wedopr.com");
+    const location = new URL(response.headers.get("Location")!);
+    expect(location.searchParams.get("token_hash")).toBe("the-hashed-token");
+  });
+
+  it("reuses a previously-created synthetic auth user after a partial provisioning retry", async () => {
+    mockLineAndSupabase({
+      userLookup: [],
+      adminUserStatuses: [422],
+      adminUsers: [{ id: "synthetic-user-uuid", email: "line+line-user-123@users.noreply.gather.wedopr.com" }],
+    });
+    const response = await handleLineAuthCallback(
+      callbackRequest(
+        { code: "abc", state: "real-state" },
+        "__Host-gather-line-oauth-state=real-state; __Host-gather-line-oauth-nonce=real-nonce|%2Fapp%2F",
+      ),
+      env,
+    );
+
+    expect(response.status).toBe(302);
+    const createCalls = fetchMock.mock.calls.filter(([u, init]) => u === `${env.SUPABASE_URL}/auth/v1/admin/users` && !(init as RequestInit | undefined)?.method);
+    expect(createCalls).toHaveLength(0);
+  });
+
   it("falls back to a placeholder email when LINE does not return one (email scope declined)", async () => {
     mockLineAndSupabase({ userLookup: [], verifyBody: { email: undefined } });
     await handleLineAuthCallback(
@@ -217,5 +292,25 @@ describe("handleLineAuthCallback", () => {
     const createUserBody = JSON.parse((createUserCall![1] as RequestInit).body as string);
     expect(createUserBody.email).toBe("line+line-user-123@users.noreply.gather.wedopr.com");
     expect(createUserBody.email_confirm).toBe(false);
+  });
+
+  it("fails closed with a user-facing error when Supabase account lookup is forbidden", async () => {
+    mockLineAndSupabase({ userLookupStatus: 403 });
+    const response = await handleLineAuthCallback(
+      callbackRequest(
+        { code: "abc", state: "real-state" },
+        "__Host-gather-line-oauth-state=real-state; __Host-gather-line-oauth-nonce=real-nonce|%2Fapp%2F",
+      ),
+      env,
+    );
+
+    expect(response.status).toBe(302);
+    const location = new URL(response.headers.get("Location")!);
+    expect(location.searchParams.get("line_error")).toBe("account_provisioning_failed");
+    expect(consoleErrorMock).toHaveBeenCalledWith("LINE account provisioning dependency failed", {
+      operation: "users lookup",
+      status: 403,
+    });
+    expect(JSON.stringify(consoleErrorMock.mock.calls)).not.toContain("service-role-test-key");
   });
 });

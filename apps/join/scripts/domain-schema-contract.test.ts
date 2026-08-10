@@ -14,6 +14,10 @@ const registrationGuardrailsPath = resolve(
   process.cwd(),
   "supabase/migrations/20260802160000_p1_02_registration_guardrails.sql",
 );
+const lineServiceRoleGrantsPath = resolve(
+  process.cwd(),
+  "supabase/migrations/20260810010000_p2_02_line_service_role_grants.sql",
+);
 
 const domainTables = [
   "users",
@@ -132,5 +136,20 @@ describe("P1-02 canonical registration schema contract", () => {
     expect(sql).toMatch(
       /revoke\s+all\s+on\s+function\s+public\.guard_registration_state_machine[\s\S]+from\s+public\s*,\s*anon\s*,\s*authenticated/,
     );
+  });
+
+  it("gives only the LINE backend service role the narrow users columns it needs", async () => {
+    const sql = (await readFile(lineServiceRoleGrantsPath, "utf8")).toLowerCase();
+
+    expect(sql).toContain(
+      "grant select (id, line_user_id, email, email_normalized, display_name, email_verified_at)",
+    );
+    expect(sql).toMatch(
+      /grant\s+insert\s+\(id, line_user_id, email, display_name, email_verified_at\)\s+on\s+public\.users\s+to\s+service_role;/,
+    );
+    expect(sql).toMatch(
+      /grant\s+update\s+\(id, line_user_id, email, display_name, email_verified_at\)\s+on\s+public\.users\s+to\s+service_role;/,
+    );
+    expect(sql).not.toMatch(/grant\s+(select|insert|update)[\s\S]+to\s+(public|anon|authenticated)\s*;/);
   });
 });

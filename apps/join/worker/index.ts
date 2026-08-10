@@ -7,8 +7,14 @@ interface Env extends LineAuthEnv {
   };
 }
 
-const LINE_AUTH_START_PATH = "/app/auth/line/start";
-const LINE_AUTH_CALLBACK_PATH = "/app/auth/line/callback";
+const LINE_AUTH_START_PATHS = new Set([
+  "/app/auth/line/start",
+  "/app/auth/line/authorize",
+]);
+const LINE_AUTH_CALLBACK_PATHS = new Set([
+  "/app/auth/line/callback",
+  "/app/line/callback",
+]);
 // The Workers Route matches the full "/app/*" path, but the Vite build
 // output (dist/client) is flat — index.html and assets/ sit at its root,
 // not under an "app/" subdirectory. The ASSETS binding matches requests
@@ -21,10 +27,10 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    if (url.pathname === LINE_AUTH_START_PATH) {
+    if (LINE_AUTH_START_PATHS.has(url.pathname)) {
       return withSecurityHeaders(await handleLineAuthStart(request, env));
     }
-    if (url.pathname === LINE_AUTH_CALLBACK_PATH) {
+    if (LINE_AUTH_CALLBACK_PATHS.has(url.pathname)) {
       return withSecurityHeaders(await handleLineAuthCallback(request, env));
     }
 
@@ -33,6 +39,12 @@ export default {
       assetUrl.pathname = assetUrl.pathname.slice(ASSET_PATH_PREFIX.length) || "/";
     }
     const assetResponse = await env.ASSETS.fetch(new Request(assetUrl, request));
+    if (assetResponse.status === 404 && !assetUrl.pathname.startsWith("/assets/")) {
+      const indexUrl = new URL(assetUrl);
+      indexUrl.pathname = "/";
+      indexUrl.search = "";
+      return withSecurityHeaders(await env.ASSETS.fetch(new Request(indexUrl, request)));
+    }
     return withSecurityHeaders(assetResponse);
   },
 };

@@ -12,6 +12,7 @@ const LINE_ERROR_LABEL: Record<string, string> = {
   nonce_mismatch: "登入驗證失敗，請重新嘗試",
   audience_mismatch: "登入驗證失敗，請重新嘗試",
   token_exchange_failed: "LINE 登入暫時無法使用，請稍後再試",
+  account_provisioning_failed: "LINE 登入暫時無法完成帳號建立，請稍後再試",
 };
 
 export default function AuthPage() {
@@ -26,6 +27,28 @@ export default function AuthPage() {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  async function handleLineLogin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setBusy(true);
+    try {
+      const response = await fetch("/app/auth/line/authorize", {
+        method: "POST",
+        body: new URLSearchParams({ redirect: redirectTo }),
+        credentials: "same-origin",
+      });
+      if (!response.ok) throw new Error("LINE 登入暫時無法使用，請稍後再試");
+      const data = (await response.json()) as { location?: string };
+      if (!data.location || !data.location.startsWith("https://access.line.me/")) {
+        throw new Error("LINE 登入暫時無法使用，請稍後再試");
+      }
+      window.location.assign(data.location);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "LINE 登入暫時無法使用，請稍後再試");
+      setBusy(false);
+    }
+  }
 
   async function handleSendCode(event: FormEvent) {
     event.preventDefault();
@@ -103,28 +126,23 @@ export default function AuthPage() {
         </div>
       )}
 
-      <div className="card" style={{ marginBottom: 20 }}>
+      <form
+        className="card"
+        method="post"
+        action="/app/auth/line/authorize"
+        onSubmit={handleLineLogin}
+        style={{ marginBottom: 20 }}
+      >
+        <input type="hidden" name="redirect" value={redirectTo} />
         <button
-          type="button"
+          type="submit"
+          disabled={busy}
           className="btn btn-primary"
           style={{ display: "block", width: "100%", textAlign: "center" }}
-          onClick={() => {
-            // Deliberately not a plain <a href> — this endpoint issues
-            // one-time CSRF/nonce cookies and 302s onward, so it isn't a
-            // safe, side-effect-free GET. A real <a href> is a legitimate
-            // link Cloudflare's Speculative Loading (confirmed active on
-            // this zone via the injected /cdn-cgi/speculation script) can
-            // prefetch/prerender in the background before the user ever
-            // clicks, silently consuming that one-time state and leaving
-            // the real click looking like it does nothing. Triggering
-            // navigation from a click handler means there is no href for
-            // a prefetcher to discover in the first place.
-            window.location.href = `/app/auth/line/start?redirect=${encodeURIComponent(redirectTo)}`;
-          }}
         >
           使用 LINE 登入
         </button>
-      </div>
+      </form>
 
       <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>或使用 email 驗證碼：</p>
 

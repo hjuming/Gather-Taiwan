@@ -5,6 +5,7 @@ import {
   cancelRegistration,
   declarePayment,
   getEventBySlug,
+  getEventFields,
   getMyRegistrationForEvent,
   registerForEvent,
   reportPaymentInstructions,
@@ -13,8 +14,9 @@ import {
 import { supabase } from "../lib/supabase";
 import { useSession } from "../lib/useSession";
 import { SafeRichText } from "../security/security";
-import { REGISTRATION_STATUS_LABEL, type EventRow, type RegistrationRow } from "../lib/types";
+import { REGISTRATION_STATUS_LABEL, type EventFieldRow, type EventRow, type RegistrationRow } from "../lib/types";
 import RosterManager from "../components/RosterManager";
+import { validateEventAnswers, type EventAnswer } from "../lib/event-fields";
 
 const VISIBILITY_LABEL: Record<EventRow["visibility"], string> = {
   public: "公開活動",
@@ -41,6 +43,8 @@ export default function EventPage() {
   const { session, loading: sessionLoading } = useSession();
 
   const [event, setEvent] = useState<EventRow | null | "not-found">(null);
+  const [fields, setFields] = useState<EventFieldRow[]>([]);
+  const [answers, setAnswers] = useState<Record<string, EventAnswer>>({});
   const [myRegistration, setMyRegistration] = useState<RegistrationRow | null>(null);
   const [isOrganizerAdmin, setIsOrganizerAdmin] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +59,12 @@ export default function EventPage() {
     try {
       const row = await getEventBySlug(slug);
       setEvent(row ?? "not-found");
+      setFields([]);
+      setAnswers({});
+      if (row) {
+        const eventFields = await getEventFields(row.id);
+        setFields(eventFields);
+      }
       if (row && session) {
         const reg = await getMyRegistrationForEvent(row.id);
         setMyRegistration(reg);
@@ -140,10 +150,15 @@ export default function EventPage() {
       navigate(`/auth?redirect=${encodeURIComponent(`/e/${slug}`)}`);
       return;
     }
+    const answerError = validateEventAnswers(fields, answers);
+    if (answerError) {
+      setError(answerError);
+      return;
+    }
     setError(null);
     setBusy(true);
     try {
-      await registerForEvent((event as EventRow).id);
+      await registerForEvent((event as EventRow).id, answers);
       setNotice("報名已送出");
       await load();
     } catch (err) {
@@ -333,10 +348,26 @@ export default function EventPage() {
             )}
           </div>
         ) : isOpen ? (
-          <form onSubmit={handleRegister} className="actions">
-            <button type="submit" className="btn-primary" disabled={busy}>
-              {busy ? "送出中…" : "我要報名"}
-            </button>
+          <form onSubmit={handleRegister} className="stack">
+            {session && fields.length > 0 && (
+              <div className="stack--tight">
+                <h3>報名資料</h3>
+                <p className="hint">請填寫主辦人需要的資料；標示「必填」的欄位不能留白。</p>
+                {fields.map((field) => (
+                  <EventFieldInput
+                    key={field.id}
+                    field={field}
+                    value={answers[field.field_key]}
+                    onChange={(value) => setAnswers((previous) => ({ ...previous, [field.field_key]: value }))}
+                  />
+                ))}
+              </div>
+            )}
+            <div className="actions">
+              <button type="submit" className="btn-primary" disabled={busy}>
+                {busy ? "送出中…" : session ? "我要報名" : "登入後報名"}
+              </button>
+            </div>
           </form>
         ) : (
           <p style={{ color: "var(--muted)" }}>目前未開放報名</p>
@@ -350,5 +381,99 @@ export default function EventPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function EventFieldInput({
+  field,
+  value,
+  onChange,
+}: {
+  field: EventFieldRow;
+  value: EventAnswer;
+  onChange: (value: EventAnswer) => void;
+}) {
+  const fieldId = `event-field-${field.id}`;
+  const requiredLabel = field.is_required ? "（必填）" : "（選填）";
+
+  if (field.field_type === "short_text" || field.field_type === "long_text") {
+    return (
+      <div className="field">
+        <label htmlFor={fieldId}>
+          {field.label} {requiredLabel}
+        </label>
+        {field.field_type === "long_text" ? (
+          <textarea
+            id={fieldId}
+            value={typeof value === "string" ? value : ""}
+            onChange={(event) => onChange(event.target.value)}
+          />
+        ) : (
+          <input
+            id={fieldId}
+            type="text"
+            value={typeof value === "string" ? value : ""}
+            onChange={(event) => onChange(event.target.value)}
+          />
+        )}
+      </div>
+    );
+  }
+
+  if (field.field_type === "single_choice") {
+    return (
+      <div className="field">
+        <label htmlFor={fieldId}>
+          {field.label} {requiredLabel}
+        </label>
+        <select id={fieldId} value={typeof value === "string" ? value : ""} onChange={(event) => onChange(event.target.value)}>
+          <option value="">請選擇</option>
+          {(field.options ?? []).map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
+  if (field.field_type === "multiple_choice") {
+    const selected = Array.isArray(value) ? value : [];
+    return (
+      <fieldset className="field fieldset-reset">
+        <legend>
+          {field.label} {requiredLabel}
+        </legend>
+        <div className="choice-list">
+          {(field.options ?? []).map((option) => (
+            <label key={option} className="check-field">
+              <input
+                type="checkbox"
+                checked={selected.includes(option)}
+                onChange={(event) =>
+                  onChange(
+                    event.target.checked ? [...selected, option] : selected.filter((item) => item !== option),
+                  )
+                }
+              />
+              {option}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    );
+  }
+
+  return (
+    <label className="check-field" htmlFor={fieldId}>
+      <input
+        id={fieldId}
+        type="checkbox"
+        checked={value === true}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      {field.label} {requiredLabel}
+    </label>
   );
 }

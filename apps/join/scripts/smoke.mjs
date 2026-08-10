@@ -53,7 +53,7 @@ const forbiddenHygiene = [
   new RegExp(["FIX", "ME"].join("")),
 ];
 const expectedHeaders = {
-  "Content-Security-Policy": "default-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+  "Content-Security-Policy": "default-src 'self'; connect-src 'self' https://anklbpkyesdmsubyfcna.supabase.co; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "no-referrer",
   "Permissions-Policy": "geolocation=(), camera=(), microphone=()",
