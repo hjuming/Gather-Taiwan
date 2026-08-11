@@ -4,7 +4,9 @@ import { createEvent, createOrganizer, getMyOrganizers, type OrganizerMembership
 import { useSession } from "../lib/useSession";
 import { createEventSlug, createSlug } from "../lib/slug";
 import { getGoogleMapsEmbedUrl } from "../lib/event-links";
+import { DEFAULT_GATHERING_TYPE, resolveCoverImage } from "../lib/gathering-types";
 import DateTimeField from "../components/DateTimeField";
+import GatheringTypeField from "../components/GatheringTypeField";
 import {
   dateTimePartsToTaipeiIso,
   dateTimePartsToTimestamp,
@@ -38,6 +40,9 @@ export default function EventCreatePage() {
   const [hasMinAge, setHasMinAge] = useState(false);
   const [minAge, setMinAge] = useState(18);
   const [inviteOnly, setInviteOnly] = useState(false);
+  const [gatheringType, setGatheringType] = useState<string>(DEFAULT_GATHERING_TYPE);
+  // null 代表沿用類型預設圖；主辦人自選後才寫入實際路徑。
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -133,6 +138,8 @@ export default function EventCreatePage() {
         paymentInstructions: paymentInstructions.trim(),
         minAge: hasMinAge ? minAge : null,
         inviteOnly,
+        gatheringType,
+        coverImageUrl,
       });
       navigate(`/e/${event_.slug}`);
     } catch (err) {
@@ -222,6 +229,12 @@ export default function EventCreatePage() {
             <label htmlFor="summary">一句話簡介</label>
             <input id="summary" type="text" value={summary} onChange={(event) => setSummary(event.target.value)} />
           </div>
+          <GatheringTypeField
+            gatheringType={gatheringType}
+            coverImageUrl={coverImageUrl}
+            onTypeChange={setGatheringType}
+            onCoverChange={setCoverImageUrl}
+          />
           <div className="field">
             <label htmlFor="description">活動說明</label>
             <textarea
@@ -375,6 +388,12 @@ export default function EventCreatePage() {
         <aside className="create-form__aside" aria-label="聚會預覽">
           <div className="create-preview">
             <p className="section-kicker">桌邊先放一張椅子</p>
+            <img
+              className="create-preview__cover"
+              src={resolveCoverImage({ cover_image_url: coverImageUrl, gathering_type: gatheringType })}
+              alt=""
+              loading="lazy"
+            />
             <h2>{title.trim() || "新的聚會"}</h2>
             <p>{summary.trim() || "寫下一句，讓大家知道這次為什麼想見面。"}</p>
             <dl>

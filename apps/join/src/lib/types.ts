@@ -49,6 +49,8 @@ export interface EventRow {
   invite_reserved_seats: number | null;
   invite_pool_deadline: string | null;
   invite_pool_released_at: string | null;
+  gathering_type: string | null;
+  cover_image_url: string | null;
 }
 
 export interface EventFieldRow {

@@ -130,9 +130,11 @@ export default function MyHostedEventsPage() {
                 <span><strong>地點</strong>{event.location_name || "尚未提供"}</span>
                 <span><strong>人數</strong>{event.capacity ? `${event.capacity} 人` : "不限人數"}</span>
               </div>
+              {/* 這兩顆原本都連到同一個網址、文案卻不同，等於同功能重複。
+                  現在分成「改內容」與「看頁面」兩件真的不同的事。 */}
               <div className="actions hosted-event-card__actions">
-                <Link to={`/e/${event.slug}`} className="btn-primary">整理這場聚會</Link>
-                <Link to={`/e/${event.slug}`} className="btn-secondary">打開聚會頁</Link>
+                <Link to={`/e/${event.slug}`} className="btn-primary">打開聚會頁</Link>
+                <Link to={`/e/${event.slug}/edit`} className="btn-secondary">編輯內容</Link>
               </div>
             </article>
           ))}

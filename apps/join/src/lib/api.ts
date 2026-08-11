@@ -11,7 +11,8 @@ const EVENT_COLUMNS =
   "registration_opens_at, registration_closes_at, location_name, location_address, " +
   "capacity, fee_amount, fee_currency, payment_instructions, roster_visibility, " +
   "roster_show_capacity, invite_only, min_age, invite_reserved_seats, " +
-  "invite_pool_deadline, invite_pool_released_at, created_at, updated_at";
+  "invite_pool_deadline, invite_pool_released_at, gathering_type, cover_image_url, " +
+  "created_at, updated_at";
 
 function randomIdempotencyKey(): string {
   return crypto.randomUUID();
@@ -204,6 +205,8 @@ export interface CreateEventInput {
   paymentInstructions: string;
   minAge: number | null;
   inviteOnly: boolean;
+  gatheringType: string;
+  coverImageUrl: string | null;
 }
 
 export async function createEvent(input: CreateEventInput): Promise<EventRow> {
@@ -232,7 +235,59 @@ export async function createEvent(input: CreateEventInput): Promise<EventRow> {
       payment_instructions: input.paymentInstructions || null,
       min_age: input.minAge,
       invite_only: input.inviteOnly,
+      gathering_type: input.gatheringType,
+      cover_image_url: input.coverImageUrl,
     })
+    .select(EVENT_COLUMNS)
+    .single();
+
+  if (error) throw error;
+  return data as unknown as EventRow;
+}
+
+export interface UpdateEventInput {
+  title: string;
+  summary: string;
+  description: string;
+  visibility: "public" | "unlisted" | "private";
+  confirmationMode: "instant" | "organizer_confirmed";
+  startsAt: string;
+  endsAt: string;
+  locationName: string;
+  locationAddress: string;
+  capacity: number | null;
+  feeAmount: number;
+  paymentInstructions: string;
+  minAge: number | null;
+  gatheringType: string;
+  coverImageUrl: string | null;
+}
+
+/**
+ * 更新既有聚會。欄位權限由資料庫的 events_update_admin policy 與 column grant 把關，
+ * 這裡只送出主辦人可以改的欄位；slug 與 organizer 刻意不開放修改，避免既有分享連結失效。
+ */
+export async function updateEvent(eventId: string, input: UpdateEventInput): Promise<EventRow> {
+  const { data, error } = await supabase
+    .from("events")
+    .update({
+      title: input.title,
+      summary: input.summary || null,
+      description: input.description || null,
+      visibility: input.visibility,
+      confirmation_mode: input.confirmationMode,
+      starts_at: input.startsAt,
+      ends_at: input.endsAt,
+      location_name: input.locationName || null,
+      location_address: input.locationAddress || null,
+      capacity: input.capacity,
+      fee_amount: input.feeAmount,
+      payment_instructions: input.paymentInstructions || null,
+      min_age: input.minAge,
+      gathering_type: input.gatheringType,
+      cover_image_url: input.coverImageUrl,
+    })
+    .eq("id", eventId)
     .select(EVENT_COLUMNS)
     .single();
 

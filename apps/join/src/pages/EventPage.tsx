@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   cancelEvent,
   cancelRegistration,
@@ -25,8 +25,7 @@ import {
   getGoogleMapsSearchUrl,
   getLineShareUrl,
 } from "../lib/event-links";
-
-const DEFAULT_HERO_IMAGE = `${import.meta.env.BASE_URL}assets/gather-event-hero-default-v1.png`;
+import { getGatheringTypeLabel, resolveCoverImage } from "../lib/gathering-types";
 
 const VISIBILITY_LABEL: Record<EventRow["visibility"], string> = {
   public: "公開活動",
@@ -254,46 +253,13 @@ export default function EventPage() {
     }
   }
 
-  async function handleShare() {
-    const eventRow = event as EventRow;
-    const url = getEventShareUrl(eventRow.slug);
-    const text = getEventShareText(eventRow, url);
-    setError(null);
-    try {
-      if (navigator.share) {
-        // The activity URL is already the final plain-text line in `text`.
-        // Passing it again as Web Share's `url` duplicates the link in LINE
-        // and some iPad share targets, making the invitation harder to scan.
-        await navigator.share({ title: eventRow.title, text });
-        setNotice("已開啟分享面板");
-      } else {
-        await copyText(text);
-        setNotice("活動分享內容已複製，可以貼到 LINE 群組或聊天室");
-      }
-    } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") return;
-      setError("分享失敗，請改用複製連結");
-    }
-  }
-
   async function handleCopyLink() {
     setError(null);
     try {
       await copyText(getEventShareUrl((event as EventRow).slug));
-      setNotice("活動／邀請連結已複製");
+      setNotice("活動連結已複製，可以貼到 LINE 群組或聊天室");
     } catch {
       setError("複製失敗，請手動複製瀏覽器網址");
-    }
-  }
-
-  async function handleCopyShareText() {
-    setError(null);
-    try {
-      const eventRow = event as EventRow;
-      await copyText(getEventShareText(eventRow, getEventShareUrl(eventRow.slug)));
-      setNotice("完整活動資訊已複製");
-    } catch {
-      setError("複製失敗，請改用分享到 LINE");
     }
   }
 
@@ -301,14 +267,18 @@ export default function EventPage() {
   const mapsUrl = getGoogleMapsSearchUrl(event);
   const mapEmbedUrl = getGoogleMapsEmbedUrl(event);
   const shareText = getEventShareText(event, eventUrl);
+  const gatheringTypeLabel = getGatheringTypeLabel(event.gathering_type);
 
   return (
     <div className="event-page">
       <section className="event-hero" aria-labelledby="event-title">
-        <img src={DEFAULT_HERO_IMAGE} alt="溫暖餐桌上的相聚時光" width="1672" height="941" fetchPriority="high" />
+        <img src={resolveCoverImage(event)} alt="" width="1672" height="941" fetchPriority="high" />
         <div className="event-hero__veil" />
         <div className="event-hero__copy">
-          <p className="eyebrow">{VISIBILITY_LABEL[event.visibility]}</p>
+          <p className="eyebrow">
+            {VISIBILITY_LABEL[event.visibility]}
+            {gatheringTypeLabel ? ` · ${gatheringTypeLabel}` : ""}
+          </p>
           <h1 id="event-title">{event.title}</h1>
           <p>{event.summary || "相招來聚會"}</p>
         </div>
@@ -367,21 +337,16 @@ export default function EventPage() {
           )}
         </section>
 
+        {/* 分享只留兩個出口：一個主要（LINE，帶完整活動資訊）、一個備用（複製連結）。
+            原本的「分享活動」「複製分享內容」與這兩個功能重疊，已移除以免選擇困難。 */}
         <section className="event-share event-share--full" aria-label="分享活動">
-          <button type="button" className="btn-primary" onClick={handleShare}>
-            分享活動
-          </button>
-          <a className="btn-secondary" href={getLineShareUrl(shareText)} target="_blank" rel="noreferrer">
+          <a className="btn-primary" href={getLineShareUrl(shareText)} target="_blank" rel="noreferrer">
             分享到 LINE
           </a>
-          <button type="button" className="btn-secondary" onClick={handleCopyShareText}>
-            複製分享內容
-          </button>
-          <button type="button" className="btn-text" onClick={handleCopyLink}>
-            複製活動／邀請連結
+          <button type="button" className="btn-secondary" onClick={handleCopyLink}>
+            複製連結
           </button>
         </section>
-        <p className="event-share__note">連結會把日期留在網址裡，方便大家辨認；私密聚會仍需要邀請或密碼才能進入。</p>
 
         {event.description && (
           <section id="event-description" className="event-section">
@@ -422,7 +387,12 @@ export default function EventPage() {
           {isOrganizerAdmin && (
             <div className="banner banner--info event-admin-note">
               這是你邀請大家相見的聚會。
-              {!isCancelled && <button type="button" className="btn-text" onClick={handleCancelEvent} disabled={busy}>取消整場活動</button>}
+              {!isCancelled && (
+                <>
+                  <Link to={`/e/${event.slug}/edit`} className="btn-secondary">編輯內容與代表圖</Link>
+                  <button type="button" className="btn-text" onClick={handleCancelEvent} disabled={busy}>取消整場活動</button>
+                </>
+              )}
             </div>
           )}
 
@@ -466,9 +436,18 @@ export default function EventPage() {
         )}
       </div>
 
+      {/* 底部只留一個動作。原本的「分享活動」與上方分享區重複，而「我要報名」
+          其實只是錨點，按下去只會捲到頁尾再出現另一顆按鈕——未登入時直接送去登入。 */}
       <div className="mobile-action-dock" aria-label="活動快捷操作">
-        <a href="#registration-title" className="btn-primary">{isOrganizerAdmin ? "回到報名區" : "我要報名"}</a>
-        <button type="button" className="btn-secondary" onClick={handleShare}>分享活動</button>
+        {isOrganizerAdmin ? (
+          <a href="#roster-title" className="btn-primary">看誰報名了</a>
+        ) : session ? (
+          <a href="#registration-title" className="btn-primary">我要報名</a>
+        ) : (
+          <Link to={`/auth?redirect=${encodeURIComponent(`/e/${event.slug}`)}`} className="btn-primary">
+            我要報名
+          </Link>
+        )}
       </div>
     </div>
   );

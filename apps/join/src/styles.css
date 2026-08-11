@@ -46,6 +46,16 @@ main {
   letter-spacing: 0.12em;
 }
 
+/* 中文標題不該在詞中間斷行（例如「泰山高／中同學會」）。keep-all 擋掉詞中斷點，
+   overflow-wrap 則保留超長字串仍能斷開的退路，避免溢出。 */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
 h1 {
   font-family: "Noto Serif TC", serif;
   font-size: clamp(2rem, 8vw, 4rem);
@@ -370,6 +380,16 @@ select {
   border-radius: 8px;
   padding: 10px 12px;
   width: 100%;
+  /* iOS Safari 給 date/time 類 input 一個大於容器的固有最小寬度，
+     不歸零會在窄螢幕把外框推出卡片。 */
+  min-width: 0;
+  max-width: 100%;
+}
+
+input[type="date"],
+input[type="datetime-local"] {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 input:focus,
@@ -449,18 +469,32 @@ textarea {
   font-weight: 400;
 }
 
+/* 單一按鈕體系：<a> 與 <button> 一律走同一組規則，避免 <a> 落回瀏覽器預設樣式
+   （少了邊框、又多了底線）。任何按鈕內都不出現劃線文字。 */
 button,
-.btn {
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   font: inherit;
   font-weight: 700;
   border-radius: 8px;
   padding: 11px 20px;
   border: 1px solid transparent;
+  text-decoration: none;
+  text-align: center;
   cursor: pointer;
-  transition: transform 0.08s ease, opacity 0.15s ease;
+  transition: transform 0.08s ease, opacity 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
 }
 
-button:active {
+button:active,
+.btn-primary:active,
+.btn-secondary:active,
+.btn-text:active {
   transform: translateY(1px);
 }
 
@@ -488,13 +522,17 @@ button:disabled {
   border-color: var(--fg);
 }
 
+/* 第三階按鈕：無邊框但仍是按鈕，不用底線表示可點。 */
 .btn-text {
   background: none;
-  border: none;
-  padding: 4px 0;
+  border-color: transparent;
   color: var(--muted);
-  text-decoration: underline;
-  font-weight: 400;
+  font-weight: 700;
+}
+
+.btn-text:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--fg);
 }
 
 .actions {
@@ -548,13 +586,6 @@ button:disabled {
 
 .meta-line strong {
   color: var(--fg);
-}
-
-.map-link {
-  color: var(--accent);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
 }
 
 .event-share {
@@ -723,6 +754,11 @@ button:disabled {
 
 .event-fact a {
   color: var(--accent);
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.event-fact a:hover {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
@@ -1140,13 +1176,16 @@ nav.top-nav .top-nav-menu a[aria-current="page"] {
 .home-hero h1 {
   margin: 18px 0 18px;
   font-size: clamp(3.2rem, 8vw, 7.2rem);
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
   text-wrap: balance;
 }
 
+/* 「聚一場。」必須整段一起換行，否則窄螢幕會斷成「相招，聚 / 一場。」 */
 .home-hero h1 em {
+  display: inline-block;
   color: #e0b57a;
   font-style: normal;
+  white-space: nowrap;
 }
 
 .home-hero__copy > p:last-of-type {
@@ -1513,6 +1552,57 @@ nav.top-nav .top-nav-menu a[aria-current="page"] {
   font-variant-numeric: tabular-nums;
 }
 
+/* 代表圖挑選器 */
+.cover-picker__hint {
+  margin: 6px 0 10px;
+}
+
+.cover-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+  gap: 10px;
+}
+
+.cover-option {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.cover-option img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.cover-option.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.create-preview__cover {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 12px;
+  margin: 12px 0 4px;
+}
+
 .create-preview__map iframe {
   display: block;
   width: 100%;
@@ -1535,11 +1625,23 @@ nav.top-nav .top-nav-menu a[aria-current="page"] {
 }
 
 .event-map__link {
-  display: inline-block;
-  margin-top: 8px;
-  color: var(--accent);
-  font-size: 0.82rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 10px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg);
+  font-size: 0.85rem;
   font-weight: 700;
+  text-decoration: none;
+}
+
+.event-map__link:hover {
+  border-color: var(--fg);
 }
 
 @media (min-width: 901px) {
@@ -1665,7 +1767,7 @@ nav.top-nav .top-nav-menu a[aria-current="page"] {
   }
 
   .home-hero h1 {
-    font-size: clamp(3rem, 16vw, 5rem);
+    font-size: clamp(2.6rem, 13vw, 4.4rem);
   }
 
   .home-hero__actions {

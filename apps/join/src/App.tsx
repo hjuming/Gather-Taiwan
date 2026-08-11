@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage";
 import AuthPage from "./pages/AuthPage";
 import EventCreatePage from "./pages/EventCreatePage";
 import EventPage from "./pages/EventPage";
+import EventEditPage from "./pages/EventEditPage";
 import MyRegistrationsPage from "./pages/MyRegistrationsPage";
 import MyHostedEventsPage from "./pages/MyHostedEventsPage";
 import LineAuthCompletePage from "./pages/LineAuthCompletePage";
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/auth/line/complete" element={<LineAuthCompletePage />} />
           <Route path="/events/new" element={<EventCreatePage />} />
           <Route path="/e/:slug" element={<EventPage />} />
+          <Route path="/e/:slug/edit" element={<EventEditPage />} />
           <Route path="/me/registrations" element={<MyRegistrationsPage />} />
           <Route path="/me/hosting" element={<MyHostedEventsPage />} />
         </Routes>
