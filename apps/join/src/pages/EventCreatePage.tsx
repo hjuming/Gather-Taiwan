@@ -50,6 +50,7 @@ export default function EventCreatePage() {
   const [locationAddress, setLocationAddress] = useState("");
   const [hasCapacity, setHasCapacity] = useState(true);
   const [capacity, setCapacity] = useState(20);
+  const [feeMode, setFeeMode] = useState<"free" | "fixed" | "on_site_split">("free");
   const [feeAmountInput, setFeeAmountInput] = useState("0");
   const [paymentInstructions, setPaymentInstructions] = useState("");
   const [hasMinAge, setHasMinAge] = useState(false);
@@ -156,9 +157,9 @@ export default function EventCreatePage() {
       return;
     }
 
-    const feeAmount = feeAmountInput === "" ? 0 : Number(feeAmountInput);
-    if (!Number.isSafeInteger(feeAmount) || feeAmount < 0) {
-      setError("費用請填寫 0 或正整數");
+    const feeAmount = feeMode === "fixed" && feeAmountInput !== "" ? Number(feeAmountInput) : 0;
+    if (feeMode === "fixed" && (!Number.isSafeInteger(feeAmount) || feeAmount <= 0)) {
+      setError("固定費用請填寫正整數；現場分攤請改選對應方式");
       return;
     }
 
@@ -188,6 +189,7 @@ export default function EventCreatePage() {
         locationAddress: locationAddress.trim(),
         capacity: hasCapacity ? capacity : null,
         feeAmount,
+        feeMode,
         paymentInstructions: paymentInstructions.trim(),
         minAge: hasMinAge ? minAge : null,
         inviteOnly,
@@ -407,7 +409,24 @@ export default function EventCreatePage() {
         <section id="create-fee" className="card stack form-section">
           <h2>到場方式與費用</h2>
           <div className="field">
-            <label htmlFor="feeAmount">費用（TWD，0 表示免費）</label>
+            <label htmlFor="feeMode">費用方式</label>
+            <select
+              id="feeMode"
+              value={feeMode}
+              onChange={(event) => {
+                const nextMode = event.target.value as typeof feeMode;
+                setFeeMode(nextMode);
+                if (nextMode !== "fixed") setFeeAmountInput("0");
+              }}
+            >
+              <option value="free">免費</option>
+              <option value="fixed">固定費用</option>
+              <option value="on_site_split">現場結算後分攤</option>
+            </select>
+          </div>
+          {feeMode === "fixed" && (
+          <div className="field">
+            <label htmlFor="feeAmount">每人費用（TWD）</label>
             <input
               id="feeAmount"
               type="text"
@@ -417,6 +436,7 @@ export default function EventCreatePage() {
               onChange={(event) => setFeeAmountInput(event.target.value.replace(/[^0-9]/g, ""))}
             />
           </div>
+          )}
           <div className="field">
             <label htmlFor="paymentInstructions">收款說明</label>
             <textarea
@@ -456,7 +476,7 @@ export default function EventCreatePage() {
               </div>
               <div><dt>地點</dt><dd>{locationName.trim() || "還在等一個地方"}</dd></div>
               <div><dt>席次</dt><dd>{hasCapacity ? `${capacity} 人` : "不限人數"}</dd></div>
-              <div><dt>到場</dt><dd>{Number(feeAmountInput) > 0 ? `NT$ ${feeAmountInput}` : "免費"}</dd></div>
+              <div><dt>到場</dt><dd>{feeMode === "on_site_split" ? "現場結算後分攤" : feeMode === "fixed" ? `NT$ ${feeAmountInput || "0"}` : "免費"}</dd></div>
             </dl>
             {mapEmbedUrl && (
               <div className="create-preview__map">

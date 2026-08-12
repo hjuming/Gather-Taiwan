@@ -1,5 +1,6 @@
 import type { EventRow } from "./types";
 import { formatTaipeiDateTimeRange } from "./date-time";
+import { formatEventFee } from "./event-fee";
 
 function buildLocationQuery(location: { location_name?: string | null; location_address?: string | null }): string | null {
   const query = [location.location_name?.trim(), location.location_address?.trim()].filter(Boolean).join(" ");
@@ -28,13 +29,13 @@ export function getEventShareText(
   event: Pick<
     EventRow,
     "title" | "summary" | "starts_at" | "ends_at" | "location_name" | "location_address" | "fee_amount" | "capacity"
-  >,
+  > & Partial<Pick<EventRow, "fee_mode" | "payment_instructions">>,
   url: string,
 ): string {
   const dateRange = formatTaipeiDateTimeRange(event.starts_at, event.ends_at);
   const location = event.location_name?.trim() || "尚未提供";
   const address = event.location_address?.trim() || "地址待公布";
-  const fee = Number(event.fee_amount) > 0 ? `NT$ ${event.fee_amount}` : "免費";
+  const fee = formatEventFee(event);
   const capacity = event.capacity ? `${event.capacity} 人` : "不限人數";
   return [
     `來聚一場～${event.title}`,

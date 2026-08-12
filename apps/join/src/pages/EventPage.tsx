@@ -6,6 +6,7 @@ import {
   declarePayment,
   getEventBySlug,
   getEventFields,
+  getGuestInvitationEvent,
   getPublicEventSummary,
   getMyRegistrationForEvent,
   registerForEvent,
@@ -18,6 +19,8 @@ import { SafeRichText } from "../security/security";
 import { REGISTRATION_STATUS_LABEL, type EventFieldRow, type EventRow, type RegistrationRow } from "../lib/types";
 import type { PublicEventSummary } from "../lib/api";
 import RosterManager from "../components/RosterManager";
+import GuestInvitationResponse from "../components/GuestInvitationResponse";
+import InvitationManager from "../components/InvitationManager";
 import { validateEventAnswers, type EventAnswer } from "../lib/event-fields";
 import {
   copyText,
@@ -29,6 +32,8 @@ import {
 } from "../lib/event-links";
 import { getGatheringTypeLabel, resolveCoverImage } from "../lib/gathering-types";
 import { formatTaipeiDateTimeRange } from "../lib/date-time";
+import { formatEventFee } from "../lib/event-fee";
+import { getOrCreateGuestInvitationKey, type GuestInvitationEvent } from "../lib/guest-invitations";
 
 const VISIBILITY_LABEL: Record<EventRow["visibility"], string> = {
   public: "公開活動",
@@ -46,6 +51,7 @@ export default function EventPage() {
   const { session, loading: sessionLoading } = useSession();
 
   const [event, setEvent] = useState<EventRow | null | "not-found">(null);
+  const [guestInvitation, setGuestInvitation] = useState<GuestInvitationEvent | null>(null);
   const [publicSummary, setPublicSummary] = useState<PublicEventSummary | null>(null);
   const [fields, setFields] = useState<EventFieldRow[]>([]);
   const [answers, setAnswers] = useState<Record<string, EventAnswer>>({});
@@ -63,10 +69,28 @@ export default function EventPage() {
     if (!slug) return;
     try {
       const row = await getEventBySlug(slug);
-      setEvent(row ?? "not-found");
       setPublicSummary(null);
       setFields([]);
       setAnswers({});
+      setGuestInvitation(null);
+      if (!row) {
+        const guestKey = getOrCreateGuestInvitationKey(slug);
+        const guestEvent = await getGuestInvitationEvent(slug, guestKey).catch(() => null);
+        if (guestEvent) {
+          setGuestInvitation(guestEvent);
+          setPublicSummary({
+            organizerDisplayName: guestEvent.organizer_display_name,
+            registrationCount: guestEvent.attending_count,
+            capacity: guestEvent.capacity,
+            showCapacity: guestEvent.capacity !== null,
+          });
+          setEvent(guestEvent as unknown as EventRow);
+          return;
+        }
+        setEvent("not-found");
+        return;
+      }
+      setEvent(row);
       if (row) {
         const [eventFields, summary] = await Promise.all([
           getEventFields(row.id),
@@ -153,6 +177,7 @@ export default function EventPage() {
 
   const isOpen = event.status === "published";
   const isCancelled = event.status === "cancelled";
+  const isGuestInvitation = guestInvitation !== null;
 
   async function handleRegister(formEvent: FormEvent) {
     formEvent.preventDefault();
@@ -312,7 +337,7 @@ export default function EventPage() {
           </div>
           <div className="event-fact">
             <span className="event-fact__label">費用</span>
-            <strong>{Number(event.fee_amount) > 0 ? `NT$ ${event.fee_amount}` : "免費"}</strong>
+            <strong>{formatEventFee(event)}</strong>
           </div>
           <div className="event-fact">
             <span className="event-fact__label">人數上限</span>
@@ -380,11 +405,20 @@ export default function EventPage() {
               {publicSummary.showCapacity && publicSummary.registrationCount !== null && (
                 <p>已報名 {publicSummary.registrationCount} / {publicSummary.capacity}</p>
               )}
-              <p>用 LINE 登入即可，免密碼，約 30 秒</p>
-              <p>
-                報名後可回到本頁查看或取消（也可以從
-                <Link to="/me/registrations" className="event-register__link">我的報名</Link>進入）。
-              </p>
+              {isGuestInvitation ? (
+                <>
+                  <p>不用註冊，直接用這個網址回覆出席狀態</p>
+                  <p>回到同一個網址，就能查看或修改自己的回覆。</p>
+                </>
+              ) : (
+                <>
+                  <p>用 LINE 登入即可，免密碼，約 30 秒</p>
+                  <p>
+                    報名後可回到本頁查看或取消（也可以從
+                    <Link to="/me/registrations" className="event-register__link">我的報名</Link>進入）。
+                  </p>
+                </>
+              )}
             </div>
           )}
 
@@ -400,7 +434,24 @@ export default function EventPage() {
             </div>
           )}
 
-          {myRegistration ? (
+          {isGuestInvitation ? (
+            <GuestInvitationResponse
+              event={guestInvitation}
+              guestKey={getOrCreateGuestInvitationKey(event.slug)}
+              busy={busy}
+              onError={setError}
+              onUpdated={(result) => {
+                setGuestInvitation((previous) => previous ? {
+                  ...previous,
+                  guest_response: result.guest_response,
+                  guest_display_name: result.guest_display_name,
+                  attending_count: result.attending_count,
+                } : previous);
+                setPublicSummary((previous) => previous ? { ...previous, registrationCount: result.attending_count } : previous);
+                setNotice(result.guest_response === "attending" ? "已回覆出席，期待到時見。" : "已記下這次不克出席。");
+              }}
+            />
+          ) : myRegistration ? (
             <div className="stack">
               <span className={`status-pill ${myRegistration.status === "confirmed" ? "status-pill--confirmed" : ""}`}>
                 {REGISTRATION_STATUS_LABEL[myRegistration.status]}
@@ -452,6 +503,12 @@ export default function EventPage() {
           <section id="roster-title" className="event-section roster-section">
             <p className="section-kicker">這張桌子，誰會來</p>
             <h2>一起來的人</h2>
+            {event.visibility === "private" && event.invite_only && (
+              <>
+                <h3>共用邀請回覆</h3>
+                <InvitationManager eventId={event.id} slug={event.slug} capacity={event.capacity} />
+              </>
+            )}
             <RosterManager eventId={event.id} capacity={event.capacity} />
           </section>
         )}
@@ -462,6 +519,8 @@ export default function EventPage() {
       <div className="mobile-action-dock" aria-label="活動快捷操作">
         {isOrganizerAdmin ? (
           <a href="#roster-title" className="btn-primary">看誰報名了</a>
+        ) : isGuestInvitation ? (
+          <a href="#registration-title" className="btn-primary">回覆出席狀態</a>
         ) : session ? (
           <a href="#registration-title" className="btn-primary">我要報名</a>
         ) : (

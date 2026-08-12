@@ -1,5 +1,13 @@
 import { supabase } from "./supabase";
-import type { EventFieldRow, EventRow, RegistrationRow, RegistrationStatus } from "./types";
+import type {
+  EventFieldRow,
+  EventInvitationTargetRow,
+  EventRow,
+  RegistrationRow,
+  RegistrationStatus,
+  EventFeeMode,
+} from "./types";
+import type { GuestInvitationEvent, GuestInvitationResponse } from "./guest-invitations";
 import { removeEventCover } from "./event-covers";
 
 // events.password_hash is deliberately never granted to any role (P1-04) —
@@ -10,7 +18,7 @@ const EVENT_COLUMNS =
   "id, organizer_id, created_by_user_id, slug, title, summary, description, " +
   "status, visibility, confirmation_mode, timezone, starts_at, ends_at, " +
   "registration_opens_at, registration_closes_at, location_name, location_address, " +
-  "capacity, fee_amount, fee_currency, payment_instructions, roster_visibility, " +
+  "capacity, fee_amount, fee_mode, fee_currency, payment_instructions, roster_visibility, " +
   "roster_show_capacity, invite_only, min_age, invite_reserved_seats, " +
   "invite_pool_deadline, invite_pool_released_at, gathering_type, cover_image_url, " +
   "created_at, updated_at";
@@ -60,6 +68,77 @@ export async function getPublicEventSummary(slug: string): Promise<PublicEventSu
   if (response.status === 404) return null;
   if (!response.ok) throw new Error("活動摘要暫時讀不到");
   return (await response.json()) as PublicEventSummary;
+}
+
+export async function getGuestInvitationEvent(
+  slug: string,
+  guestKey: string,
+): Promise<GuestInvitationEvent | null> {
+  const { data, error } = await supabase.rpc("get_event_invitation_by_slug", {
+    p_slug: slug,
+    p_guest_key: guestKey,
+  });
+  if (error) throw error;
+  return (data as GuestInvitationEvent | null) ?? null;
+}
+
+export async function respondToGuestInvitation(
+  slug: string,
+  guestKey: string,
+  displayName: string,
+  response: GuestInvitationResponse,
+): Promise<{
+  guest_response: GuestInvitationResponse;
+  guest_display_name: string;
+  attending_count: number;
+  capacity: number | null;
+}> {
+  const { data, error } = await supabase.rpc("respond_to_event_invitation", {
+    p_slug: slug,
+    p_guest_key: guestKey,
+    p_display_name: displayName,
+    p_response: response,
+  });
+  if (error) throw error;
+  const result = data as {
+    response: GuestInvitationResponse;
+    display_name: string;
+    attending_count: number;
+    capacity: number | null;
+  };
+  return {
+    guest_response: result.response,
+    guest_display_name: result.display_name,
+    attending_count: result.attending_count,
+    capacity: result.capacity,
+  };
+}
+
+export async function getEventInvitationTargets(eventId: string): Promise<EventInvitationTargetRow[]> {
+  const { data, error } = await supabase
+    .from("event_invitation_targets")
+    .select("id, event_id, display_name, response, responded_at, created_by_user_id, created_at, updated_at, revoked_at")
+    .eq("event_id", eventId)
+    .is("revoked_at", null)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data as EventInvitationTargetRow[]) ?? [];
+}
+
+export async function organizerAddEventInvitationTarget(eventId: string, displayName: string): Promise<string> {
+  const { data, error } = await supabase.rpc("organizer_add_event_invitation_target", {
+    p_event_id: eventId,
+    p_display_name: displayName,
+  });
+  if (error) throw error;
+  return data as string;
+}
+
+export async function organizerRemoveEventInvitationTarget(targetId: string): Promise<void> {
+  const { error } = await supabase.rpc("organizer_remove_event_invitation_target", {
+    p_target_id: targetId,
+  });
+  if (error) throw error;
 }
 
 export async function getEventFields(eventId: string): Promise<EventFieldRow[]> {
@@ -219,6 +298,7 @@ export interface CreateEventInput {
   locationAddress: string;
   capacity: number | null;
   feeAmount: number;
+  feeMode: EventFeeMode;
   paymentInstructions: string;
   minAge: number | null;
   inviteOnly: boolean;
@@ -249,6 +329,7 @@ export async function createEvent(input: CreateEventInput): Promise<EventRow> {
       location_address: input.locationAddress || null,
       capacity: input.capacity,
       fee_amount: input.feeAmount,
+      fee_mode: input.feeMode,
       payment_instructions: input.paymentInstructions || null,
       min_age: input.minAge,
       invite_only: input.inviteOnly,
@@ -274,6 +355,7 @@ export interface UpdateEventInput {
   locationAddress: string;
   capacity: number | null;
   feeAmount: number;
+  feeMode: EventFeeMode;
   paymentInstructions: string;
   minAge: number | null;
   gatheringType: string;
@@ -299,6 +381,7 @@ export async function updateEvent(eventId: string, input: UpdateEventInput): Pro
       location_address: input.locationAddress || null,
       capacity: input.capacity,
       fee_amount: input.feeAmount,
+      fee_mode: input.feeMode,
       payment_instructions: input.paymentInstructions || null,
       min_age: input.minAge,
       gathering_type: input.gatheringType,

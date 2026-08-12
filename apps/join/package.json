@@ -28,6 +28,7 @@
     "verify:p1-07": "bash scripts/verify-p1-07.sh",
     "verify:p1-09-13": "bash scripts/verify-p1-09-13.sh",
     "verify:p1-11": "bash scripts/verify-p1-11.sh",
+    "verify:guest-invitations": "GATHER_JOIN_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:58322/postgres node scripts/verify-guest-invitations.mjs",
     "concurrency": "GATHER_JOIN_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:58322/postgres vitest run scripts/concurrency-harness.test.ts",
     "test:p1-01": "pnpm reset && pnpm verify && pnpm reset && pnpm verify && pnpm concurrency",
     "smoke": "node scripts/smoke.mjs",

@@ -7,6 +7,7 @@ export type EventStatus =
 
 export type EventVisibility = "public" | "unlisted" | "private";
 export type ConfirmationMode = "instant" | "organizer_confirmed";
+export type EventFeeMode = "free" | "fixed" | "on_site_split";
 export type FieldType = "short_text" | "long_text" | "single_choice" | "multiple_choice" | "boolean";
 
 export type RegistrationStatus =
@@ -40,6 +41,7 @@ export interface EventRow {
   location_address: string | null;
   capacity: number | null;
   fee_amount: string;
+  fee_mode: EventFeeMode;
   fee_currency: string;
   payment_instructions: string | null;
   roster_visibility: string;
@@ -52,6 +54,18 @@ export interface EventRow {
   gathering_type: string | null;
   cover_image_url: string | null;
   updated_at?: string | null;
+}
+
+export interface EventInvitationTargetRow {
+  id: string;
+  event_id: string;
+  display_name: string;
+  response: "pending" | "attending" | "declined";
+  responded_at: string | null;
+  created_by_user_id: string | null;
+  created_at: string;
+  updated_at: string;
+  revoked_at: string | null;
 }
 
 export interface EventFieldRow {

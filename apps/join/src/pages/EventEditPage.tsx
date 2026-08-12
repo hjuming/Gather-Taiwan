@@ -42,6 +42,7 @@ export default function EventEditPage() {
   const [locationAddress, setLocationAddress] = useState("");
   const [hasCapacity, setHasCapacity] = useState(true);
   const [capacity, setCapacity] = useState(20);
+  const [feeMode, setFeeMode] = useState<"free" | "fixed" | "on_site_split">("free");
   const [feeAmountInput, setFeeAmountInput] = useState("0");
   const [paymentInstructions, setPaymentInstructions] = useState("");
   const [hasMinAge, setHasMinAge] = useState(false);
@@ -99,6 +100,7 @@ export default function EventEditPage() {
         setHasCapacity(row.capacity !== null);
         if (row.capacity !== null) setCapacity(row.capacity);
         setFeeAmountInput(String(Number(row.fee_amount)));
+        setFeeMode(row.fee_mode ?? (Number(row.fee_amount) > 0 ? "fixed" : /現場|分攤/.test(row.payment_instructions ?? "") ? "on_site_split" : "free"));
         setPaymentInstructions(row.payment_instructions ?? "");
         setHasMinAge(row.min_age !== null);
         if (row.min_age !== null) setMinAge(row.min_age);
@@ -164,9 +166,9 @@ export default function EventEditPage() {
       setError("結束時間必須晚於開始時間");
       return;
     }
-    const feeAmount = Number(feeAmountInput);
-    if (!Number.isFinite(feeAmount) || feeAmount < 0) {
-      setError("費用需為 0 或正數");
+    const feeAmount = feeMode === "fixed" && feeAmountInput !== "" ? Number(feeAmountInput) : 0;
+    if (feeMode === "fixed" && (!Number.isSafeInteger(feeAmount) || feeAmount <= 0)) {
+      setError("固定費用請填寫正整數；現場分攤請改選對應方式");
       return;
     }
 
@@ -195,6 +197,7 @@ export default function EventEditPage() {
         locationAddress: locationAddress.trim(),
         capacity: hasCapacity ? capacity : null,
         feeAmount,
+        feeMode,
         paymentInstructions: paymentInstructions.trim(),
         minAge: hasMinAge ? minAge : null,
         gatheringType,
@@ -303,9 +306,27 @@ export default function EventEditPage() {
         <section className="card stack form-section">
           <h2>費用</h2>
           <div className="field">
+            <label htmlFor="edit-feeMode">費用方式</label>
+            <select
+              id="edit-feeMode"
+              value={feeMode}
+              onChange={(e) => {
+                const nextMode = e.target.value as typeof feeMode;
+                setFeeMode(nextMode);
+                if (nextMode !== "fixed") setFeeAmountInput("0");
+              }}
+            >
+              <option value="free">免費</option>
+              <option value="fixed">固定費用</option>
+              <option value="on_site_split">現場結算後分攤</option>
+            </select>
+          </div>
+          {feeMode === "fixed" && (
+          <div className="field">
             <label htmlFor="edit-fee">每人費用（TWD）</label>
             <input id="edit-fee" type="number" min={0} inputMode="numeric" value={feeAmountInput} onChange={(e) => setFeeAmountInput(e.target.value)} />
           </div>
+          )}
           <div className="field">
             <label htmlFor="edit-paymentInstructions">收款說明</label>
             <textarea id="edit-paymentInstructions" value={paymentInstructions} onChange={(e) => setPaymentInstructions(e.target.value)} />
