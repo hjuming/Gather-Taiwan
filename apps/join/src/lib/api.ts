@@ -88,6 +88,7 @@ export async function respondToGuestInvitation(
   displayName: string,
   response: GuestInvitationResponse,
 ): Promise<{
+  id: string;
   guest_response: GuestInvitationResponse;
   guest_display_name: string;
   attending_count: number;
@@ -101,12 +102,14 @@ export async function respondToGuestInvitation(
   });
   if (error) throw error;
   const result = data as {
+    id: string;
     response: GuestInvitationResponse;
     display_name: string;
     attending_count: number;
     capacity: number | null;
   };
   return {
+    id: result.id,
     guest_response: result.response,
     guest_display_name: result.display_name,
     attending_count: result.attending_count,

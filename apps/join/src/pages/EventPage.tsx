@@ -33,7 +33,11 @@ import {
 import { getGatheringTypeLabel, resolveCoverImage } from "../lib/gathering-types";
 import { formatTaipeiDateTimeRange } from "../lib/date-time";
 import { formatEventFee } from "../lib/event-fee";
-import { getOrCreateGuestInvitationKey, type GuestInvitationEvent } from "../lib/guest-invitations";
+import {
+  getOrCreateGuestInvitationKey,
+  type GuestInvitationEvent,
+  type GuestInvitationInvitee,
+} from "../lib/guest-invitations";
 
 const VISIBILITY_LABEL: Record<EventRow["visibility"], string> = {
   public: "公開活動",
@@ -283,6 +287,137 @@ export default function EventPage() {
   const shareText = getEventShareText(event, eventUrl);
   const gatheringTypeLabel = getGatheringTypeLabel(event.gathering_type);
 
+  function handleGuestUpdated(result: {
+    id: string;
+    guest_response: "attending" | "declined";
+    guest_display_name: string;
+    attending_count: number;
+  }) {
+    setGuestInvitation((previous) => {
+      if (!previous) return previous;
+      const updatedInvitee: GuestInvitationInvitee = {
+        id: result.id,
+        display_name: result.guest_display_name,
+        response: result.guest_response,
+      };
+      const previousInvitees = previous.invitees ?? [];
+      const existingIndex = previousInvitees.findIndex((invitee) => invitee.id === result.id);
+      const invitees = existingIndex === -1
+        ? [...previousInvitees, updatedInvitee]
+        : previousInvitees.map((invitee, index) => index === existingIndex ? updatedInvitee : invitee);
+      return {
+        ...previous,
+        invitees,
+        guest_response: result.guest_response,
+        guest_display_name: result.guest_display_name,
+        attending_count: result.attending_count,
+      };
+    });
+    setPublicSummary((previous) => previous ? { ...previous, registrationCount: result.attending_count } : previous);
+    setNotice(result.guest_response === "attending" ? "已回覆出席，期待到時見。" : "已記下這次不克出席。");
+  }
+
+  if (isGuestInvitation && guestInvitation) {
+    const invitees = guestInvitation.invitees ?? [];
+    const pendingInvitees = invitees.filter((invitee) => invitee.response === "pending");
+    const attendingInvitees = invitees.filter((invitee) => invitee.response === "attending");
+    const declinedInvitees = invitees.filter((invitee) => invitee.response === "declined");
+    const remainingSeats = guestInvitation.capacity === null
+      ? null
+      : Math.max(guestInvitation.capacity - guestInvitation.attending_count, 0);
+
+    return (
+      <div className="guest-invitation-page">
+        {notice && <div className="banner banner--success" aria-live="polite">{notice}</div>}
+        {error && <div className="banner banner--error" role="alert">{error}</div>}
+
+        <section className="guest-invitation-page__intro" aria-labelledby="guest-event-title">
+          <p className="section-kicker">朋友邀請</p>
+          <h1 id="guest-event-title">{guestInvitation.title}</h1>
+          {guestInvitation.organizer_display_name && (
+            <p>{guestInvitation.organizer_display_name} 邀請你一起來。</p>
+          )}
+          <p className="guest-invitation-page__instruction">看完基本資訊後，選擇是否出席；不用註冊。</p>
+        </section>
+
+        <section className="guest-invitation-page__facts" aria-label="聚會基本資訊">
+          <div className="guest-invitation-page__fact">
+            <span>時間</span>
+            <strong>{formatDateRange(guestInvitation.starts_at, guestInvitation.ends_at)}</strong>
+          </div>
+          <div className="guest-invitation-page__fact">
+            <span>地點</span>
+            <strong>{guestInvitation.location_name || "尚未提供"}</strong>
+            {guestInvitation.location_address && <p>{guestInvitation.location_address}</p>}
+            {mapsUrl && (
+              <a className="btn-text guest-invitation-page__map-link" href={mapsUrl} target="_blank" rel="noreferrer">
+                在地圖查看位置 ↗
+              </a>
+            )}
+          </div>
+          <div className="guest-invitation-page__fact">
+            <span>費用</span>
+            <strong>{formatEventFee(guestInvitation)}</strong>
+          </div>
+          <div className="guest-invitation-page__fact">
+            <span>名額</span>
+            <strong>
+              {guestInvitation.capacity !== null
+                ? `${guestInvitation.attending_count} / ${guestInvitation.capacity} 人`
+                : `${guestInvitation.attending_count} 人已出席`}
+            </strong>
+            {remainingSeats !== null && <p>{remainingSeats > 0 ? `還有 ${remainingSeats} 個名額` : "目前已額滿"}</p>}
+          </div>
+        </section>
+
+        <section className="guest-invitation-roster" aria-labelledby="guest-roster-title">
+          <div className="guest-invitation-roster__heading">
+            <div>
+              <p className="section-kicker">回覆狀態</p>
+              <h2 id="guest-roster-title">一起來的人</h2>
+            </div>
+            <p>{guestInvitation.attending_count} 位出席 · {pendingInvitees.length} 位待確認</p>
+          </div>
+          <div className="guest-invitation-roster__stats" aria-label="邀請回覆統計">
+            <div><span>已出席</span><strong>{guestInvitation.attending_count}</strong></div>
+            <div><span>待確認</span><strong>{pendingInvitees.length}</strong></div>
+            <div><span>不克出席</span><strong>{declinedInvitees.length}</strong></div>
+            {remainingSeats !== null && <div><span>剩餘名額</span><strong>{remainingSeats}</strong></div>}
+          </div>
+          <div className="guest-invitation-roster__groups">
+            {attendingInvitees.length > 0 && (
+              <div>
+                <h3>已出席</h3>
+                <ul>{attendingInvitees.map((invitee) => <li key={invitee.id}>{invitee.display_name}</li>)}</ul>
+              </div>
+            )}
+            {pendingInvitees.length > 0 && (
+              <div>
+                <h3>還沒決定</h3>
+                <ul>{pendingInvitees.map((invitee) => <li key={invitee.id}>{invitee.display_name}</li>)}</ul>
+              </div>
+            )}
+            {declinedInvitees.length > 0 && (
+              <div>
+                <h3>這次不克出席</h3>
+                <ul>{declinedInvitees.map((invitee) => <li key={invitee.id}>{invitee.display_name}</li>)}</ul>
+              </div>
+            )}
+            {invitees.length === 0 && <p className="hint">受邀名單尚未建立；回覆後你的名字會出現在這裡。</p>}
+          </div>
+        </section>
+
+        <GuestInvitationResponse
+          event={guestInvitation}
+          guestKey={getOrCreateGuestInvitationKey(guestInvitation.slug)}
+          busy={busy}
+          onError={setError}
+          onUpdated={handleGuestUpdated}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="event-page">
       <section className="event-hero" aria-labelledby="event-title">
@@ -422,7 +557,7 @@ export default function EventPage() {
             </div>
           )}
 
-          {isOrganizerAdmin && (
+          {session && isOrganizerAdmin && (
             <div className="banner banner--info event-admin-note">
               這是你邀請大家相見的聚會。
               {!isCancelled && (
@@ -434,24 +569,7 @@ export default function EventPage() {
             </div>
           )}
 
-          {isGuestInvitation ? (
-            <GuestInvitationResponse
-              event={guestInvitation}
-              guestKey={getOrCreateGuestInvitationKey(event.slug)}
-              busy={busy}
-              onError={setError}
-              onUpdated={(result) => {
-                setGuestInvitation((previous) => previous ? {
-                  ...previous,
-                  guest_response: result.guest_response,
-                  guest_display_name: result.guest_display_name,
-                  attending_count: result.attending_count,
-                } : previous);
-                setPublicSummary((previous) => previous ? { ...previous, registrationCount: result.attending_count } : previous);
-                setNotice(result.guest_response === "attending" ? "已回覆出席，期待到時見。" : "已記下這次不克出席。");
-              }}
-            />
-          ) : myRegistration ? (
+          {myRegistration ? (
             <div className="stack">
               <span className={`status-pill ${myRegistration.status === "confirmed" ? "status-pill--confirmed" : ""}`}>
                 {REGISTRATION_STATUS_LABEL[myRegistration.status]}
@@ -499,7 +617,7 @@ export default function EventPage() {
           </a>
         </section>
 
-        {isOrganizerAdmin && (
+        {session && isOrganizerAdmin && (
           <section id="roster-title" className="event-section roster-section">
             <p className="section-kicker">這張桌子，誰會來</p>
             <h2>一起來的人</h2>

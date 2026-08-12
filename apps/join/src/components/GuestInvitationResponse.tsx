@@ -18,6 +18,7 @@ export default function GuestInvitationResponse({
   guestKey: string;
   busy: boolean;
   onUpdated: (result: {
+    id: string;
     guest_response: ResponseValue;
     guest_display_name: string;
     attending_count: number;
@@ -53,9 +54,9 @@ export default function GuestInvitationResponse({
   return (
     <div className="guest-invitation-response">
       <div className="guest-invitation-response__intro">
-        <p className="section-kicker">朋友邀請</p>
-        <h3>不用註冊，直接回覆</h3>
-        <p>這是共用邀請連結。拿到連結的人都可以修改自己的回覆；系統只顯示回覆狀態與 aggregate 人數，不公開參加者姓名。</p>
+        <p className="section-kicker">回覆邀請</p>
+        <h2>你會來嗎？</h2>
+        <p>填上名字後，選擇一個回覆即可。</p>
       </div>
       <div className="field">
         <label htmlFor="guest-display-name">你的名字</label>
@@ -80,7 +81,7 @@ export default function GuestInvitationResponse({
           這次不克出席
         </button>
       </div>
-      <p className="hint">之後回到同一個網址，就能再次修改你的狀態。</p>
+      <p className="hint">不用註冊；之後回到同一個網址，就能修改自己的回覆。</p>
     </div>
   );
 }

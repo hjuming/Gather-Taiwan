@@ -870,7 +870,7 @@ button:disabled {
   background: #fbf6ea;
 }
 
-.guest-invitation-response__intro h3 {
+.guest-invitation-response__intro h2 {
   margin: 4px 0 8px;
   font-size: clamp(1.45rem, 4vw, 2rem);
 }
@@ -894,6 +894,171 @@ button:disabled {
 
 .guest-invitation-response__actions > * {
   width: 100%;
+}
+
+.guest-invitation-page {
+  width: min(680px, 100%);
+  margin: 0 auto;
+  padding: clamp(28px, 6vw, 64px) 20px 72px;
+}
+
+.guest-invitation-page__intro {
+  margin-bottom: 24px;
+}
+
+.guest-invitation-page__intro h1 {
+  max-width: 16ch;
+  margin: 8px 0 12px;
+  font-size: clamp(2.2rem, 8vw, 4.4rem);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.guest-invitation-page__intro p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.guest-invitation-page__intro p + p {
+  margin-top: 4px;
+}
+
+.guest-invitation-page__instruction {
+  margin-top: 16px !important;
+  color: var(--fg) !important;
+  font-weight: 700;
+}
+
+.guest-invitation-page__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+  background: var(--border);
+}
+
+.guest-invitation-page__fact {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 18px;
+  background: var(--surface);
+}
+
+.guest-invitation-page__fact > span {
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.guest-invitation-page__fact strong {
+  font-size: 1.05rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.guest-invitation-page__fact p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.guest-invitation-page__map-link {
+  justify-self: start;
+  min-height: 36px;
+  margin: 2px -12px -6px;
+  padding: 7px 12px;
+  font-size: 0.84rem;
+}
+
+.guest-invitation-roster {
+  margin-bottom: 24px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.guest-invitation-roster__heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.guest-invitation-roster__heading h2 {
+  margin: 4px 0 0;
+  font-size: clamp(1.45rem, 5vw, 2rem);
+}
+
+.guest-invitation-roster__heading > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.guest-invitation-roster__stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-bottom: 20px;
+  background: var(--border);
+}
+
+.guest-invitation-roster__stats div {
+  display: grid;
+  gap: 4px;
+  padding: 12px 10px;
+  background: #fbf6ea;
+  text-align: center;
+}
+
+.guest-invitation-roster__stats span {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.guest-invitation-roster__stats strong {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.guest-invitation-roster__groups {
+  display: grid;
+  gap: 16px;
+}
+
+.guest-invitation-roster__groups > div {
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.guest-invitation-roster__groups h3 {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.guest-invitation-roster__groups ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guest-invitation-roster__groups li {
+  padding: 9px 12px;
+  border-radius: 6px;
+  background: #fbf6ea;
+  font-weight: 700;
 }
 
 .event-contact {
@@ -1052,6 +1217,44 @@ button:disabled {
 }
 
 @media (max-width: 720px) {
+  .guest-invitation-page {
+    padding: 28px 16px 48px;
+  }
+
+  .guest-invitation-page__intro h1 {
+    font-size: clamp(2.2rem, 12vw, 3.4rem);
+  }
+
+  .guest-invitation-page__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .guest-invitation-page__fact {
+    padding: 16px;
+  }
+
+  .guest-invitation-roster {
+    padding: 18px 16px;
+  }
+
+  .guest-invitation-roster__heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .guest-invitation-roster__heading > p {
+    text-align: left;
+  }
+
+  .guest-invitation-roster__stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .guest-invitation-response__actions {
+    grid-template-columns: 1fr;
+  }
+
   .event-page {
     width: 100%;
     padding-top: 0;

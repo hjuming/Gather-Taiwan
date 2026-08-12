@@ -93,7 +93,7 @@ export default function InvitationManager({
   return (
     <div className="invitation-manager">
       <div className="invitation-manager__intro">
-        <p className="hint">把同一個網址傳給朋友，他們不用註冊，輸入自己的名字後就能選出席或不克出席。拿到網址的人都可以修改回覆，請只分享給受邀朋友。</p>
+        <p className="hint">把同一個網址傳給朋友，他們不用註冊，輸入自己的名字後就能選出席或不克出席。拿到網址的人可以看到受邀暱稱、修改回覆，請只分享給受邀朋友。</p>
         <div className="actions">
           <button type="button" className="btn-secondary" onClick={handleCopyLink} disabled={busy}>
             {copied ? "已複製邀請網址 ✓" : "複製共用邀請網址"}

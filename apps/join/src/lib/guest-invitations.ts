@@ -1,4 +1,11 @@
 export type GuestInvitationResponse = "attending" | "declined";
+export type GuestInvitationRosterResponse = "pending" | GuestInvitationResponse;
+
+export interface GuestInvitationInvitee {
+  id: string;
+  display_name: string;
+  response: GuestInvitationRosterResponse;
+}
 
 export interface GuestInvitationEvent {
   id: string;
@@ -35,6 +42,7 @@ export interface GuestInvitationEvent {
   updated_at: string | null;
   organizer_display_name: string | null;
   attending_count: number;
+  invitees: GuestInvitationInvitee[];
   guest_response: GuestInvitationResponse | null;
   guest_display_name: string | null;
 }
