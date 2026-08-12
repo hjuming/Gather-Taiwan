@@ -138,10 +138,13 @@ export function getGatheringTypeLabel(key: string | null | undefined): string | 
 export function resolveCoverImage(event: {
   cover_image_url?: string | null;
   gathering_type?: string | null;
+  updated_at?: string | null;
 }): string {
   const custom = event.cover_image_url?.trim();
   if (custom && isAllowedCoverImageUrl(custom)) {
-    return custom;
+    return event.updated_at
+      ? `${custom}${custom.includes("?") ? "&" : "?"}v=${encodeURIComponent(event.updated_at)}`
+      : custom;
   }
   return getGatheringType(event.gathering_type).image;
 }

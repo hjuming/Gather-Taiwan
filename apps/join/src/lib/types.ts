@@ -51,6 +51,7 @@ export interface EventRow {
   invite_pool_released_at: string | null;
   gathering_type: string | null;
   cover_image_url: string | null;
+  updated_at?: string | null;
 }
 
 export interface EventFieldRow {
