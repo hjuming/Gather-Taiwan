@@ -12,12 +12,12 @@ export function useErrorFocus<T extends HTMLElement = HTMLDivElement>(error: str
 
   useEffect(() => {
     if (!error || !ref.current) return;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    ref.current.scrollIntoView({
-      behavior: reduceMotion ? "auto" : "smooth",
-      block: "center",
-    });
+    // 順序很重要：focus() 會中斷進行中的捲動，所以先取得焦點（不捲動）再捲到定位。
     ref.current.focus({ preventScroll: true });
+    // 這裡刻意用 instant 而不是 smooth。橫幅插進頁面頂端會把下方內容往下推，
+    // 瀏覽器的 scroll anchoring 為了維持閱讀位置會反向捲動，實測會直接吃掉 smooth
+    // 動畫（正式站量測：smooth 完全沒有位移，instant 正確置中）。
+    ref.current.scrollIntoView({ behavior: "instant", block: "center" });
   }, [error]);
 
   return ref;
