@@ -4,9 +4,11 @@ import { getMyHostedEvents } from "../lib/api";
 import { useSession } from "../lib/useSession";
 import type { EventRow } from "../lib/types";
 
+// status 講的是「這場活動辦不辦」，visibility 講的是「誰看得到」。
+// 原本 published 寫「公開中」，會和旁邊的「不公開列表」直接打架。
 const STATUS_LABEL: Record<EventRow["status"], string> = {
   draft: "草稿",
-  published: "公開中",
+  published: "已開放報名",
   cancellation_pending: "取消處理中",
   cancelled: "已取消",
   cancellation_exception: "取消需處理",

@@ -5,11 +5,14 @@ import { useSession } from "../lib/useSession";
 import { createEventSlug, createSlug } from "../lib/slug";
 import { getGoogleMapsEmbedUrl } from "../lib/event-links";
 import { DEFAULT_GATHERING_TYPE, resolveCoverImage } from "../lib/gathering-types";
+import { useErrorFocus } from "../lib/useErrorFocus";
 import DateTimeField from "../components/DateTimeField";
 import GatheringTypeField from "../components/GatheringTypeField";
 import {
+  addTaipeiDays,
   dateTimePartsToTaipeiIso,
   dateTimePartsToTimestamp,
+  daysBetween,
   getDefaultEventDateTime,
   isValidTime,
   type DateTimeParts,
@@ -27,7 +30,8 @@ export default function EventCreatePage() {
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [description, setDescription] = useState("");
-  const [visibility, setVisibility] = useState<"public" | "unlisted" | "private">("public");
+  // 預設保守：同學會、家族聚餐這類場合多半不想被陌生人搜到，想公開的人自己改。
+  const [visibility, setVisibility] = useState<"public" | "unlisted" | "private">("unlisted");
   const [confirmationMode, setConfirmationMode] = useState<"instant" | "organizer_confirmed">("instant");
   const [startsAt, setStartsAt] = useState<DateTimeParts>(() => getDefaultEventDateTime().startsAt);
   const [endsAt, setEndsAt] = useState<DateTimeParts>(() => getDefaultEventDateTime().endsAt);
@@ -46,6 +50,7 @@ export default function EventCreatePage() {
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const errorRef = useErrorFocus(error);
 
   useEffect(() => {
     if (!session) return;
@@ -84,6 +89,19 @@ export default function EventCreatePage() {
     } finally {
       setCreatingOrganizer(false);
     }
+  }
+
+  /**
+   * 改開始日期時，結束日期跟著移動同樣的天數（沿用原本的時長）。
+   * 不這樣做的話，改了開始日期就會留下「結束早於開始」的組合，
+   * 而右側預覽只顯示開始日期，看不出來哪裡錯。
+   */
+  function handleStartsAtChange(next: DateTimeParts) {
+    const dayShift = daysBetween(startsAt.date, next.date);
+    if (dayShift !== 0) {
+      setEndsAt((previous) => ({ ...previous, date: addTaipeiDays(previous.date, dayShift) }));
+    }
+    setStartsAt(next);
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -199,7 +217,7 @@ export default function EventCreatePage() {
       </nav>
 
       {error && (
-        <div className="banner banner--error" role="alert">
+        <div className="banner banner--error" role="alert" tabIndex={-1} ref={errorRef}>
           {error}
         </div>
       )}
@@ -271,7 +289,7 @@ export default function EventCreatePage() {
         <section id="create-time" className="card stack form-section">
           <h2>什麼時候見面</h2>
           <p className="hint">台北時間，使用 24 小時制。預設為當日 18:30–21:30。</p>
-          <DateTimeField id="startsAt" label="開始時間" value={startsAt} onChange={setStartsAt} />
+          <DateTimeField id="startsAt" label="開始時間" value={startsAt} onChange={handleStartsAtChange} />
           <DateTimeField id="endsAt" label="結束時間" value={endsAt} onChange={setEndsAt} />
         </section>
 
@@ -397,7 +415,15 @@ export default function EventCreatePage() {
             <h2>{title.trim() || "新的聚會"}</h2>
             <p>{summary.trim() || "寫下一句，讓大家知道這次為什麼想見面。"}</p>
             <dl>
-              <div><dt>時間</dt><dd>{startsAt.date}・{startsAt.time}–{endsAt.time}</dd></div>
+              {/* 跨日時必須把結束日期寫出來，否則預覽會掩蓋「結束早於開始」這類錯誤。 */}
+              <div>
+                <dt>時間</dt>
+                <dd>
+                  {startsAt.date === endsAt.date
+                    ? `${startsAt.date}・${startsAt.time}–${endsAt.time}`
+                    : `${startsAt.date} ${startsAt.time} – ${endsAt.date} ${endsAt.time}`}
+                </dd>
+              </div>
               <div><dt>地點</dt><dd>{locationName.trim() || "還在等一個地方"}</dd></div>
               <div><dt>席次</dt><dd>{hasCapacity ? `${capacity} 人` : "不限人數"}</dd></div>
               <div><dt>到場</dt><dd>{Number(feeAmountInput) > 0 ? `NT$ ${feeAmountInput}` : "免費"}</dd></div>

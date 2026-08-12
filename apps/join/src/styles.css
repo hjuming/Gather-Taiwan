@@ -1957,8 +1957,8 @@ nav.top-nav .top-nav-menu a[aria-current="page"] {
     bottom: 0;
     left: 0;
     z-index: 40;
-    display: grid;
-    grid-template-columns: 1.2fr 1fr;
+    /* 只剩一顆按鈕，用 flex 讓它自然滿版；固定兩欄會讓按鈕只佔左半邊。 */
+    display: flex;
     gap: 8px;
     padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
     border-top: 1px solid var(--border);

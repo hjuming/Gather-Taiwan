@@ -40,6 +40,16 @@ export function addTaipeiDays(date: string, days: number): string {
   return value.toISOString().slice(0, 10);
 }
 
+/** 兩個 YYYY-MM-DD 之間相差幾天（後者減前者）。輸入不合法時回 0，呼叫端就不會誤移日期。 */
+export function daysBetween(from: string, to: string): number {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to)) return 0;
+  const parse = (value: string) => {
+    const [year, month, day] = value.split("-").map(Number);
+    return Date.UTC(year, month - 1, day);
+  };
+  return Math.round((parse(to) - parse(from)) / 86_400_000);
+}
+
 export function dateTimePartsToTaipeiIso(parts: DateTimeParts): string {
   return new Date(`${parts.date}T${parts.time}:00+08:00`).toISOString();
 }

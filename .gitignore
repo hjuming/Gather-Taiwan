@@ -16,9 +16,10 @@
 asset-risk-archive/
 
 # unused raw image exports — not referenced by any page, keep locally only
+# (gather-bg-oldstreet-pastry-v1.jpg left this list when it became the 茶席
+#  gathering type's cover art — see apps/join/src/lib/gathering-types.ts)
 favicon.png
 uploads/gather-bg-early-summer-harbor-v1.jpg
-uploads/gather-bg-oldstreet-pastry-v1.jpg
 uploads/gather-bg-winter-steam-tangyuan-v1.jpg
 uploads/gather-contact-co-creator-og-v1.png
 uploads/gather-harbor-dinner-documentary-v1.png

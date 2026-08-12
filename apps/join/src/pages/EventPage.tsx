@@ -73,6 +73,7 @@ export default function EventPage() {
   const [isOrganizerAdmin, setIsOrganizerAdmin] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [busy, setBusy] = useState(false);
   const [password, setPassword] = useState("");
   const [reportNote, setReportNote] = useState("");
@@ -257,7 +258,10 @@ export default function EventPage() {
     setError(null);
     try {
       await copyText(getEventShareUrl((event as EventRow).slug));
-      setNotice("活動連結已複製，可以貼到 LINE 群組或聊天室");
+      // 成功提示的橫幅在頁面最上方，但這顆按鈕在頁面中段——按下去看不到任何回饋。
+      // 直接在按鈕上回報，兩秒後復原。
+      setLinkCopied(true);
+      window.setTimeout(() => setLinkCopied(false), 2000);
     } catch {
       setError("複製失敗，請手動複製瀏覽器網址");
     }
@@ -343,8 +347,8 @@ export default function EventPage() {
           <a className="btn-primary" href={getLineShareUrl(shareText)} target="_blank" rel="noreferrer">
             分享到 LINE
           </a>
-          <button type="button" className="btn-secondary" onClick={handleCopyLink}>
-            複製連結
+          <button type="button" className="btn-secondary" onClick={handleCopyLink} aria-live="polite">
+            {linkCopied ? "已複製 ✓" : "複製連結"}
           </button>
         </section>
 
@@ -361,7 +365,8 @@ export default function EventPage() {
             <p className="section-kicker">主人家的話</p>
             <h2>收款說明</h2>
             <div className="event-richtext"><SafeRichText html={event.payment_instructions} /></div>
-            {session && !showReportField && (
+            {/* 主辦人是這段文字的作者，不該看到「檢舉我自己」。 */}
+            {session && !isOrganizerAdmin && !showReportField && (
               <button type="button" className="btn-text" onClick={() => setShowReportField(true)}>
                 檢舉這則收款說明
               </button>

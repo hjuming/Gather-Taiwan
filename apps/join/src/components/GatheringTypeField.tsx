@@ -52,6 +52,7 @@ export default function GatheringTypeField({
                 type="button"
                 className={`cover-option${selected ? " is-selected" : ""}`}
                 aria-pressed={selected}
+                aria-label={`使用「${choice.label}」的圖當代表圖`}
                 onClick={() => onCoverChange(choice.url === type.image ? null : choice.url)}
               >
                 <img src={choice.url} alt="" loading="lazy" width="160" height="100" />

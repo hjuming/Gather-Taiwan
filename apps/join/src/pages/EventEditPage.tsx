@@ -14,6 +14,7 @@ import {
   type DateTimeParts,
 } from "../lib/date-time";
 import { DEFAULT_GATHERING_TYPE } from "../lib/gathering-types";
+import { useErrorFocus } from "../lib/useErrorFocus";
 
 const TAIPEI = "Asia/Taipei";
 
@@ -46,6 +47,7 @@ export default function EventEditPage() {
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const errorRef = useErrorFocus(error);
 
   useEffect(() => {
     if (!loading && !session) {
@@ -194,7 +196,7 @@ export default function EventEditPage() {
         </div>
       </div>
 
-      {error && <div className="banner banner--error" role="alert">{error}</div>}
+      {error && <div className="banner banner--error" role="alert" tabIndex={-1} ref={errorRef}>{error}</div>}
 
       <form className="stack" onSubmit={handleSubmit}>
         <section className="card stack form-section">
