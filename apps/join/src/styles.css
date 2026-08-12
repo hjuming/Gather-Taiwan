@@ -1001,64 +1001,32 @@ button:disabled {
   color: var(--muted);
   font-size: 0.82rem;
   text-align: right;
-  white-space: nowrap;
+  line-height: 1.55;
 }
 
-.guest-invitation-roster__stats {
+.guest-invitation-roster__list {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1px;
-  margin-bottom: 20px;
-  background: var(--border);
-}
-
-.guest-invitation-roster__stats div {
-  display: grid;
-  gap: 4px;
-  padding: 12px 10px;
-  background: #fbf6ea;
-  text-align: center;
-}
-
-.guest-invitation-roster__stats span {
-  color: var(--muted);
-  font-size: 0.72rem;
-}
-
-.guest-invitation-roster__stats strong {
-  font-size: 1.35rem;
-  line-height: 1;
-}
-
-.guest-invitation-roster__groups {
-  display: grid;
-  gap: 16px;
-}
-
-.guest-invitation-roster__groups > div {
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-}
-
-.guest-invitation-roster__groups h3 {
-  margin: 0 0 8px;
-  color: var(--muted);
-  font-size: 0.84rem;
-}
-
-.guest-invitation-roster__groups ul {
-  display: grid;
-  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
+  border: 1px solid var(--border);
+  background: var(--border);
 }
 
-.guest-invitation-roster__groups li {
-  padding: 9px 12px;
-  border-radius: 6px;
+.guest-invitation-roster__list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 11px 12px;
   background: #fbf6ea;
-  font-weight: 700;
+}
+
+.guest-invitation-roster__list li strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .event-contact {
@@ -1245,10 +1213,6 @@ button:disabled {
 
   .guest-invitation-roster__heading > p {
     text-align: left;
-  }
-
-  .guest-invitation-roster__stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .guest-invitation-response__actions {

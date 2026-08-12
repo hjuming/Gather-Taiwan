@@ -96,8 +96,9 @@ try {
   const before = await sql`select public.get_event_invitation_by_slug(${slug}, ${guestKey}) as payload`;
   assert(before[0].payload.attending_count === 6, "initial aggregate count should include six manual seats");
   assert(before[0].payload.guest_response === null, "new guest should not have a response");
-  assert(before[0].payload.invitees?.[0]?.display_name === "哈蜜瓜", "guest roster should return the pending invitee name");
-  assert(before[0].payload.invitees?.[0]?.response === "pending", "guest roster should return pending status");
+  assert(before[0].payload.invitees?.length === 7, "guest roster should combine manual participants and invitees");
+  assert(before[0].payload.invitees?.some((invitee) => invitee.display_name === "日月MING" && invitee.response === "attending"), "guest roster should return confirmed participant names");
+  assert(before[0].payload.invitees?.some((invitee) => invitee.display_name === "哈蜜瓜" && invitee.response === "pending"), "guest roster should return pending invitee name and status");
 
   const attending = await sql`select public.respond_to_event_invitation(${slug}, ${guestKey}, '哈蜜瓜', 'attending') as payload`;
   assert(attending[0].payload.attending_count === 7, "attending response should increase aggregate count to seven");
@@ -105,7 +106,7 @@ try {
   const remembered = await sql`select public.get_event_invitation_by_slug(${slug}, ${guestKey}) as payload`;
   assert(remembered[0].payload.guest_response === "attending", "same guest key should remember attendance");
   assert(remembered[0].payload.guest_display_name === "哈蜜瓜", "guest display name should be returned");
-  assert(remembered[0].payload.invitees?.[0]?.response === "attending", "guest roster should update response status");
+  assert(remembered[0].payload.invitees?.some((invitee) => invitee.display_name === "哈蜜瓜" && invitee.response === "attending"), "guest roster should update response status");
 
   const declined = await sql`select public.respond_to_event_invitation(${slug}, ${guestKey}, '哈蜜瓜', 'declined') as payload`;
   assert(declined[0].payload.attending_count === 6, "declining should release the guest seat");

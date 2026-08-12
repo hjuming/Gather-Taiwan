@@ -319,12 +319,17 @@ export default function EventPage() {
 
   if (isGuestInvitation && guestInvitation) {
     const invitees = guestInvitation.invitees ?? [];
-    const pendingInvitees = invitees.filter((invitee) => invitee.response === "pending");
-    const attendingInvitees = invitees.filter((invitee) => invitee.response === "attending");
-    const declinedInvitees = invitees.filter((invitee) => invitee.response === "declined");
+    const pendingCount = invitees.filter((invitee) => invitee.response === "pending").length;
+    const declinedCount = invitees.filter((invitee) => invitee.response === "declined").length;
     const remainingSeats = guestInvitation.capacity === null
       ? null
       : Math.max(guestInvitation.capacity - guestInvitation.attending_count, 0);
+
+    const responseLabel = {
+      attending: "已確認",
+      pending: "未確認",
+      declined: "不克出席",
+    } as const;
 
     return (
       <div className="guest-invitation-page">
@@ -373,38 +378,26 @@ export default function EventPage() {
         <section className="guest-invitation-roster" aria-labelledby="guest-roster-title">
           <div className="guest-invitation-roster__heading">
             <div>
-              <p className="section-kicker">回覆狀態</p>
-              <h2 id="guest-roster-title">一起來的人</h2>
+              <p className="section-kicker">出席狀況</p>
+              <h2 id="guest-roster-title">邀請名單</h2>
             </div>
-            <p>{guestInvitation.attending_count} 位出席 · {pendingInvitees.length} 位待確認</p>
+            <p>
+              已確認 {guestInvitation.attending_count} · 未確認 {pendingCount} · 不克出席 {declinedCount}
+              {remainingSeats !== null && ` · 剩餘 ${remainingSeats}`}
+            </p>
           </div>
-          <div className="guest-invitation-roster__stats" aria-label="邀請回覆統計">
-            <div><span>已出席</span><strong>{guestInvitation.attending_count}</strong></div>
-            <div><span>待確認</span><strong>{pendingInvitees.length}</strong></div>
-            <div><span>不克出席</span><strong>{declinedInvitees.length}</strong></div>
-            {remainingSeats !== null && <div><span>剩餘名額</span><strong>{remainingSeats}</strong></div>}
-          </div>
-          <div className="guest-invitation-roster__groups">
-            {attendingInvitees.length > 0 && (
-              <div>
-                <h3>已出席</h3>
-                <ul>{attendingInvitees.map((invitee) => <li key={invitee.id}>{invitee.display_name}</li>)}</ul>
-              </div>
-            )}
-            {pendingInvitees.length > 0 && (
-              <div>
-                <h3>還沒決定</h3>
-                <ul>{pendingInvitees.map((invitee) => <li key={invitee.id}>{invitee.display_name}</li>)}</ul>
-              </div>
-            )}
-            {declinedInvitees.length > 0 && (
-              <div>
-                <h3>這次不克出席</h3>
-                <ul>{declinedInvitees.map((invitee) => <li key={invitee.id}>{invitee.display_name}</li>)}</ul>
-              </div>
-            )}
-            {invitees.length === 0 && <p className="hint">受邀名單尚未建立；回覆後你的名字會出現在這裡。</p>}
-          </div>
+          {invitees.length > 0 ? (
+            <ul className="guest-invitation-roster__list">
+              {invitees.map((invitee) => (
+                <li key={invitee.id}>
+                  <strong>{invitee.display_name}</strong>
+                  <span className={`status-pill ${invitee.response === "attending" ? "status-pill--confirmed" : "status-pill--muted"}`}>
+                    {responseLabel[invitee.response]}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="hint">受邀名單尚未建立；回覆後你的名字會出現在這裡。</p>}
         </section>
 
         <GuestInvitationResponse
