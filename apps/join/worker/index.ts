@@ -20,7 +20,27 @@ const LINE_AUTH_CALLBACK_PATHS = new Set([
 const PUBLIC_EVENTS_PATH = "/app/api/public-events";
 const EVENT_SUMMARY_PATH = "/app/api/event-summary";
 const ADDRESS_SEARCH_PATH = "/app/api/address-search";
+const EVENT_DOCUMENT_PATTERN = /^\/app\/e\/([a-z0-9][a-z0-9-]{2,95})\/?$/;
 const FALLBACK_PUBLISHABLE_KEY = "sb_publishable_Qc-0shSK0ISVXiWmo8AtaQ_Wmu_5xU7";
+const DEFAULT_EVENT_OG_IMAGE = "/uploads/gather-home-hero-documentary-v1.jpg";
+const EVENT_OG_IMAGES: Record<string, string> = {
+  friends_dinner: "/uploads/gather-neo-rechao-cheers-v1.jpg",
+  class_reunion: "/uploads/gather-harbor-dinner-documentary-v1.jpg",
+  family_gathering: "/uploads/gather-local-banquet-v1.jpg",
+  birthday_celebration: "/uploads/gather-moonlight-charcoal-v1.jpg",
+  reading_workshop: "/uploads/gather-tea-table-v1.jpg",
+  interest_meetup: "/uploads/gather-winter-table-v1.jpg",
+  market_breakfast: "/uploads/gather-market-morning-documentary-v1.jpg",
+  harbor_dinner: "/uploads/gather-harbor-dinner-documentary-v1.jpg",
+  rechao: "/uploads/gather-neo-rechao-cheers-v1.jpg",
+  moonlight_grill: "/uploads/gather-moonlight-charcoal-v1.jpg",
+  riverside_picnic: "/uploads/gather-bg-riverside-table-v1.jpg",
+  local_banquet: "/uploads/gather-local-banquet-v1.jpg",
+  winter_hotpot: "/uploads/gather-winter-table-v1.jpg",
+  temple_festival: "/uploads/gather-bg-local-festival-supply-v1.jpg",
+  tea_table: "/uploads/gather-tea-table-v1.jpg",
+  other: DEFAULT_EVENT_OG_IMAGE,
+};
 // The Workers Route matches the full "/app/*" path, but the Vite build
 // output (dist/client) is flat — index.html and assets/ sit at its root,
 // not under an "app/" subdirectory. The ASSETS binding matches requests
@@ -41,6 +61,13 @@ export default {
     }
     if (url.pathname === ADDRESS_SEARCH_PATH) {
       return withSecurityHeaders(await handleAddressSearch(request), { includeCacheControl: false });
+    }
+
+    const eventDocumentMatch = EVENT_DOCUMENT_PATTERN.exec(url.pathname);
+    if (request.method === "GET" && eventDocumentMatch) {
+      return withSecurityHeaders(await handleEventDocument(request, env, eventDocumentMatch[1]), {
+        includeCacheControl: false,
+      });
     }
 
     if (LINE_AUTH_START_PATHS.has(url.pathname)) {
@@ -64,6 +91,169 @@ export default {
     return withSecurityHeaders(assetResponse);
   },
 };
+
+interface SocialEvent {
+  title: string;
+  summary: string | null;
+  starts_at: string;
+  ends_at: string;
+  location_name: string | null;
+  location_address: string | null;
+  gathering_type: string | null;
+  cover_image_url: string | null;
+  visibility: "public" | "unlisted" | "private";
+}
+
+async function handleEventDocument(request: Request, env: Env, slug: string): Promise<Response> {
+  const assetUrl = new URL(request.url);
+  assetUrl.pathname = assetUrl.pathname.slice(ASSET_PATH_PREFIX.length) || "/";
+  let assetResponse = await env.ASSETS.fetch(new Request(assetUrl, request));
+  if (assetResponse.status === 404) {
+    assetUrl.pathname = "/";
+    assetUrl.search = "";
+    assetResponse = await env.ASSETS.fetch(new Request(assetUrl, request));
+  }
+  if (!assetResponse.ok || !env.SUPABASE_SERVICE_ROLE_KEY) return assetResponse;
+
+  const event = await getSocialEvent(env, slug);
+  if (!event) return assetResponse;
+
+  const imageUrl = getSocialImageUrl(request, event);
+  const canonicalUrl = new URL(`/app/e/${encodeURIComponent(slug)}`, request.url).toString();
+  const title = `來聚一場～${event.title}`;
+  const description = [
+    event.summary?.trim(),
+    formatSocialDateRange(event.starts_at, event.ends_at),
+    event.location_name?.trim(),
+  ].filter(Boolean).join("｜");
+  const imageType = imageUrl.endsWith(".png") ? "image/png" : imageUrl.endsWith(".webp") ? "image/webp" : "image/jpeg";
+  const html = await assetResponse.text();
+  const socialHead = [
+    `<meta name="description" content="${escapeHtml(description)}" />`,
+    `<meta name="robots" content="${event.visibility === "private" ? "noindex, nofollow" : "index, follow"}" />`,
+    `<link rel="canonical" href="${escapeHtml(canonicalUrl)}" />`,
+    `<meta property="og:type" content="website" />`,
+    `<meta property="og:site_name" content="聚場台灣 Gather Taiwan" />`,
+    `<meta property="og:title" content="${escapeHtml(title)}" />`,
+    `<meta property="og:description" content="${escapeHtml(description)}" />`,
+    `<meta property="og:url" content="${escapeHtml(canonicalUrl)}" />`,
+    `<meta property="og:image" content="${escapeHtml(imageUrl)}" />`,
+    `<meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}" />`,
+    `<meta property="og:image:type" content="${imageType}" />`,
+    `<meta property="og:image:width" content="1200" />`,
+    `<meta property="og:image:height" content="630" />`,
+    `<meta property="og:image:alt" content="${escapeHtml(`${event.title}｜聚場台灣活動代表圖`)}" />`,
+    `<meta property="og:locale" content="zh_TW" />`,
+    `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta name="twitter:title" content="${escapeHtml(title)}" />`,
+    `<meta name="twitter:description" content="${escapeHtml(description)}" />`,
+    `<meta name="twitter:image" content="${escapeHtml(imageUrl)}" />`,
+  ].join("\n    ");
+  const output = html.replace("</head>", `    ${socialHead}\n  </head>`);
+  const headers = new Headers(assetResponse.headers);
+  headers.set("Content-Type", "text/html; charset=utf-8");
+  headers.set("Cache-Control", "public, max-age=60, s-maxage=60");
+  if (event.visibility === "private") headers.set("X-Robots-Tag", "noindex, nofollow");
+  return new Response(output, { status: assetResponse.status, headers });
+}
+
+async function getSocialEvent(env: Env, slug: string): Promise<SocialEvent | null> {
+  const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if (serviceRoleKey) {
+    const query = new URLSearchParams({
+      select: "title,summary,starts_at,ends_at,location_name,location_address,gathering_type,cover_image_url,visibility",
+      slug: `eq.${slug}`,
+      status: "eq.published",
+      limit: "1",
+    });
+    const response = await fetch(`${env.SUPABASE_URL}/rest/v1/events?${query.toString()}`, {
+      headers: {
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
+        Accept: "application/json",
+      },
+    });
+    if (response.ok) {
+      const rows = (await response.json()) as Array<Partial<SocialEvent>>;
+      const event = normalizeSocialEvent(rows[0]);
+      if (event) return event;
+    }
+  }
+
+  // Private invitation pages are intentionally hidden from the base-table REST
+  // path. Reuse the existing narrowly-shaped anonymous invitation RPC so social
+  // crawlers can receive event metadata without exposing the roster or secrets.
+  const publishableKey = env.SUPABASE_PUBLISHABLE_KEY ?? FALLBACK_PUBLISHABLE_KEY;
+  const invitationResponse = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/get_event_invitation_by_slug`, {
+    method: "POST",
+    headers: {
+      apikey: publishableKey,
+      Authorization: `Bearer ${publishableKey}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({ p_slug: slug, p_guest_key: null }),
+  });
+  if (!invitationResponse.ok) return null;
+  return normalizeSocialEvent((await invitationResponse.json()) as Partial<SocialEvent>);
+}
+
+function normalizeSocialEvent(row: Partial<SocialEvent> | undefined): SocialEvent | null {
+  if (!row || typeof row.title !== "string" || typeof row.starts_at !== "string" || typeof row.ends_at !== "string") return null;
+  if (row.visibility !== "public" && row.visibility !== "unlisted" && row.visibility !== "private") return null;
+  return {
+    title: row.title,
+    summary: typeof row.summary === "string" ? row.summary : null,
+    starts_at: row.starts_at,
+    ends_at: row.ends_at,
+    location_name: typeof row.location_name === "string" ? row.location_name : null,
+    location_address: typeof row.location_address === "string" ? row.location_address : null,
+    gathering_type: typeof row.gathering_type === "string" ? row.gathering_type : null,
+    cover_image_url: typeof row.cover_image_url === "string" ? row.cover_image_url : null,
+    visibility: row.visibility,
+  };
+}
+
+function getSocialImageUrl(request: Request, event: SocialEvent): string {
+  const candidate = event.cover_image_url?.trim();
+  const imagePath = candidate && isAllowedCoverImageUrl(candidate)
+    ? candidate
+    : EVENT_OG_IMAGES[event.gathering_type ?? ""] ?? DEFAULT_EVENT_OG_IMAGE;
+  return new URL(imagePath, request.url).toString();
+}
+
+function formatSocialDateRange(startsAt: string, endsAt: string): string {
+  const format = (value: string) => {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Taipei",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      weekday: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(new Date(value));
+    const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+    const weekday = {
+      Sun: "日",
+      Mon: "一",
+      Tue: "二",
+      Wed: "三",
+      Thu: "四",
+      Fri: "五",
+      Sat: "六",
+    }[get("weekday")] ?? get("weekday");
+    return { date: `${get("year")}-${get("month")}-${get("day")}`, weekday, time: `${get("hour")}:${get("minute")}` };
+  };
+  const start = format(startsAt);
+  const end = format(endsAt);
+  return `${start.date}（${start.weekday}）${start.time}–${start.date === end.date ? end.time : `${end.date}（${end.weekday}）${end.time}`}`;
+}
+
+function escapeHtml(value: string): string {
+  return value.replaceAll("&", "&amp;").replaceAll("\"", "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}
 
 async function handlePublicEvents(request: Request, env: Env): Promise<Response> {
   if (request.method !== "GET") {

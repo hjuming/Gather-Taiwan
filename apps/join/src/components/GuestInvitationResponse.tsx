@@ -4,7 +4,7 @@ import {
   guestResponseLabel,
   normalizeGuestDisplayName,
   type GuestInvitationEvent,
-  type GuestInvitationResponse as ResponseValue,
+  type GuestInvitationRosterResponse as ResponseValue,
 } from "../lib/guest-invitations";
 
 export default function GuestInvitationResponse({

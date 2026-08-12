@@ -111,6 +111,17 @@ try {
   const declined = await sql`select public.respond_to_event_invitation(${slug}, ${guestKey}, '哈蜜瓜', 'declined') as payload`;
   assert(declined[0].payload.attending_count === 6, "declining should release the guest seat");
 
+  const pending = await sql`select public.respond_to_event_invitation(${slug}, ${guestKey}, '哈蜜瓜', 'pending') as payload`;
+  assert(pending[0].payload.attending_count === 6, "pending response should release the guest seat");
+
+  const manualDeclined = await sql`select public.respond_to_event_invitation(${slug}, 'guest-key-contract-0005', '日月MING', 'declined') as payload`;
+  assert(manualDeclined[0].payload.attending_count === 5, "an invitation target should replace a duplicate manual registration in the aggregate count");
+  const manualRoster = await sql`select public.get_event_invitation_by_slug(${slug}, 'guest-key-contract-0005') as payload`;
+  assert(manualRoster[0].payload.invitees?.filter((invitee) => invitee.display_name === "日月MING").length === 1, "duplicate manual registration should collapse into one roster entry");
+  assert(manualRoster[0].payload.invitees?.some((invitee) => invitee.display_name === "日月MING" && invitee.response === "declined"), "manual registration status should be overridden by the invitation target");
+  const manualAttending = await sql`select public.respond_to_event_invitation(${slug}, 'guest-key-contract-0005', '日月MING', 'attending') as payload`;
+  assert(manualAttending[0].payload.attending_count === 6, "switching the manual participant back to attending should restore one seat");
+
   await sql`select public.respond_to_event_invitation(${slug}, 'guest-key-contract-0002', '朋友A', 'attending')`;
   await sql`select public.respond_to_event_invitation(${slug}, 'guest-key-contract-0003', '朋友B', 'attending')`;
   let fullRejected = false;

@@ -10,6 +10,7 @@ import {
   getPublicEventSummary,
   getMyRegistrationForEvent,
   registerForEvent,
+  respondToGuestInvitation,
   reportPaymentInstructions,
   verifyEventPasswordBySlug,
 } from "../lib/api";
@@ -19,7 +20,6 @@ import { SafeRichText } from "../security/security";
 import { REGISTRATION_STATUS_LABEL, type EventFieldRow, type EventRow, type RegistrationRow } from "../lib/types";
 import type { PublicEventSummary } from "../lib/api";
 import RosterManager from "../components/RosterManager";
-import GuestInvitationResponse from "../components/GuestInvitationResponse";
 import InvitationManager from "../components/InvitationManager";
 import { validateEventAnswers, type EventAnswer } from "../lib/event-fields";
 import {
@@ -37,6 +37,7 @@ import {
   getOrCreateGuestInvitationKey,
   type GuestInvitationEvent,
   type GuestInvitationInvitee,
+  type GuestInvitationRosterResponse,
 } from "../lib/guest-invitations";
 
 const VISIBILITY_LABEL: Record<EventRow["visibility"], string> = {
@@ -65,6 +66,7 @@ export default function EventPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [updatingInviteeId, setUpdatingInviteeId] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [reportNote, setReportNote] = useState("");
   const [showReportField, setShowReportField] = useState(false);
@@ -289,7 +291,7 @@ export default function EventPage() {
 
   function handleGuestUpdated(result: {
     id: string;
-    guest_response: "attending" | "declined";
+    guest_response: GuestInvitationRosterResponse;
     guest_display_name: string;
     attending_count: number;
   }) {
@@ -314,7 +316,37 @@ export default function EventPage() {
       };
     });
     setPublicSummary((previous) => previous ? { ...previous, registrationCount: result.attending_count } : previous);
-    setNotice(result.guest_response === "attending" ? "已回覆出席，期待到時見。" : "已記下這次不克出席。");
+    setNotice(
+      result.guest_response === "attending"
+        ? "已確認出席。"
+        : result.guest_response === "declined"
+          ? "已記下不克出席。"
+          : "已改為邀請中。",
+    );
+  }
+
+  async function handleGuestStatusChange(invitee: GuestInvitationInvitee) {
+    if (!guestInvitation) return;
+    const nextResponse: GuestInvitationRosterResponse = {
+      pending: "attending",
+      attending: "declined",
+      declined: "pending",
+    }[invitee.response] as GuestInvitationRosterResponse;
+    setUpdatingInviteeId(invitee.id);
+    setError(null);
+    try {
+      const result = await respondToGuestInvitation(
+        guestInvitation.slug,
+        getOrCreateGuestInvitationKey(guestInvitation.slug, invitee.display_name),
+        invitee.display_name,
+        nextResponse,
+      );
+      handleGuestUpdated(result);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "更新出席狀態失敗");
+    } finally {
+      setUpdatingInviteeId(null);
+    }
   }
 
   if (isGuestInvitation && guestInvitation) {
@@ -327,7 +359,7 @@ export default function EventPage() {
 
     const responseLabel = {
       attending: "已確認",
-      pending: "未確認",
+      pending: "邀請中",
       declined: "不克出席",
     } as const;
 
@@ -339,19 +371,13 @@ export default function EventPage() {
         <section className="guest-invitation-page__intro" aria-labelledby="guest-event-title">
           <p className="section-kicker">朋友邀請</p>
           <h1 id="guest-event-title">{guestInvitation.title}</h1>
-          {guestInvitation.organizer_display_name && (
-            <p>{guestInvitation.organizer_display_name} 邀請你一起來。</p>
-          )}
-          <p className="guest-invitation-page__instruction">看完基本資訊後，選擇是否出席；不用註冊。</p>
         </section>
 
-        <section className="guest-invitation-page__facts" aria-label="聚會基本資訊">
-          <div className="guest-invitation-page__fact">
-            <span>時間</span>
+        <section className="guest-invitation-page__facts" aria-label="聚會資訊">
+          <div className="guest-invitation-page__fact guest-invitation-page__fact--time" aria-label="時間">
             <strong>{formatDateRange(guestInvitation.starts_at, guestInvitation.ends_at)}</strong>
           </div>
-          <div className="guest-invitation-page__fact">
-            <span>地點</span>
+          <div className="guest-invitation-page__fact guest-invitation-page__fact--location" aria-label="地點">
             <strong>{guestInvitation.location_name || "尚未提供"}</strong>
             {guestInvitation.location_address && <p>{guestInvitation.location_address}</p>}
             {mapsUrl && (
@@ -360,12 +386,10 @@ export default function EventPage() {
               </a>
             )}
           </div>
-          <div className="guest-invitation-page__fact">
-            <span>費用</span>
+          <div className="guest-invitation-page__fact" aria-label="費用">
             <strong>{formatEventFee(guestInvitation)}</strong>
           </div>
-          <div className="guest-invitation-page__fact">
-            <span>名額</span>
+          <div className="guest-invitation-page__fact" aria-label="人數">
             <strong>
               {guestInvitation.capacity !== null
                 ? `${guestInvitation.attending_count} / ${guestInvitation.capacity} 人`
@@ -378,11 +402,10 @@ export default function EventPage() {
         <section className="guest-invitation-roster" aria-labelledby="guest-roster-title">
           <div className="guest-invitation-roster__heading">
             <div>
-              <p className="section-kicker">出席狀況</p>
               <h2 id="guest-roster-title">邀請名單</h2>
             </div>
             <p>
-              已確認 {guestInvitation.attending_count} · 未確認 {pendingCount} · 不克出席 {declinedCount}
+              已確認 {guestInvitation.attending_count} · 邀請中 {pendingCount} · 不克出席 {declinedCount}
               {remainingSeats !== null && ` · 剩餘 ${remainingSeats}`}
             </p>
           </div>
@@ -391,22 +414,21 @@ export default function EventPage() {
               {invitees.map((invitee) => (
                 <li key={invitee.id}>
                   <strong>{invitee.display_name}</strong>
-                  <span className={`status-pill ${invitee.response === "attending" ? "status-pill--confirmed" : "status-pill--muted"}`}>
+                  <button
+                    type="button"
+                    className={`status-pill guest-invitation-roster__status ${invitee.response === "attending" ? "status-pill--confirmed" : "status-pill--muted"}`}
+                    onClick={() => handleGuestStatusChange(invitee)}
+                    disabled={updatingInviteeId !== null}
+                    aria-label={`${invitee.display_name}目前${responseLabel[invitee.response]}，點選切換狀態`}
+                  >
                     {responseLabel[invitee.response]}
-                  </span>
+                  </button>
                 </li>
               ))}
             </ul>
           ) : <p className="hint">受邀名單尚未建立；回覆後你的名字會出現在這裡。</p>}
+          {invitees.length > 0 && <p className="guest-invitation-roster__hint">點選右側狀態標籤即可更新。</p>}
         </section>
-
-        <GuestInvitationResponse
-          event={guestInvitation}
-          guestKey={getOrCreateGuestInvitationKey(guestInvitation.slug)}
-          busy={busy}
-          onError={setError}
-          onUpdated={handleGuestUpdated}
-        />
       </div>
     );
   }

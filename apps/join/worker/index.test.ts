@@ -6,6 +6,85 @@ afterEach(() => {
 });
 
 describe("Worker asset response security headers", () => {
+  it("injects event-specific Open Graph and Twitter metadata into the document", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify([{
+      title: "魚菜居酒屋好友聚會",
+      summary: "今晚一起吃飯，現場結算後分攤",
+      starts_at: "2026-08-13T10:30:00.000Z",
+      ends_at: "2026-08-13T13:30:00.000Z",
+      location_name: "魚菜居酒屋",
+      location_address: "105臺北市松山區南京東路五段250巷5-2號",
+      gathering_type: "friends_dinner",
+      cover_image_url: null,
+      visibility: "private",
+    }]), { status: 200, headers: { "Content-Type": "application/json" } }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await worker.fetch(
+      new Request("https://gather.wedopr.com/app/e/event-20260813-gcrs"),
+      {
+        ASSETS: { fetch: async () => new Response("<!doctype html><html><head></head><body></body></html>", { status: 200 }) },
+        SUPABASE_URL: "https://project.supabase.co",
+        SUPABASE_SERVICE_ROLE_KEY: "service-role-test-key",
+        LINE_CHANNEL_ID: "test-channel-id",
+        LINE_CHANNEL_SECRET: "test-channel-secret",
+        LINE_CALLBACK_URL: "https://gather.wedopr.com/app/line/callback",
+        APP_BASE_URL: "https://gather.wedopr.com/app",
+      },
+    );
+
+    const html = await response.text();
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("public, max-age=60, s-maxage=60");
+    expect(response.headers.get("x-robots-tag")).toBe("noindex, nofollow");
+    expect(html).toContain('<meta property="og:title" content="來聚一場～魚菜居酒屋好友聚會"');
+    expect(html).toContain('<meta property="og:description" content="今晚一起吃飯，現場結算後分攤｜2026-08-13（四）18:30–21:30｜魚菜居酒屋"');
+    expect(html).toContain('og:image" content="https://gather.wedopr.com/uploads/gather-neo-rechao-cheers-v1.jpg"');
+    expect(html).toContain('<meta name="twitter:card" content="summary_large_image"');
+    expect(html).toContain('<link rel="canonical" href="https://gather.wedopr.com/app/e/event-20260813-gcrs"');
+  });
+
+  it("falls back to the invitation RPC for private social metadata", async () => {
+    const fetchMock = vi.fn().mockImplementation(async (input: string) => {
+      if (String(input).includes("/rest/v1/events?")) return new Response("unavailable", { status: 503 });
+      return new Response(JSON.stringify({
+        title: "魚菜居酒屋好友聚會",
+        summary: "今晚一起吃飯，現場結算後分攤",
+        starts_at: "2026-08-13T10:30:00.000Z",
+        ends_at: "2026-08-13T13:30:00.000Z",
+        location_name: "魚菜居酒屋",
+        location_address: "105臺北市松山區南京東路五段250巷5-2號",
+        gathering_type: "friends_dinner",
+        cover_image_url: null,
+        visibility: "private",
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await worker.fetch(
+      new Request("https://gather.wedopr.com/app/e/event-20260813-gcrs", {
+        headers: { Accept: "text/html" },
+      }),
+      {
+        ASSETS: { fetch: async () => new Response("<!doctype html><html><head></head><body></body></html>", { status: 200 }) },
+        SUPABASE_URL: "https://project.supabase.co",
+        SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
+        SUPABASE_SERVICE_ROLE_KEY: "service-role-test-key",
+        LINE_CHANNEL_ID: "test-channel-id",
+        LINE_CHANNEL_SECRET: "test-channel-secret",
+        LINE_CALLBACK_URL: "https://gather.wedopr.com/app/line/callback",
+        APP_BASE_URL: "https://gather.wedopr.com/app",
+      },
+    );
+
+    const html = await response.text();
+    expect(html).toContain('<meta property="og:title" content="來聚一場～魚菜居酒屋好友聚會"');
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://project.supabase.co/rest/v1/rpc/get_event_invitation_by_slug",
+      expect.objectContaining({ method: "POST", body: '{"p_slug":"event-20260813-gcrs","p_guest_key":null}' }),
+    );
+  });
+
   it("returns only safe fields for future public map events", async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify([
       {

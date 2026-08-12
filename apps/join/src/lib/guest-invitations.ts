@@ -43,21 +43,22 @@ export interface GuestInvitationEvent {
   organizer_display_name: string | null;
   attending_count: number;
   invitees: GuestInvitationInvitee[];
-  guest_response: GuestInvitationResponse | null;
+  guest_response: GuestInvitationRosterResponse | null;
   guest_display_name: string | null;
 }
 
-export function getGuestInvitationStorageKey(slug: string): string {
-  return `gather:guest-invite:${slug}`;
+export function getGuestInvitationStorageKey(slug: string, displayName?: string): string {
+  const suffix = displayName ? `:${encodeURIComponent(normalizeGuestDisplayName(displayName))}` : "";
+  return `gather:guest-invite:${slug}${suffix}`;
 }
 
 export function normalizeGuestDisplayName(value: string): string {
   return value.trim().replace(/\s+/g, " ");
 }
 
-export function getOrCreateGuestInvitationKey(slug: string): string {
+export function getOrCreateGuestInvitationKey(slug: string, displayName?: string): string {
   if (typeof window === "undefined") return "";
-  const storageKey = getGuestInvitationStorageKey(slug);
+  const storageKey = getGuestInvitationStorageKey(slug, displayName);
   const existing = window.localStorage.getItem(storageKey)?.trim();
   if (existing) return existing;
 
@@ -66,7 +67,7 @@ export function getOrCreateGuestInvitationKey(slug: string): string {
   return key;
 }
 
-export function guestResponseLabel(response: GuestInvitationResponse | null): string {
+export function guestResponseLabel(response: GuestInvitationRosterResponse | null): string {
   if (response === "attending") return "已回覆出席";
   if (response === "declined") return "已回覆不克出席";
   return "尚未回覆";

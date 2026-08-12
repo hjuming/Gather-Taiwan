@@ -899,42 +899,26 @@ button:disabled {
 .guest-invitation-page {
   width: min(680px, 100%);
   margin: 0 auto;
-  padding: clamp(28px, 6vw, 64px) 20px 72px;
+  padding: clamp(24px, 5vw, 44px) 20px 56px;
 }
 
 .guest-invitation-page__intro {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .guest-invitation-page__intro h1 {
   max-width: 16ch;
-  margin: 8px 0 12px;
+  margin: 6px 0 0;
   font-size: clamp(2.2rem, 8vw, 4.4rem);
   line-height: 1.12;
   text-wrap: balance;
-}
-
-.guest-invitation-page__intro p {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.6;
-}
-
-.guest-invitation-page__intro p + p {
-  margin-top: 4px;
-}
-
-.guest-invitation-page__instruction {
-  margin-top: 16px !important;
-  color: var(--fg) !important;
-  font-weight: 700;
 }
 
 .guest-invitation-page__facts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   border: 1px solid var(--border);
   background: var(--border);
 }
@@ -943,19 +927,21 @@ button:disabled {
   display: grid;
   gap: 6px;
   min-width: 0;
-  padding: 18px;
+  min-height: 84px;
+  padding: 14px 16px;
   background: var(--surface);
 }
 
-.guest-invitation-page__fact > span {
-  color: var(--accent);
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+.guest-invitation-page__fact--location {
+  grid-column: span 2;
+}
+
+.guest-invitation-page__fact--time {
+  grid-column: span 2;
 }
 
 .guest-invitation-page__fact strong {
-  font-size: 1.05rem;
+  font-size: 1rem;
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
@@ -977,8 +963,8 @@ button:disabled {
 }
 
 .guest-invitation-roster {
-  margin-bottom: 24px;
-  padding: 20px;
+  margin-bottom: 0;
+  padding: 16px;
   border: 1px solid var(--border);
   background: var(--surface);
 }
@@ -988,7 +974,7 @@ button:disabled {
   align-items: end;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .guest-invitation-roster__heading h2 {
@@ -1027,6 +1013,26 @@ button:disabled {
 .guest-invitation-roster__list li strong {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.guest-invitation-roster__status {
+  flex: 0 0 auto;
+  min-width: 4.5em;
+  border: 0;
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.guest-invitation-roster__status:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.guest-invitation-roster__hint {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
 }
 
 .event-contact {
@@ -1194,11 +1200,11 @@ button:disabled {
   }
 
   .guest-invitation-page__facts {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .guest-invitation-page__fact {
-    padding: 16px;
+    padding: 13px 14px;
   }
 
   .guest-invitation-roster {

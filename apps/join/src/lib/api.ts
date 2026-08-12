@@ -7,7 +7,10 @@ import type {
   RegistrationStatus,
   EventFeeMode,
 } from "./types";
-import type { GuestInvitationEvent, GuestInvitationResponse } from "./guest-invitations";
+import type {
+  GuestInvitationEvent,
+  GuestInvitationRosterResponse,
+} from "./guest-invitations";
 import { removeEventCover } from "./event-covers";
 
 // events.password_hash is deliberately never granted to any role (P1-04) —
@@ -86,10 +89,10 @@ export async function respondToGuestInvitation(
   slug: string,
   guestKey: string,
   displayName: string,
-  response: GuestInvitationResponse,
+  response: GuestInvitationRosterResponse,
 ): Promise<{
   id: string;
-  guest_response: GuestInvitationResponse;
+  guest_response: GuestInvitationRosterResponse;
   guest_display_name: string;
   attending_count: number;
   capacity: number | null;
@@ -103,7 +106,7 @@ export async function respondToGuestInvitation(
   if (error) throw error;
   const result = data as {
     id: string;
-    response: GuestInvitationResponse;
+    response: GuestInvitationRosterResponse;
     display_name: string;
     attending_count: number;
     capacity: number | null;
