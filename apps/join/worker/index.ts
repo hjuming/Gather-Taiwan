@@ -1,5 +1,6 @@
 import { withSecurityHeaders } from "./response-security";
 import { handleLineAuthCallback, handleLineAuthStart, type LineAuthEnv } from "./line-auth";
+import { isAllowedCoverImageUrl } from "../shared/event-cover-policy";
 
 interface Env extends LineAuthEnv {
   SUPABASE_PUBLISHABLE_KEY?: string;
@@ -18,6 +19,7 @@ const LINE_AUTH_CALLBACK_PATHS = new Set([
 ]);
 const PUBLIC_EVENTS_PATH = "/app/api/public-events";
 const EVENT_SUMMARY_PATH = "/app/api/event-summary";
+const ADDRESS_SEARCH_PATH = "/app/api/address-search";
 const FALLBACK_PUBLISHABLE_KEY = "sb_publishable_Qc-0shSK0ISVXiWmo8AtaQ_Wmu_5xU7";
 // The Workers Route matches the full "/app/*" path, but the Vite build
 // output (dist/client) is flat — index.html and assets/ sit at its root,
@@ -36,6 +38,9 @@ export default {
     }
     if (url.pathname === EVENT_SUMMARY_PATH) {
       return withSecurityHeaders(await handleEventSummary(request, env), { includeCacheControl: false });
+    }
+    if (url.pathname === ADDRESS_SEARCH_PATH) {
+      return withSecurityHeaders(await handleAddressSearch(request), { includeCacheControl: false });
     }
 
     if (LINE_AUTH_START_PATHS.has(url.pathname)) {
@@ -110,7 +115,7 @@ async function handlePublicEvents(request: Request, env: Env): Promise<Response>
           gathering_type: typeof row.gathering_type === "string" && /^[a-z][a-z0-9_]{1,39}$/.test(row.gathering_type)
             ? row.gathering_type
             : null,
-          cover_image_url: typeof row.cover_image_url === "string" && /^\/uploads\/[A-Za-z0-9._-]+$/.test(row.cover_image_url)
+          cover_image_url: typeof row.cover_image_url === "string" && isAllowedCoverImageUrl(row.cover_image_url)
             ? row.cover_image_url
             : null,
         };
@@ -222,4 +227,88 @@ function eventSummaryUnavailable(): Response {
     status: 502,
     headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
   });
+}
+
+interface AddressSearchResult {
+  place_id: number;
+  osm_type: string;
+  osm_id: number;
+  display_name: string;
+  lat: string;
+  lon: string;
+  type: string | null;
+}
+
+async function handleAddressSearch(request: Request): Promise<Response> {
+  if (request.method !== "GET") {
+    return new Response(JSON.stringify({ error: "method_not_allowed" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json", Allow: "GET", "Cache-Control": "no-store" },
+    });
+  }
+
+  const query = new URL(request.url).searchParams.get("q")?.trim() ?? "";
+  if (query.length < 2 || query.length > 120) {
+    return new Response(JSON.stringify({ error: "invalid_query" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+    });
+  }
+
+  const searchUrl = new URL("https://nominatim.openstreetmap.org/search");
+  searchUrl.search = new URLSearchParams({
+    q: query,
+    format: "jsonv2",
+    addressdetails: "1",
+    countrycodes: "tw",
+    layer: "address,poi",
+    limit: "5",
+    dedupe: "1",
+    "accept-language": "zh-TW",
+  }).toString();
+
+  try {
+    const response = await fetch(searchUrl, {
+      headers: {
+        Accept: "application/json",
+        "Accept-Language": "zh-TW",
+        Referer: "https://gather.wedopr.com/app/",
+        "User-Agent": "GatherTaiwan/1.0 (+https://gather.wedopr.com/app/)",
+      },
+    });
+    if (!response.ok) {
+      return new Response(JSON.stringify({ error: "address_search_unavailable" }), {
+        status: 502,
+        headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+      });
+    }
+
+    const payload = (await response.json()) as unknown;
+    const results: AddressSearchResult[] = Array.isArray(payload)
+      ? payload.map((item) => {
+          const row = item as Record<string, unknown>;
+          return {
+            place_id: typeof row.place_id === "number" ? row.place_id : 0,
+            osm_type: typeof row.osm_type === "string" ? row.osm_type : "",
+            osm_id: typeof row.osm_id === "number" ? row.osm_id : 0,
+            display_name: typeof row.display_name === "string" ? row.display_name : "",
+            lat: typeof row.lat === "string" ? row.lat : "",
+            lon: typeof row.lon === "string" ? row.lon : "",
+            type: typeof row.type === "string" ? row.type : null,
+          };
+        }).filter((item) => item.display_name && item.lat && item.lon)
+      : [];
+
+    return new Response(JSON.stringify(results), {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "public, max-age=300, s-maxage=300",
+      },
+    });
+  } catch {
+    return new Response(JSON.stringify({ error: "address_search_unavailable" }), {
+      status: 502,
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+    });
+  }
 }

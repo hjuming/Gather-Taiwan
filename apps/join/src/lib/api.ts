@@ -311,6 +311,18 @@ export async function updateEvent(eventId: string, input: UpdateEventInput): Pro
   return data as unknown as EventRow;
 }
 
+export async function updateEventCover(eventId: string, coverImageUrl: string | null): Promise<EventRow> {
+  const { data, error } = await supabase
+    .from("events")
+    .update({ cover_image_url: coverImageUrl })
+    .eq("id", eventId)
+    .select(EVENT_COLUMNS)
+    .single();
+
+  if (error) throw error;
+  return data as unknown as EventRow;
+}
+
 export async function cancelEvent(eventId: string): Promise<void> {
   const { error } = await supabase.rpc("cancel_event", { p_event_id: eventId });
   if (error) throw error;

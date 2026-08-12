@@ -1,11 +1,12 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { getEventBySlug, updateEvent } from "../lib/api";
 import { supabase } from "../lib/supabase";
 import { useSession } from "../lib/useSession";
 import type { EventRow } from "../lib/types";
 import DateTimeField from "../components/DateTimeField";
 import GatheringTypeField from "../components/GatheringTypeField";
+import LocationSearchField from "../components/LocationSearchField";
 import {
   dateTimePartsToTaipeiIso,
   dateTimePartsToTimestamp,
@@ -15,11 +16,14 @@ import {
 } from "../lib/date-time";
 import { DEFAULT_GATHERING_TYPE } from "../lib/gathering-types";
 import { useErrorFocus } from "../lib/useErrorFocus";
+import { removeEventCover, uploadEventCover, validateEventCoverFile } from "../lib/event-covers";
 
 const TAIPEI = "Asia/Taipei";
 
 export default function EventEditPage() {
   const { slug = "" } = useParams();
+  const [searchParams] = useSearchParams();
+  const coverUploadFailed = searchParams.get("coverUpload") === "failed";
   const { session, loading } = useSession();
   const navigate = useNavigate();
 
@@ -44,10 +48,17 @@ export default function EventEditPage() {
   const [minAge, setMinAge] = useState(18);
   const [gatheringType, setGatheringType] = useState<string>(DEFAULT_GATHERING_TYPE);
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const errorRef = useErrorFocus(error);
+
+  useEffect(() => {
+    if (coverUploadFailed) {
+      setError("聚會已建立，但代表圖上傳失敗；請重新選擇圖片後儲存。\n圖片會以公開網址載入，請勿放入私人內容。");
+    }
+  }, [coverUploadFailed]);
 
   useEffect(() => {
     if (!loading && !session) {
@@ -159,8 +170,19 @@ export default function EventEditPage() {
       return;
     }
 
+    if (coverFile) {
+      const coverError = await validateEventCoverFile(coverFile);
+      if (coverError) {
+        setError(coverError);
+        return;
+      }
+    }
+
     setBusy(true);
+    let uploadedCoverUrl: string | null = null;
     try {
+      const nextCoverImageUrl = coverFile ? await uploadEventCover(row.id, coverFile) : coverImageUrl;
+      uploadedCoverUrl = coverFile ? nextCoverImageUrl : null;
       await updateEvent(row.id, {
         title: title.trim(),
         summary: summary.trim(),
@@ -176,10 +198,14 @@ export default function EventEditPage() {
         paymentInstructions: paymentInstructions.trim(),
         minAge: hasMinAge ? minAge : null,
         gatheringType,
-        coverImageUrl,
+        coverImageUrl: nextCoverImageUrl,
       });
+      if (coverImageUrl && coverImageUrl !== nextCoverImageUrl) {
+        await removeEventCover(coverImageUrl).catch(() => undefined);
+      }
       navigate(`/e/${row.slug}`);
     } catch (err) {
+      if (uploadedCoverUrl) await removeEventCover(uploadedCoverUrl).catch(() => undefined);
       setError(err instanceof Error ? err.message : "儲存失敗");
     } finally {
       setBusy(false);
@@ -212,23 +238,21 @@ export default function EventEditPage() {
           <GatheringTypeField
             gatheringType={gatheringType}
             coverImageUrl={coverImageUrl}
+            coverFile={coverFile}
             onTypeChange={setGatheringType}
             onCoverChange={setCoverImageUrl}
+            onCoverFileChange={setCoverFile}
           />
           <div className="field">
             <label htmlFor="edit-description">活動說明</label>
             <textarea id="edit-description" value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
-          <div className="row">
-            <div className="field">
-              <label htmlFor="edit-locationName">地點名稱</label>
-              <input id="edit-locationName" type="text" value={locationName} onChange={(e) => setLocationName(e.target.value)} required />
-            </div>
-            <div className="field">
-              <label htmlFor="edit-locationAddress">地址</label>
-              <input id="edit-locationAddress" type="text" value={locationAddress} onChange={(e) => setLocationAddress(e.target.value)} />
-            </div>
-          </div>
+          <LocationSearchField
+            locationName={locationName}
+            locationAddress={locationAddress}
+            onLocationNameChange={setLocationName}
+            onLocationAddressChange={setLocationAddress}
+          />
         </section>
 
         <section className="card stack form-section">

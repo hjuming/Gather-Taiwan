@@ -1,6 +1,8 @@
 // 聚會類型：沿用主站「聚場地圖」既有的相聚語彙，讓報名系統與主站講同一套話。
 // 每個類型帶一張預設代表圖（同時用於活動頁 hero 與分享時的 OG 圖），
-// 主辦人可以再自行改選其他張。圖片由主站 Pages 於 /uploads/ 提供，同網域同源。
+// 主辦人可以再自行改選其他張，也可以上傳自己的公開代表圖。
+
+import { isAllowedCoverImageUrl } from "../../shared/event-cover-policy";
 
 export interface GatheringType {
   key: string;
@@ -12,6 +14,42 @@ export interface GatheringType {
 const DEFAULT_IMAGE = "/uploads/gather-home-hero-documentary-v1.jpg";
 
 export const GATHERING_TYPES: readonly GatheringType[] = [
+  {
+    key: "friends_dinner",
+    label: "朋友聚餐",
+    hint: "約幾個熟悉的人，坐下來吃頓飯、聊近況",
+    image: "/uploads/gather-neo-rechao-cheers-v1.jpg",
+  },
+  {
+    key: "class_reunion",
+    label: "同學會",
+    hint: "同學、校友與一起走過一段路的人重新碰面",
+    image: "/uploads/gather-harbor-dinner-documentary-v1.jpg",
+  },
+  {
+    key: "family_gathering",
+    label: "家族聚餐",
+    hint: "家人親友一起吃飯，讓一張桌子把彼此拉近",
+    image: "/uploads/gather-local-banquet-v1.jpg",
+  },
+  {
+    key: "birthday_celebration",
+    label: "慶生聚會",
+    hint: "為一個值得記得的日子，找人一起舉杯、吃飯或散步",
+    image: "/uploads/gather-moonlight-charcoal-v1.jpg",
+  },
+  {
+    key: "reading_workshop",
+    label: "讀書會／工作坊",
+    hint: "一起讀、一起做，也一起交換想法",
+    image: "/uploads/gather-tea-table-v1.jpg",
+  },
+  {
+    key: "interest_meetup",
+    label: "興趣交流",
+    hint: "因為共同喜歡的事，和新朋友坐到同一桌",
+    image: "/uploads/gather-winter-table-v1.jpg",
+  },
   {
     key: "market_breakfast",
     label: "市場早餐",
@@ -78,7 +116,8 @@ export const DEFAULT_GATHERING_TYPE = "other";
 
 /** 所有可選的代表圖（供主辦人自行更換）。 */
 export const COVER_IMAGE_CHOICES: readonly { url: string; label: string }[] =
-  GATHERING_TYPES.map((type) => ({ url: type.image, label: type.label }));
+  [...new Map(GATHERING_TYPES.map((type) => [type.image, type.label])).entries()]
+    .map(([url, label]) => ({ url, label }));
 
 export function getGatheringType(key: string | null | undefined): GatheringType {
   return (
@@ -94,14 +133,14 @@ export function getGatheringTypeLabel(key: string | null | undefined): string | 
 
 /**
  * 活動的代表圖：主辦人自選的優先，其次是類型預設圖，最後才是全站預設。
- * 只接受站內 /uploads/ 路徑，避免有人把任意外部網址寫進資料庫後被當成圖片載入。
+ * 只接受本站策展圖或固定 Supabase Storage bucket 的公開網址，避免任意外部網址被當成圖片載入。
  */
 export function resolveCoverImage(event: {
   cover_image_url?: string | null;
   gathering_type?: string | null;
 }): string {
   const custom = event.cover_image_url?.trim();
-  if (custom && custom.startsWith("/uploads/") && !custom.includes("..")) {
+  if (custom && isAllowedCoverImageUrl(custom)) {
     return custom;
   }
   return getGatheringType(event.gathering_type).image;

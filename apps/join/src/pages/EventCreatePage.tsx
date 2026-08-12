@@ -1,13 +1,21 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { createEvent, createOrganizer, getMyOrganizers, type OrganizerMembership } from "../lib/api";
+import {
+  createEvent,
+  createOrganizer,
+  getMyOrganizers,
+  updateEventCover,
+  type OrganizerMembership,
+} from "../lib/api";
 import { useSession } from "../lib/useSession";
 import { createEventSlug, createSlug } from "../lib/slug";
 import { getGoogleMapsEmbedUrl } from "../lib/event-links";
 import { DEFAULT_GATHERING_TYPE, resolveCoverImage } from "../lib/gathering-types";
 import { useErrorFocus } from "../lib/useErrorFocus";
+import { removeEventCover, uploadEventCover, validateEventCoverFile } from "../lib/event-covers";
 import DateTimeField from "../components/DateTimeField";
 import GatheringTypeField from "../components/GatheringTypeField";
+import LocationSearchField from "../components/LocationSearchField";
 import {
   addTaipeiDays,
   dateTimePartsToTaipeiIso,
@@ -47,10 +55,22 @@ export default function EventCreatePage() {
   const [gatheringType, setGatheringType] = useState<string>(DEFAULT_GATHERING_TYPE);
   // null 代表沿用類型預設圖；主辦人自選後才寫入實際路徑。
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverFilePreviewUrl, setCoverFilePreviewUrl] = useState<string | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const errorRef = useErrorFocus(error);
+
+  useEffect(() => {
+    if (!coverFile) {
+      setCoverFilePreviewUrl(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(coverFile);
+    setCoverFilePreviewUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [coverFile]);
 
   useEffect(() => {
     if (!session) return;
@@ -135,6 +155,14 @@ export default function EventCreatePage() {
       return;
     }
 
+    if (coverFile) {
+      const coverError = await validateEventCoverFile(coverFile);
+      if (coverError) {
+        setError(coverError);
+        return;
+      }
+    }
+
     setBusy(true);
     try {
       const slug = createEventSlug(title, startsAt.date, 95);
@@ -157,8 +185,19 @@ export default function EventCreatePage() {
         minAge: hasMinAge ? minAge : null,
         inviteOnly,
         gatheringType,
-        coverImageUrl,
+        coverImageUrl: coverFile ? null : coverImageUrl,
       });
+      if (coverFile) {
+        let uploadedCoverUrl: string | null = null;
+        try {
+          uploadedCoverUrl = await uploadEventCover(event_.id, coverFile);
+          await updateEventCover(event_.id, uploadedCoverUrl);
+        } catch {
+          if (uploadedCoverUrl) await removeEventCover(uploadedCoverUrl).catch(() => undefined);
+          navigate(`/e/${event_.slug}/edit?coverUpload=failed`, { replace: true });
+          return;
+        }
+      }
       navigate(`/e/${event_.slug}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "建立活動失敗");
@@ -250,8 +289,10 @@ export default function EventCreatePage() {
           <GatheringTypeField
             gatheringType={gatheringType}
             coverImageUrl={coverImageUrl}
+            coverFile={coverFile}
             onTypeChange={setGatheringType}
             onCoverChange={setCoverImageUrl}
+            onCoverFileChange={setCoverFile}
           />
           <div className="field">
             <label htmlFor="description">活動說明</label>
@@ -262,28 +303,12 @@ export default function EventCreatePage() {
               placeholder="活動內容、注意事項…"
             />
           </div>
-          <div className="row">
-            <div className="field">
-              <label htmlFor="locationName">地點名稱</label>
-              <input
-                id="locationName"
-                type="text"
-                value={locationName}
-                onChange={(event) => setLocationName(event.target.value)}
-                placeholder="例如：金色三麥 美麗華店"
-                required
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="locationAddress">地址</label>
-              <input
-                id="locationAddress"
-                type="text"
-                value={locationAddress}
-                onChange={(event) => setLocationAddress(event.target.value)}
-              />
-            </div>
-          </div>
+          <LocationSearchField
+            locationName={locationName}
+            locationAddress={locationAddress}
+            onLocationNameChange={setLocationName}
+            onLocationAddressChange={setLocationAddress}
+          />
         </section>
 
         <section id="create-time" className="card stack form-section">
@@ -408,7 +433,7 @@ export default function EventCreatePage() {
             <p className="section-kicker">桌邊先放一張椅子</p>
             <img
               className="create-preview__cover"
-              src={resolveCoverImage({ cover_image_url: coverImageUrl, gathering_type: gatheringType })}
+              src={coverFilePreviewUrl ?? resolveCoverImage({ cover_image_url: coverImageUrl, gathering_type: gatheringType })}
               alt=""
               loading="lazy"
             />
