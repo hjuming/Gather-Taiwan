@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getMyHostedEvents } from "../lib/api";
+import { cancelEvent, getMyHostedEvents } from "../lib/api";
 import { useSession } from "../lib/useSession";
 import type { EventRow } from "../lib/types";
 
@@ -41,6 +41,7 @@ export default function MyHostedEventsPage() {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<HostedFilter>("all");
+  const [cancellingEventId, setCancellingEventId] = useState<string | null>(null);
 
   async function load() {
     setError(null);
@@ -48,6 +49,20 @@ export default function MyHostedEventsPage() {
       setEvents(await getMyHostedEvents());
     } catch (err) {
       setError(err instanceof Error ? err.message : "讀取活動失敗");
+    }
+  }
+
+  async function handleCancelEvent(event: EventRow) {
+    if (!window.confirm("確定要取消這場聚會嗎？既有報名者會收到通知，活動紀錄會保留。")) return;
+    setError(null);
+    setCancellingEventId(event.id);
+    try {
+      await cancelEvent(event.id);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "取消聚會失敗");
+    } finally {
+      setCancellingEventId(null);
     }
   }
 
@@ -137,6 +152,16 @@ export default function MyHostedEventsPage() {
               <div className="actions hosted-event-card__actions">
                 <Link to={`/e/${event.slug}`} className="btn-primary">打開聚會頁</Link>
                 <Link to={`/e/${event.slug}/edit`} className="btn-secondary">編輯內容</Link>
+                {event.status !== "cancelled" && (
+                  <button
+                    type="button"
+                    className="btn-text"
+                    onClick={() => handleCancelEvent(event)}
+                    disabled={cancellingEventId === event.id}
+                  >
+                    {cancellingEventId === event.id ? "取消中…" : "取消聚會"}
+                  </button>
+                )}
               </div>
             </article>
           ))}
