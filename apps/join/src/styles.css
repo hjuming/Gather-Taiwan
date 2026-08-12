@@ -39,6 +39,52 @@ main {
   width: min(920px, calc(100% - 48px));
 }
 
+.auth-event-context {
+  margin: -8px 0 18px;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.auth-event-context strong {
+  color: var(--fg);
+}
+
+.auth-intro,
+.auth-privacy-note,
+.auth-consent {
+  color: var(--muted);
+}
+
+.auth-intro {
+  margin: 0 0 24px;
+}
+
+.auth-action {
+  width: 100%;
+}
+
+.auth-privacy-note {
+  margin: 22px 0 8px;
+  font-size: 0.875rem;
+}
+
+.auth-consent {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.legal-link,
+.event-register__link {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.legal-link:hover,
+.event-register__link:hover {
+  color: var(--fg);
+}
+
 .eyebrow {
   color: var(--accent);
   font-size: 0.875rem;
@@ -159,6 +205,7 @@ nav.top-nav .brand--tool {
 
 .menu-toggle__bar {
   display: block;
+  width: 32px;
   height: 2px;
   margin: 6px 0;
   background: var(--fg);
@@ -795,6 +842,53 @@ button:disabled {
   background: var(--surface);
 }
 
+.event-register__details {
+  display: grid;
+  gap: 4px;
+  margin: 20px 0 24px;
+  padding: 16px 18px;
+  border-left: 3px solid var(--accent);
+  background: #fbf6ea;
+}
+
+.event-register__details p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.event-register__details p:first-child {
+  color: var(--fg);
+  font-weight: 800;
+}
+
+.event-contact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 0 28px;
+  padding: clamp(22px, 4vw, 34px);
+  border: 1px solid var(--border);
+  background: #f7f0e3;
+}
+
+.event-contact h2 {
+  margin-bottom: 8px;
+}
+
+.event-contact p {
+  max-width: 68ch;
+  margin: 0;
+  color: var(--muted);
+}
+
+.event-contact__organizer {
+  margin-bottom: 8px !important;
+  color: var(--fg) !important;
+  font-weight: 800;
+}
+
 .event-section--quiet {
   background: #f7f0e3;
 }
@@ -938,11 +1032,14 @@ button:disabled {
   }
 
   .event-hero__copy {
+    max-width: 100%;
     padding: 28px 20px 30px;
   }
 
   .event-hero__copy h1 {
-    font-size: clamp(2.35rem, 13vw, 4rem);
+    font-size: clamp(2rem, 11vw, 3.5rem);
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 
   .event-page__body {
@@ -997,6 +1094,15 @@ button:disabled {
   .event-admin-note {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .event-contact {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .event-contact .btn-secondary {
+    width: 100%;
   }
 
   .roster-stats {
@@ -2050,6 +2156,229 @@ nav.top-nav .top-nav-menu a[aria-current="page"] {
 .status-pill--muted {
   background: #efece5;
   color: var(--muted);
+}
+
+/* Gather Taiwan site shell: the registration app uses the same editorial header,
+   drawer navigation, breadcrumb rhythm, and footer proportions as the main site. */
+:root {
+  --site-paper: #fffaf0;
+  --site-charcoal: #262018;
+  --site-line: rgb(27 23 18 / 14%);
+  --site-brass: #b98b52;
+}
+
+nav.top-nav {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 100;
+  height: 68px;
+  background: rgb(251 246 234 / 88%);
+  border-bottom: 1px solid var(--site-line);
+  backdrop-filter: blur(14px);
+}
+
+.top-nav-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(1160px, calc(100% - 48px));
+  height: 68px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.brand-lockup {
+  gap: 10px;
+}
+
+nav.top-nav .brand--site {
+  font-size: 1.05rem;
+  line-height: 1.05;
+}
+
+nav.top-nav .brand--tool {
+  font-size: 0.9rem;
+}
+
+.menu-toggle {
+  position: relative;
+  z-index: 101;
+  display: inline-flex;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.menu-toggle:hover {
+  background: transparent;
+}
+
+.top-nav-menu {
+  position: fixed;
+  top: 68px;
+  right: 0;
+  z-index: 90;
+  display: flex;
+  width: min(420px, calc(100vw - 24px));
+  max-height: calc(100dvh - 84px);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  overflow: auto;
+  padding: 24px 28px 28px;
+  border-left: 1px solid var(--site-line);
+  border-bottom: 1px solid var(--site-line);
+  background: var(--bg);
+  box-shadow: -24px 24px 80px rgb(27 23 18 / 22%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transition: opacity 160ms ease, visibility 160ms ease, transform 160ms ease;
+}
+
+.top-nav-menu.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.top-nav-menu__eyebrow {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.top-nav-menu a,
+.top-nav-menu .btn-text {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid var(--site-line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--fg);
+  text-align: left;
+  text-decoration: none;
+}
+
+.top-nav-menu a:hover,
+.top-nav-menu .btn-text:hover {
+  background: transparent;
+  color: var(--accent);
+  transform: none;
+}
+
+.top-nav-menu .drawer-note {
+  display: block;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+.top-nav-backdrop {
+  position: fixed;
+  inset: 68px 0 0;
+  z-index: 80;
+  width: 100%;
+  height: calc(100dvh - 68px);
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: rgb(27 23 18 / 28%);
+  cursor: default;
+}
+
+.top-nav-backdrop:hover {
+  background: rgb(27 23 18 / 28%);
+  transform: none;
+}
+
+body.nav-open {
+  overflow: hidden;
+}
+
+.site-breadcrumb-wrap {
+  width: min(1160px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 84px 0 0;
+}
+
+.site-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 34px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.site-breadcrumb a {
+  color: var(--accent);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.site-breadcrumb a:hover {
+  color: var(--fg);
+}
+
+.site-breadcrumb [aria-current="page"] {
+  color: var(--fg);
+  font-weight: 800;
+}
+
+.site-footer {
+  background: var(--site-charcoal);
+}
+
+.site-footer__inner {
+  width: min(1160px, calc(100% - 48px));
+  padding: 44px 0;
+}
+
+.site-footer__inner a {
+  color: var(--site-brass);
+  text-decoration: none;
+}
+
+.site-footer__inner a:hover {
+  color: var(--site-paper);
+}
+
+@media (max-width: 720px) {
+  .top-nav-inner,
+  .site-breadcrumb-wrap,
+  .site-footer__inner {
+    width: min(100% - 28px, 1160px);
+  }
+
+  .site-breadcrumb-wrap {
+    padding-top: 78px;
+  }
+
+  .top-nav-menu {
+    right: 12px;
+  }
+
+  .site-footer__inner {
+    padding: 34px 0 42px;
+  }
 }
 
 .registration-list {

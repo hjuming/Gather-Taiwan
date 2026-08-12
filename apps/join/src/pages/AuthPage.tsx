@@ -1,7 +1,7 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
-import { ensureUserProfile } from "../lib/api";
+import { ensureUserProfile, getEventBySlug } from "../lib/api";
 
 type Step = "email" | "code";
 
@@ -15,18 +15,48 @@ const LINE_ERROR_LABEL: Record<string, string> = {
   account_provisioning_failed: "LINE 登入暫時無法完成帳號建立，請稍後再試",
 };
 
+function getEventSlugFromRedirect(redirectTo: string): string | null {
+  const match = redirectTo.match(/^\/e\/([^/?#]+)(?:[/?#]|$)/);
+  if (!match) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return null;
+  }
+}
+
 export default function AuthPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/";
   const lineError = searchParams.get("line_error");
+  const eventSlug = getEventSlugFromRedirect(redirectTo);
 
   const [step, setStep] = useState<Step>("email");
+  const [eventTitle, setEventTitle] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    setEventTitle(null);
+    if (!eventSlug) return () => { active = false; };
+
+    getEventBySlug(eventSlug)
+      .then((event) => {
+        if (active) setEventTitle(event?.title ?? null);
+      })
+      .catch(() => {
+        if (active) setEventTitle(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [eventSlug]);
 
   async function handleLineLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -113,7 +143,15 @@ export default function AuthPage() {
   return (
     <div className="page">
       <p className="eyebrow">來聚一場</p>
-      <h1>登入 / 註冊</h1>
+      <h1>開始報名</h1>
+      {eventSlug && (
+        <p className="auth-event-context">
+          你正在報名：<strong>{eventTitle ?? "這場活動"}</strong>
+        </p>
+      )}
+      <p className="auth-intro">
+        不需要設定密碼。用 LINE 登入即可，約 30 秒；也可以使用 email 驗證碼。
+      </p>
 
       {lineError && (
         <div className="banner banner--error" role="alert">
@@ -137,8 +175,7 @@ export default function AuthPage() {
         <button
           type="submit"
           disabled={busy}
-          className="btn btn-primary"
-          style={{ display: "block", width: "100%", textAlign: "center" }}
+          className="btn-primary auth-action"
         >
           使用 LINE 登入
         </button>
@@ -171,7 +208,7 @@ export default function AuthPage() {
             />
           </div>
           <div className="actions">
-            <button type="submit" className="btn-primary" disabled={busy}>
+            <button type="submit" className="btn-primary auth-action" disabled={busy}>
               {busy ? "寄送中…" : "寄送驗證碼"}
             </button>
           </div>
@@ -204,6 +241,16 @@ export default function AuthPage() {
           </div>
         </form>
       )}
+
+      <p className="auth-privacy-note">
+        我們只使用必要的登入與報名資料來處理報名、通知與取消，不會公開你的 email。
+      </p>
+      <p className="auth-consent">
+        繼續即代表你同意
+        <a href="/terms/" className="legal-link">服務條款</a>
+        與
+        <a href="/privacy/" className="legal-link">隱私權政策</a>。
+      </p>
     </div>
   );
 }

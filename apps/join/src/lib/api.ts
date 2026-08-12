@@ -14,6 +14,13 @@ const EVENT_COLUMNS =
   "invite_pool_deadline, invite_pool_released_at, gathering_type, cover_image_url, " +
   "created_at, updated_at";
 
+export interface PublicEventSummary {
+  organizerDisplayName: string | null;
+  registrationCount: number | null;
+  capacity: number | null;
+  showCapacity: boolean;
+}
+
 function randomIdempotencyKey(): string {
   return crypto.randomUUID();
 }
@@ -43,6 +50,15 @@ export async function getEventBySlug(slug: string): Promise<EventRow | null> {
   const { data, error } = await supabase.from("events").select(EVENT_COLUMNS).eq("slug", slug).maybeSingle();
   if (error) throw error;
   return (data as unknown as EventRow | null) ?? null;
+}
+
+export async function getPublicEventSummary(slug: string): Promise<PublicEventSummary | null> {
+  const response = await fetch(`/app/api/event-summary?slug=${encodeURIComponent(slug)}`, {
+    headers: { Accept: "application/json" },
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error("活動摘要暫時讀不到");
+  return (await response.json()) as PublicEventSummary;
 }
 
 export async function getEventFields(eventId: string): Promise<EventFieldRow[]> {

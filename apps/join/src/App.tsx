@@ -1,4 +1,5 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import TopNav from "./components/TopNav";
 import HomePage from "./pages/HomePage";
 import AuthPage from "./pages/AuthPage";
@@ -9,12 +10,15 @@ import MyRegistrationsPage from "./pages/MyRegistrationsPage";
 import MyHostedEventsPage from "./pages/MyHostedEventsPage";
 import LineAuthCompletePage from "./pages/LineAuthCompletePage";
 import SiteFooter from "./components/SiteFooter";
+import Breadcrumbs from "./components/Breadcrumbs";
 
 export default function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
+      <ScrollToTop />
       <a className="skip-link" href="#main-content">跳到主要內容</a>
       <TopNav />
+      <Breadcrumbs />
       <main id="main-content">
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -30,4 +34,14 @@ export default function App() {
       <SiteFooter />
     </BrowserRouter>
   );
+}
+
+function ScrollToTop() {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname, location.search]);
+
+  return null;
 }

@@ -6,6 +6,7 @@ import {
   declarePayment,
   getEventBySlug,
   getEventFields,
+  getPublicEventSummary,
   getMyRegistrationForEvent,
   registerForEvent,
   reportPaymentInstructions,
@@ -15,6 +16,7 @@ import { supabase } from "../lib/supabase";
 import { useSession } from "../lib/useSession";
 import { SafeRichText } from "../security/security";
 import { REGISTRATION_STATUS_LABEL, type EventFieldRow, type EventRow, type RegistrationRow } from "../lib/types";
+import type { PublicEventSummary } from "../lib/api";
 import RosterManager from "../components/RosterManager";
 import { validateEventAnswers, type EventAnswer } from "../lib/event-fields";
 import {
@@ -67,6 +69,7 @@ export default function EventPage() {
   const { session, loading: sessionLoading } = useSession();
 
   const [event, setEvent] = useState<EventRow | null | "not-found">(null);
+  const [publicSummary, setPublicSummary] = useState<PublicEventSummary | null>(null);
   const [fields, setFields] = useState<EventFieldRow[]>([]);
   const [answers, setAnswers] = useState<Record<string, EventAnswer>>({});
   const [myRegistration, setMyRegistration] = useState<RegistrationRow | null>(null);
@@ -84,11 +87,16 @@ export default function EventPage() {
     try {
       const row = await getEventBySlug(slug);
       setEvent(row ?? "not-found");
+      setPublicSummary(null);
       setFields([]);
       setAnswers({});
       if (row) {
-        const eventFields = await getEventFields(row.id);
+        const [eventFields, summary] = await Promise.all([
+          getEventFields(row.id),
+          getPublicEventSummary(row.slug).catch(() => null),
+        ]);
         setFields(eventFields);
+        setPublicSummary(summary);
       }
       if (row && session) {
         const reg = await getMyRegistrationForEvent(row.id);
@@ -389,6 +397,20 @@ export default function EventPage() {
             {isOrganizerAdmin && <span className="status-pill status-pill--confirmed">這場聚會的主人</span>}
           </div>
 
+          {publicSummary && (
+            <div className="event-register__details" aria-label="報名說明">
+              {publicSummary.organizerDisplayName && <p>由 {publicSummary.organizerDisplayName} 發起</p>}
+              {publicSummary.showCapacity && publicSummary.registrationCount !== null && (
+                <p>已報名 {publicSummary.registrationCount} / {publicSummary.capacity}</p>
+              )}
+              <p>用 LINE 登入即可，免密碼，約 30 秒</p>
+              <p>
+                報名後可回到本頁查看或取消（也可以從
+                <Link to="/me/registrations" className="event-register__link">我的報名</Link>進入）。
+              </p>
+            </div>
+          )}
+
           {isOrganizerAdmin && (
             <div className="banner banner--info event-admin-note">
               這是你邀請大家相見的聚會。
@@ -430,6 +452,23 @@ export default function EventPage() {
               <button type="submit" className="btn-primary event-register__cta" disabled={busy}>{busy ? "送出中…" : session ? "我要報名" : "登入後報名"}</button>
             </form>
           ) : <p className="hint">目前未開放報名</p>}
+        </section>
+
+        <section className="event-contact" aria-labelledby="event-contact-title">
+          <div>
+            <p className="section-kicker">需要確認細節？</p>
+            <h2 id="event-contact-title">聯絡主辦人</h2>
+            {publicSummary?.organizerDisplayName && (
+              <p className="event-contact__organizer">這場活動由 {publicSummary.organizerDisplayName} 發起。</p>
+            )}
+            <p>
+              主辦人若有留下聯絡方式，會放在活動說明或收款說明裡；若頁面沒有提供，
+              可以聯絡聚場台灣並註明活動名稱，我們會協助確認活動資訊。
+            </p>
+          </div>
+          <a className="btn-secondary" href={`/contact/?event=${encodeURIComponent(event.slug)}`}>
+            聯絡聚場台灣
+          </a>
         </section>
 
         {isOrganizerAdmin && (

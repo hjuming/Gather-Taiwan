@@ -16,6 +16,9 @@ describe("Worker asset response security headers", () => {
         location_name: "神牛燒肉建國店",
         location_address: "台北市中山區建國北路二段88號",
         capacity: 30,
+        fee_amount: "800",
+        gathering_type: "harbor_dinner",
+        cover_image_url: null,
         organizer_id: "must-not-leak",
       },
     ]), { status: 200, headers: { "Content-Type": "application/json" } }));
@@ -45,15 +48,66 @@ describe("Worker asset response security headers", () => {
       location_name: "神牛燒肉建國店",
       location_address: "台北市中山區建國北路二段88號",
       capacity: 30,
+      fee_amount: 800,
+      gathering_type: "harbor_dinner",
+      cover_image_url: null,
     }]);
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining("select=slug%2Ctitle%2Cstarts_at%2Cends_at%2Clocation_name%2Clocation_address%2Ccapacity"),
+      expect.stringContaining("select=slug%2Ctitle%2Cstarts_at%2Cends_at%2Clocation_name%2Clocation_address%2Ccapacity%2Cfee_amount%2Cgathering_type%2Ccover_image_url"),
       expect.objectContaining({ headers: expect.objectContaining({ apikey: "sb_publishable_test" }) }),
     );
     const requestedUrl = String(fetchMock.mock.calls[0][0]);
     expect(requestedUrl).toContain("status=eq.published");
     expect(requestedUrl).toContain("visibility=eq.public");
     expect(requestedUrl).toContain("ends_at=gte.");
+  });
+
+  it("returns organizer name and an aggregate count without exposing the roster", async () => {
+    const fetchMock = vi.fn().mockImplementation(async (input: string) => {
+      const url = new URL(input);
+      if (url.pathname.endsWith("/events")) {
+        return new Response(JSON.stringify([{
+          id: "event-id",
+          organizer_id: "organizer-id",
+          capacity: 20,
+          roster_show_capacity: true,
+        }]), { status: 200 });
+      }
+      if (url.pathname.endsWith("/organizers")) {
+        return new Response(JSON.stringify([{ display_name: "大稻埕桌邊" }]), { status: 200 });
+      }
+      if (url.pathname.endsWith("/registrations")) {
+        return new Response(JSON.stringify([{ seats: 2 }, { seats: 1 }]), { status: 200 });
+      }
+      return new Response("unexpected", { status: 500 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await worker.fetch(
+      new Request("https://gather.wedopr.com/app/api/event-summary?slug=demo-harbor-dinner"),
+      {
+        ASSETS: { fetch: async () => new Response("should not serve assets") },
+        SUPABASE_URL: "https://project.supabase.co",
+        SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
+        SUPABASE_SERVICE_ROLE_KEY: "service-role-test-key",
+        LINE_CHANNEL_ID: "test-channel-id",
+        LINE_CHANNEL_SECRET: "test-channel-secret",
+        LINE_CALLBACK_URL: "https://gather.wedopr.com/app/line/callback",
+        APP_BASE_URL: "https://gather.wedopr.com/app",
+      },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      organizerDisplayName: "大稻埕桌邊",
+      registrationCount: 3,
+      capacity: 20,
+      showCapacity: true,
+    });
+    const registrationUrl = String(fetchMock.mock.calls.find(([input]) => String(input).includes("/registrations?"))?.[0]);
+    expect(registrationUrl).toContain("select=seats");
+    expect(registrationUrl).toContain("status=in.%28offered%2Cpending_organizer_confirmation%2Cconfirmed%29");
+    expect(registrationUrl).not.toContain("display_name");
   });
 
   it("does not accept writes on the public map endpoint", async () => {

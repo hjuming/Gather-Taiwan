@@ -64,7 +64,7 @@ export const GATHERING_TYPES: readonly GatheringType[] = [
     key: "tea_table",
     label: "茶席",
     hint: "一壺茶的時間，安靜而慢的相聚",
-    image: "/uploads/gather-bg-oldstreet-pastry-v1.jpg",
+    image: "/uploads/gather-tea-table-v1.jpg",
   },
   {
     key: "other",
