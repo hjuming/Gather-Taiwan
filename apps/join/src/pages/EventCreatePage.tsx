@@ -21,8 +21,11 @@ import {
   dateTimePartsToTaipeiIso,
   dateTimePartsToTimestamp,
   daysBetween,
+  formatTaipeiDateTimeRange,
   getDefaultEventDateTime,
+  getTaipeiDateTimeParts,
   isValidTime,
+  isFutureDateTime,
   type DateTimeParts,
 } from "../lib/date-time";
 
@@ -142,6 +145,10 @@ export default function EventCreatePage() {
     }
     if (!isValidTime(startsAt.time) || !isValidTime(endsAt.time)) {
       setError("請選擇有效的 24 小時制時間");
+      return;
+    }
+    if (!isFutureDateTime(startsAt)) {
+      setError("新的聚會不能使用過去的開始時間，請改選未來的日期或時間");
       return;
     }
     if (dateTimePartsToTimestamp(startsAt) >= dateTimePartsToTimestamp(endsAt)) {
@@ -313,9 +320,9 @@ export default function EventCreatePage() {
 
         <section id="create-time" className="card stack form-section">
           <h2>什麼時候見面</h2>
-          <p className="hint">台北時間，使用 24 小時制。預設為當日 18:30–21:30。</p>
-          <DateTimeField id="startsAt" label="開始時間" value={startsAt} onChange={handleStartsAtChange} />
-          <DateTimeField id="endsAt" label="結束時間" value={endsAt} onChange={setEndsAt} />
+          <p className="hint">台北時間，使用 24 小時制。預設為今天或明天 18:30–21:30；新聚會不能排在過去。</p>
+          <DateTimeField id="startsAt" label="開始時間" value={startsAt} onChange={handleStartsAtChange} minDate={getTaipeiDateTimeParts().date} />
+          <DateTimeField id="endsAt" label="結束時間" value={endsAt} onChange={setEndsAt} minDate={getTaipeiDateTimeParts().date} />
         </section>
 
         <section id="create-access" className="card stack form-section">
@@ -444,9 +451,7 @@ export default function EventCreatePage() {
               <div>
                 <dt>時間</dt>
                 <dd>
-                  {startsAt.date === endsAt.date
-                    ? `${startsAt.date}・${startsAt.time}–${endsAt.time}`
-                    : `${startsAt.date} ${startsAt.time} – ${endsAt.date} ${endsAt.time}`}
+                  {formatTaipeiDateTimeRange(dateTimePartsToTaipeiIso(startsAt), dateTimePartsToTaipeiIso(endsAt))}
                 </dd>
               </div>
               <div><dt>地點</dt><dd>{locationName.trim() || "還在等一個地方"}</dd></div>

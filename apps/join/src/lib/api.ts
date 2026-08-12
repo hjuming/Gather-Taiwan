@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 import type { EventFieldRow, EventRow, RegistrationRow, RegistrationStatus } from "./types";
+import { removeEventCover } from "./event-covers";
 
 // events.password_hash is deliberately never granted to any role (P1-04) —
 // a bare `select("*")` translates to a real `SELECT *` and Postgres refuses
@@ -326,6 +327,40 @@ export async function updateEventCover(eventId: string, coverImageUrl: string | 
 export async function cancelEvent(eventId: string): Promise<void> {
   const { error } = await supabase.rpc("cancel_event", { p_event_id: eventId });
   if (error) throw error;
+}
+
+export interface DuplicatedEventReference {
+  id: string;
+  slug: string;
+}
+
+export async function duplicateEvent(
+  eventId: string,
+  startsAt: string,
+  endsAt: string,
+): Promise<DuplicatedEventReference> {
+  const { data, error } = await supabase.rpc("duplicate_event", {
+    p_event_id: eventId,
+    p_starts_at: startsAt,
+    p_ends_at: endsAt,
+  });
+  if (error) throw error;
+  if (!data || typeof data.id !== "string" || typeof data.slug !== "string") {
+    throw new Error("新聚會建立成功，但回傳資料不完整，請到「我發起的聚會」確認。");
+  }
+  return { id: data.id, slug: data.slug };
+}
+
+/**
+ * Storage 代表圖必須在活動資料刪除前清理，因為 Storage delete policy 會
+ * 透過仍存在的 event_id 驗證主辦權；兩步任一失敗都不假裝已完成。
+ */
+export async function deleteEventPermanently(eventId: string, coverImageUrl: string | null): Promise<void> {
+  if (coverImageUrl) await removeEventCover(coverImageUrl);
+  const { error } = await supabase.rpc("delete_event_permanently", { p_event_id: eventId });
+  if (error) {
+    throw new Error(`活動資料刪除失敗；若代表圖已清理，請再次執行永久刪除：${error.message}`);
+  }
 }
 
 export async function createOrganizer(slug: string, displayName: string): Promise<string> {

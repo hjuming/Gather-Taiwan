@@ -28,6 +28,7 @@ import {
   getLineShareUrl,
 } from "../lib/event-links";
 import { getGatheringTypeLabel, resolveCoverImage } from "../lib/gathering-types";
+import { formatTaipeiDateTimeRange } from "../lib/date-time";
 
 const VISIBILITY_LABEL: Record<EventRow["visibility"], string> = {
   public: "公開活動",
@@ -36,31 +37,7 @@ const VISIBILITY_LABEL: Record<EventRow["visibility"], string> = {
 };
 
 function formatDateRange(startsAt: string, endsAt: string): string {
-  const start = new Date(startsAt);
-  const end = new Date(endsAt);
-  const dateFmt = new Intl.DateTimeFormat("zh-TW", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-    timeZone: "Asia/Taipei",
-  });
-  const dateKeyFmt = new Intl.DateTimeFormat("en-CA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone: "Asia/Taipei",
-  });
-  const timeFmt = new Intl.DateTimeFormat("zh-TW", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-    timeZone: "Asia/Taipei",
-  });
-  const sameDay = dateKeyFmt.format(start) === dateKeyFmt.format(end);
-  return sameDay ? `${dateFmt.format(start)} - ${timeFmt.format(end)}` : `${dateFmt.format(start)} - ${dateFmt.format(end)}`;
+  return formatTaipeiDateTimeRange(startsAt, endsAt);
 }
 
 export default function EventPage() {

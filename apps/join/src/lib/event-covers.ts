@@ -31,3 +31,24 @@ export async function removeEventCover(publicUrl: string): Promise<void> {
   const { error } = await supabase.storage.from(EVENT_COVER_BUCKET).remove([path]);
   if (error) throw new Error(`舊代表圖清理失敗：${error.message}`);
 }
+
+/**
+ * 將既有活動的公開代表圖複製到另一場活動自己的 Storage 路徑。
+ * 不共用原檔，這樣刪除原活動時不會把再次聚會的代表圖一起刪掉。
+ */
+export async function copyEventCover(sourceUrl: string | null, targetEventId: string): Promise<string | null> {
+  const sourcePath = sourceUrl ? getEventCoverPath(sourceUrl) : null;
+  if (!sourcePath) return null;
+
+  const { data, error } = await supabase.storage.from(EVENT_COVER_BUCKET).download(sourcePath);
+  if (error || !data) {
+    throw new Error(`原代表圖讀取失敗：${error?.message ?? "找不到圖片"}`);
+  }
+
+  const extension = getEventCoverExtension(data.type);
+  if (!extension) throw new Error("原代表圖格式不支援，請到新聚會的編輯頁重新上傳。");
+  return uploadEventCover(
+    targetEventId,
+    new File([data], `event-cover.${extension}`, { type: data.type }),
+  );
+}

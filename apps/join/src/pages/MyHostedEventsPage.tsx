@@ -1,8 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { cancelEvent, getMyHostedEvents } from "../lib/api";
+import {
+  cancelEvent,
+  deleteEventPermanently,
+  duplicateEvent,
+  getMyHostedEvents,
+  updateEventCover,
+} from "../lib/api";
+import { copyEventCover } from "../lib/event-covers";
 import { useSession } from "../lib/useSession";
 import type { EventRow } from "../lib/types";
+import { formatTaipeiDateTimeRange } from "../lib/date-time";
 
 // status 講的是「這場活動辦不辦」，visibility 講的是「誰看得到」。
 // 原本 published 寫「公開中」，會和旁邊的「不公開列表」直接打架。
@@ -17,22 +25,22 @@ const STATUS_LABEL: Record<EventRow["status"], string> = {
 type HostedFilter = "all" | "upcoming" | "past" | "cancelled";
 
 function formatEventDate(event: EventRow): string {
-  const date = new Intl.DateTimeFormat("zh-TW", {
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-    timeZone: "Asia/Taipei",
-  }).format(new Date(event.starts_at));
-  const end = new Intl.DateTimeFormat("zh-TW", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-    timeZone: "Asia/Taipei",
-  }).format(new Date(event.ends_at));
-  return `${date}–${end}`;
+  return formatTaipeiDateTimeRange(event.starts_at, event.ends_at);
+}
+
+function isRepeatableEvent(event: EventRow): boolean {
+  return event.status === "cancelled" || new Date(event.ends_at).getTime() < Date.now();
+}
+
+function getRepeatEventTimes(event: EventRow): { startsAt: string; endsAt: string } {
+  const sourceStart = new Date(event.starts_at).getTime();
+  const sourceEnd = new Date(event.ends_at).getTime();
+  const duration = Math.max(sourceEnd - sourceStart, 60 * 60 * 1000);
+  const earliest = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  const start = new Date(Math.max(sourceStart + 7 * 24 * 60 * 60 * 1000, earliest));
+  start.setSeconds(0, 0);
+  if (start.getTime() <= Date.now()) start.setMinutes(start.getMinutes() + 1);
+  return { startsAt: start.toISOString(), endsAt: new Date(start.getTime() + duration).toISOString() };
 }
 
 export default function MyHostedEventsPage() {
@@ -42,6 +50,9 @@ export default function MyHostedEventsPage() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<HostedFilter>("all");
   const [cancellingEventId, setCancellingEventId] = useState<string | null>(null);
+  const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
+  const [repeatingEventId, setRepeatingEventId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   async function load() {
     setError(null);
@@ -55,6 +66,7 @@ export default function MyHostedEventsPage() {
   async function handleCancelEvent(event: EventRow) {
     if (!window.confirm("確定要取消這場聚會嗎？既有報名者會收到通知，活動紀錄會保留。")) return;
     setError(null);
+    setNotice(null);
     setCancellingEventId(event.id);
     try {
       await cancelEvent(event.id);
@@ -63,6 +75,57 @@ export default function MyHostedEventsPage() {
       setError(err instanceof Error ? err.message : "取消聚會失敗");
     } finally {
       setCancellingEventId(null);
+    }
+  }
+
+  async function handleDeleteEvent(event: EventRow) {
+    if (!window.confirm(`永久刪除「${event.title}」後，活動、報名、邀請、表單與代表圖都無法復原。確定要繼續嗎？`)) return;
+    const typedTitle = window.prompt(`請輸入活動名稱「${event.title}」以確認永久刪除。`);
+    if (typedTitle !== event.title) {
+      setError("活動名稱不一致，已取消永久刪除。");
+      return;
+    }
+
+    setError(null);
+    setNotice(null);
+    setDeletingEventId(event.id);
+    try {
+      await deleteEventPermanently(event.id, event.cover_image_url);
+      setEvents((current) => current.filter((item) => item.id !== event.id));
+      setNotice(`已永久刪除「${event.title}」。`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "永久刪除聚會失敗");
+    } finally {
+      setDeletingEventId(null);
+    }
+  }
+
+  async function handleRepeatEvent(event: EventRow) {
+    if (!window.confirm("會建立一個新的報名連結，複製活動內容、地點、費用說明、報名欄位與未撤銷的邀請名單；舊活動不會被修改。新活動預設排在 7 天後，建立後仍可編輯日期。確定要再次聚會嗎？")) return;
+
+    setError(null);
+    setNotice(null);
+    setRepeatingEventId(event.id);
+    try {
+      const times = getRepeatEventTimes(event);
+      const duplicated = await duplicateEvent(event.id, times.startsAt, times.endsAt);
+      let coverWarning: string | null = null;
+      try {
+        const copiedCoverUrl = await copyEventCover(event.cover_image_url, duplicated.id);
+        if (copiedCoverUrl) await updateEventCover(duplicated.id, copiedCoverUrl);
+      } catch (err) {
+        coverWarning = err instanceof Error ? err.message : "代表圖複製失敗";
+      }
+      await load();
+      setNotice(
+        coverWarning
+          ? `已建立新的聚會「${event.title}」，但代表圖未複製成功；請進入新活動的編輯頁補上。${coverWarning}`
+          : `已建立新的聚會「${event.title}」，新連結已準備好。`,
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "再次聚會失敗");
+    } finally {
+      setRepeatingEventId(null);
     }
   }
 
@@ -101,7 +164,8 @@ export default function MyHostedEventsPage() {
       <h1>把每一場相聚，留在手邊</h1>
       <p className="page-lede">從這裡回到你邀請大家相見的地方，看看誰會來，也把最新消息送回群組。</p>
 
-      {error && <div className="banner banner--error" role="alert">讀取聚會失敗：{error}</div>}
+      {error && <div className="banner banner--error" role="alert">{error}</div>}
+      {notice && <div className="banner" role="status">{notice}</div>}
 
       {events.length === 0 ? (
         <div className="card hosted-events-empty">
@@ -152,16 +216,34 @@ export default function MyHostedEventsPage() {
               <div className="actions hosted-event-card__actions">
                 <Link to={`/e/${event.slug}`} className="btn-primary">打開聚會頁</Link>
                 <Link to={`/e/${event.slug}/edit`} className="btn-secondary">編輯內容</Link>
+                {isRepeatableEvent(event) && (
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => handleRepeatEvent(event)}
+                    disabled={repeatingEventId === event.id || deletingEventId === event.id}
+                  >
+                    {repeatingEventId === event.id ? "建立中…" : "再次聚會"}
+                  </button>
+                )}
                 {event.status !== "cancelled" && (
                   <button
                     type="button"
                     className="btn-text"
                     onClick={() => handleCancelEvent(event)}
-                    disabled={cancellingEventId === event.id}
+                    disabled={cancellingEventId === event.id || deletingEventId === event.id || repeatingEventId === event.id}
                   >
                     {cancellingEventId === event.id ? "取消中…" : "取消聚會"}
                   </button>
                 )}
+                <button
+                  type="button"
+                  className="btn-text"
+                  onClick={() => handleDeleteEvent(event)}
+                  disabled={deletingEventId === event.id || cancellingEventId === event.id || repeatingEventId === event.id}
+                >
+                  {deletingEventId === event.id ? "刪除中…" : "永久刪除"}
+                </button>
               </div>
             </article>
           ))}

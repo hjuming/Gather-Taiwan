@@ -40,7 +40,7 @@ describe("event sharing links", () => {
       },
       "https://gather.wedopr.com/app/e/welcome",
     );
-    expect(text).toContain("2026年8月10日 18:30 - 21:30");
+    expect(text).toContain("2026-08-10（一）18:30–21:30");
     expect(text).toContain("18:30");
     expect(text).toContain("21:30");
     expect(text).toContain("費用：NT$ 1000");

@@ -3,8 +3,10 @@ import {
   addTaipeiDays,
   dateTimePartsToTaipeiIso,
   daysBetween,
+  formatTaipeiDateTimeRange,
   getDefaultEventDateTime,
   getTaipeiDateTimeParts,
+  isFutureDateTime,
   isValidTime,
 } from "./date-time";
 
@@ -21,8 +23,21 @@ describe("event date/time helpers", () => {
     expect(defaults.endsAt.date).toBe("2026-08-11");
   });
 
+  it("never treats a start time in the past as a valid new event time", () => {
+    const now = new Date("2026-08-10T10:31:00.000Z");
+    expect(isFutureDateTime({ date: "2026-08-10", time: "18:30" }, now)).toBe(false);
+    expect(isFutureDateTime({ date: "2026-08-11", time: "18:30" }, now)).toBe(true);
+  });
+
   it("converts Taipei wall time to an ISO timestamp", () => {
     expect(dateTimePartsToTaipeiIso({ date: "2026-08-10", time: "18:30" })).toBe("2026-08-10T10:30:00.000Z");
+  });
+
+  it("shows the Taipei weekday next to the date", () => {
+    expect(formatTaipeiDateTimeRange("2026-08-13T10:30:00.000Z", "2026-08-13T13:30:00.000Z"))
+      .toBe("2026-08-13（四）18:30–21:30");
+    expect(formatTaipeiDateTimeRange("2026-08-13T16:30:00.000Z", "2026-08-14T01:30:00.000Z"))
+      .toBe("2026-08-14（五）00:30–09:30");
   });
 
   it("keeps the time display in 24-hour format", () => {

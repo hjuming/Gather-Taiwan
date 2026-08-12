@@ -1,4 +1,5 @@
 import type { EventRow } from "./types";
+import { formatTaipeiDateTimeRange } from "./date-time";
 
 function buildLocationQuery(location: { location_name?: string | null; location_address?: string | null }): string | null {
   const query = [location.location_name?.trim(), location.location_address?.trim()].filter(Boolean).join(" ");
@@ -30,8 +31,7 @@ export function getEventShareText(
   >,
   url: string,
 ): string {
-  const start = formatTaipeiDateTime(event.starts_at);
-  const end = formatTaipeiTime(event.ends_at);
+  const dateRange = formatTaipeiDateTimeRange(event.starts_at, event.ends_at);
   const location = event.location_name?.trim() || "尚未提供";
   const address = event.location_address?.trim() || "地址待公布";
   const fee = Number(event.fee_amount) > 0 ? `NT$ ${event.fee_amount}` : "免費";
@@ -40,7 +40,7 @@ export function getEventShareText(
     `來聚一場～${event.title}`,
     event.summary?.trim() || "相招來聚會",
     "",
-    `時間：${start} - ${end}`,
+    `時間：${dateRange}`,
     `地點：${location}`,
     `地址：${address}`,
     `費用：${fee}`,
@@ -51,30 +51,6 @@ export function getEventShareText(
   ].join("\n");
 }
 
-function formatTaipeiDateTime(value: string): string {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-    timeZone: "Asia/Taipei",
-  }).formatToParts(new Date(value));
-  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
-  return `${get("year")}年${get("month")}月${get("day")}日 ${get("hour")}:${get("minute")}`;
-}
-
-function formatTaipeiTime(value: string): string {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-    timeZone: "Asia/Taipei",
-  }).formatToParts(new Date(value));
-  const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
-  return `${get("hour")}:${get("minute")}`;
-}
 
 export function getLineShareUrl(text: string): string {
   return `https://line.me/R/msg/text/?${encodeURIComponent(text)}`;

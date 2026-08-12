@@ -13,11 +13,13 @@ export default function DateTimeField({
   label,
   value,
   onChange,
+  minDate,
 }: {
   id: string;
   label: string;
   value: DateTimeParts;
   onChange: (value: DateTimeParts) => void;
+  minDate?: string;
 }) {
   const { hour, minute } = splitTime(value.time);
 
@@ -30,6 +32,7 @@ export default function DateTimeField({
           <input
             id={`${id}-date`}
             type="date"
+            min={minDate}
             value={value.date}
             onChange={(event) => onChange({ ...value, date: event.target.value })}
             required
