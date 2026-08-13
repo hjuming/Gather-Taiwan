@@ -56,6 +56,30 @@ export function normalizeGuestDisplayName(value: string): string {
   return value.trim().replace(/\s+/g, " ");
 }
 
+export function mergeGuestInvitationInvitee(
+  invitees: GuestInvitationInvitee[],
+  updated: GuestInvitationInvitee,
+): GuestInvitationInvitee[] {
+  const updatedName = normalizeGuestDisplayName(updated.display_name).toLocaleLowerCase();
+  const existingIndex = invitees.findIndex((invitee) =>
+    invitee.id === updated.id
+    || normalizeGuestDisplayName(invitee.display_name).toLocaleLowerCase() === updatedName,
+  );
+  if (existingIndex === -1) return [...invitees, updated];
+  let replaced = false;
+  return invitees.reduce<GuestInvitationInvitee[]>((next, invitee) => {
+    const isSameInvitee = invitee.id === updated.id
+      || normalizeGuestDisplayName(invitee.display_name).toLocaleLowerCase() === updatedName;
+    if (!isSameInvitee) {
+      next.push(invitee);
+    } else if (!replaced) {
+      next.push(updated);
+      replaced = true;
+    }
+    return next;
+  }, []);
+}
+
 export function getOrCreateGuestInvitationKey(slug: string, displayName?: string): string {
   if (typeof window === "undefined") return "";
   const storageKey = getGuestInvitationStorageKey(slug, displayName);

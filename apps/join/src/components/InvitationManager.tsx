@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   getEventInvitationTargets,
   organizerAddEventInvitationTarget,
+  organizerEditEventInvitationTarget,
   organizerRemoveEventInvitationTarget,
 } from "../lib/api";
 import { copyText, getEventShareUrl } from "../lib/event-links";
@@ -27,6 +28,8 @@ export default function InvitationManager({
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
 
   async function load() {
     try {
@@ -69,6 +72,37 @@ export default function InvitationManager({
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : "移除邀請對象失敗");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function startEdit(target: EventInvitationTargetRow) {
+    setEditingId(target.id);
+    setEditingName(target.display_name);
+    setError(null);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditingName("");
+  }
+
+  async function handleEdit(event: FormEvent, target: EventInvitationTargetRow) {
+    event.preventDefault();
+    const nextName = editingName.trim();
+    if (!nextName) {
+      setError("請輸入受邀朋友的名字");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await organizerEditEventInvitationTarget(target.id, nextName);
+      cancelEdit();
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "修改邀請對象失敗");
     } finally {
       setBusy(false);
     }
@@ -129,15 +163,36 @@ export default function InvitationManager({
         {targets.length === 0 && <p className="hint">還沒有預先加入的受邀朋友；收到回覆後也會自動出現在這裡。</p>}
         {targets.map((target) => (
           <article key={target.id} className="roster-entry invitation-manager__entry">
-            <div className="roster-entry__identity">
-              <strong>{target.display_name}</strong>
-              <span className={`status-pill ${target.response === "attending" ? "status-pill--confirmed" : "status-pill--muted"}`}>
-                {RESPONSE_LABEL[target.response]}
-              </span>
-            </div>
-            <div className="actions roster-entry__actions">
-              <button type="button" className="btn-text" onClick={() => handleRemove(target)} disabled={busy}>移除</button>
-            </div>
+            {editingId === target.id ? (
+              <form className="invitation-manager__edit" onSubmit={(event) => handleEdit(event, target)}>
+                <label htmlFor={`invitation-edit-${target.id}`}>受邀名稱</label>
+                <input
+                  id={`invitation-edit-${target.id}`}
+                  type="text"
+                  value={editingName}
+                  onChange={(event) => setEditingName(event.target.value)}
+                  maxLength={80}
+                  disabled={busy}
+                />
+                <div className="actions">
+                  <button type="submit" className="btn-primary" disabled={busy}>儲存</button>
+                  <button type="button" className="btn-text" onClick={cancelEdit} disabled={busy}>取消</button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <div className="roster-entry__identity">
+                  <strong>{target.display_name}</strong>
+                  <span className={`status-pill ${target.response === "attending" ? "status-pill--confirmed" : target.response === "declined" ? "status-pill--declined" : "status-pill--muted"}`}>
+                    {RESPONSE_LABEL[target.response]}
+                  </span>
+                </div>
+                <div className="actions roster-entry__actions">
+                  <button type="button" className="btn-secondary" onClick={() => startEdit(target)} disabled={busy}>修改</button>
+                  <button type="button" className="btn-text" onClick={() => handleRemove(target)} disabled={busy}>移除</button>
+                </div>
+              </>
+            )}
           </article>
         ))}
       </div>

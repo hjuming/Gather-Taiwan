@@ -147,6 +147,14 @@ export async function organizerRemoveEventInvitationTarget(targetId: string): Pr
   if (error) throw error;
 }
 
+export async function organizerEditEventInvitationTarget(targetId: string, displayName: string): Promise<void> {
+  const { error } = await supabase.rpc("organizer_edit_event_invitation_target", {
+    p_target_id: targetId,
+    p_display_name: displayName,
+  });
+  if (error) throw error;
+}
+
 export async function getEventFields(eventId: string): Promise<EventFieldRow[]> {
   const { data, error } = await supabase
     .from("event_fields")
