@@ -76,10 +76,10 @@
 - Wave 02：活動分享文字與 Worker OG metadata 共用時間、地點、費用、人數等活動
   事實，並以精準 Vitest 覆蓋 private `noindex` 與 OG image；Worker version
   `9c827648-c5e3-408e-b94e-eaa99007a2f7` 已部署，正式私密活動頁的
-  `og:title`／`og:description`／`og:image`、`X-Robots-Tag: noindex, nofollow` 均已 read-back。
+  `og:title`／`og:description`／`og:image`、`X-Robots-Tag: noindex, nofollow` 均已 read-back；
+  MING 已完成未登入／非主辦人不顯示編輯控制項與實體 iPad 驗收。
 - 未完成：P1-04 domain RLS policies、單一席次引擎、LINE OIDC 實際登入，以及主辦／
-  報名 UI 的雙帳號 E2E。主辦、邀請名單與報名 UI 已可在正式 `/app/` 唯讀看到；未登入
-  與非主辦人帳號的實機負向驗收仍為 `NOT_RUN`。
+  報名 UI 的雙帳號 E2E。主辦、邀請名單與報名 UI 已可在正式 `/app/` 唯讀看到。
 
 ## P1-02 資料模型裁決
 
