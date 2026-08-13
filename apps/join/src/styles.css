@@ -1010,6 +1010,12 @@ button:disabled {
   border-radius: 50%;
 }
 
+/* 這三顆操作按鈕比全站通用按鈕更小、更直覺；提高選擇器優先級，避免被通用 10px 圓角覆寫。 */
+.btn-text.guest-invitation-summary__action {
+  min-height: 54px;
+  border-radius: 50%;
+}
+
 .guest-invitation-summary__action svg {
   width: 1.55rem;
   height: 1.55rem;
