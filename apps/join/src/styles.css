@@ -950,7 +950,7 @@ button:disabled {
 .guest-invitation-summary {
   display: grid;
   gap: 9px;
-  margin-bottom: 24px;
+  margin-bottom: 0;
   padding: 0 2px;
 }
 
@@ -978,10 +978,7 @@ button:disabled {
 }
 
 .guest-invitation-summary__location {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
+  display: block;
   min-width: 0;
 }
 
@@ -990,13 +987,26 @@ button:disabled {
 }
 
 .guest-invitation-summary__location-copy strong {
-  display: inline;
+  display: block;
 }
 
 .guest-invitation-summary__location-copy .guest-invitation-summary__address {
-  display: inline;
-  margin-left: 0.2em;
+  display: block;
+  margin: 2px 0 0 1.7em;
   overflow-wrap: anywhere;
+}
+
+.guest-invitation-summary__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(100%, 360px);
+  margin: 20px auto 24px;
+  gap: 20px;
+  justify-items: center;
+}
+
+.guest-invitation-summary__actions--host {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .guest-invitation-summary__action {
@@ -1047,10 +1057,7 @@ button:disabled {
 }
 
 .guest-invitation-summary__people {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 16px;
+  display: block;
 }
 
 .guest-invitation-summary__share {
@@ -1069,16 +1076,6 @@ button:disabled {
 .guest-invitation-summary__share:hover:not(:disabled) {
   background: #d2edf3;
   color: #126578;
-}
-
-.guest-invitation-summary__share svg {
-  width: 1.35rem;
-  height: 1.35rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
 }
 
 .guest-invitation-roster {

@@ -438,27 +438,12 @@ export default function EventPage() {
                 <strong><span aria-hidden="true">📍</span> {guestInvitation.location_name || "尚未提供地點"}</strong>
                 {guestInvitation.location_address && mapsUrl ? (
                   <a className="guest-invitation-summary__address" href={mapsUrl} target="_blank" rel="noreferrer">
-                    （{guestInvitation.location_address}）
+                    {guestInvitation.location_address}
                   </a>
                 ) : guestInvitation.location_address ? (
-                  <span className="guest-invitation-summary__address">（{guestInvitation.location_address}）</span>
+                  <span className="guest-invitation-summary__address">{guestInvitation.location_address}</span>
                 ) : null}
               </div>
-              {mapsUrl && (
-                <a
-                  className="btn-text guest-invitation-summary__action guest-invitation-summary__action--nav"
-                  href={mapsUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="在地圖查看位置"
-                  title="在地圖查看位置"
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="m3 11 18-8-8 18-2-7-8-3Z" />
-                    <path d="m11 14 4-4" />
-                  </svg>
-                </a>
-              )}
             </div>
             <strong><span aria-hidden="true">💰</span> {formatEventFee(guestInvitation)}</strong>
             <div className="guest-invitation-summary__people">
@@ -468,47 +453,66 @@ export default function EventPage() {
                   ? `${guestInvitation.attending_count} / ${guestInvitation.capacity} 人`
                   : `${guestInvitation.attending_count} 人`}
               </strong>
-              <button
-                type="button"
-                className="btn-text guest-invitation-summary__action guest-invitation-summary__share"
-                onClick={handleCopyGuestShare}
-                aria-label={shareCopied ? "已複製聚會資訊" : "分享聚會資訊"}
-                title={shareCopied ? "已複製聚會資訊" : "分享聚會資訊"}
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  {shareCopied ? (
-                    <path d="m5 12 4 4L19 6" />
-                  ) : (
-                    <>
-                      <path d="M12 16V3m0 0 4 4m-4-4L8 7" />
-                      <path d="M5 12v8h14v-8" />
-                    </>
-                  )}
-                </svg>
-              </button>
             </div>
           </section>
 
-          {session && isOrganizerAdmin && (
+          <div
+            className={`guest-invitation-summary__actions${session && isOrganizerAdmin ? " guest-invitation-summary__actions--host" : ""}`}
+            aria-label="聚會操作"
+          >
+            {session && isOrganizerAdmin && (
+              <button
+                type="button"
+                className="btn-text guest-invitation-summary__action guest-invitation-summary__action--edit"
+                onClick={() => setShowInlineEditor((previous) => !previous)}
+                aria-label={showInlineEditor ? "關閉編輯" : "編輯聚會"}
+                title={showInlineEditor ? "關閉編輯" : "編輯聚會"}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="m4 16-.8 4.8L8 20l11.5-11.5a2.8 2.8 0 0 0-4-4L4 16Z" />
+                  <path d="m13.5 6.5 4 4" />
+                  <path d="M4 20h5" />
+                </svg>
+              </button>
+            )}
+            {mapsUrl && (
+              <a
+                className="btn-text guest-invitation-summary__action guest-invitation-summary__action--nav"
+                href={mapsUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="在地圖查看位置"
+                title="在地圖查看位置"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="m3 11 18-8-8 18-2-7-8-3Z" />
+                  <path d="m11 14 4-4" />
+                </svg>
+              </a>
+            )}
+            <button
+              type="button"
+              className="btn-text guest-invitation-summary__action guest-invitation-summary__share"
+              onClick={handleCopyGuestShare}
+              aria-label={shareCopied ? "已複製聚會資訊" : "分享聚會資訊"}
+              title={shareCopied ? "已複製聚會資訊" : "分享聚會資訊"}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                {shareCopied ? (
+                  <path d="m5 12 4 4L19 6" />
+                ) : (
+                  <>
+                    <path d="M12 16V3m0 0 4 4m-4-4L8 7" />
+                    <path d="M5 12v8h14v-8" />
+                  </>
+                )}
+              </svg>
+            </button>
+          </div>
+
+          {session && isOrganizerAdmin && showInlineEditor && (
             <section className="guest-invitation-host-tools" aria-label="主辦人設定">
-              <div className="actions">
-                <button
-                  type="button"
-                  className="btn-text guest-invitation-summary__action guest-invitation-summary__action--edit"
-                  onClick={() => setShowInlineEditor((previous) => !previous)}
-                  aria-label={showInlineEditor ? "關閉編輯" : "編輯聚會"}
-                  title={showInlineEditor ? "關閉編輯" : "編輯聚會"}
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="m4 16-.8 4.8L8 20l11.5-11.5a2.8 2.8 0 0 0-4-4L4 16Z" />
-                    <path d="m13.5 6.5 4 4" />
-                    <path d="M4 20h5" />
-                  </svg>
-                </button>
-              </div>
-              {showInlineEditor && (
-                <PrivateEventInlineEditor event={event} onSaved={handleInlineEventSaved} onCancel={() => setShowInlineEditor(false)} />
-              )}
+              <PrivateEventInlineEditor event={event} onSaved={handleInlineEventSaved} onCancel={() => setShowInlineEditor(false)} />
             </section>
           )}
 
