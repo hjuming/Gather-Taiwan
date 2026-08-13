@@ -9,7 +9,6 @@ import {
 } from "../lib/api";
 import { useSession } from "../lib/useSession";
 import { createEventSlug, createSlug } from "../lib/slug";
-import { getGoogleMapsEmbedUrl } from "../lib/event-links";
 import { DEFAULT_GATHERING_TYPE, resolveCoverImage } from "../lib/gathering-types";
 import { useErrorFocus } from "../lib/useErrorFocus";
 import { removeEventCover, uploadEventCover, validateEventCoverFile } from "../lib/event-covers";
@@ -244,8 +243,6 @@ export default function EventCreatePage() {
     );
   }
 
-  const mapEmbedUrl = getGoogleMapsEmbedUrl({ location_name: locationName, location_address: locationAddress });
-
   return (
     <div className="page page--wide create-page">
       <header className="create-header">
@@ -478,17 +475,6 @@ export default function EventCreatePage() {
               <div><dt>席次</dt><dd>{hasCapacity ? `${capacity} 人` : "不限人數"}</dd></div>
               <div><dt>到場</dt><dd>{feeMode === "on_site_split" ? "現場結算後分攤" : feeMode === "fixed" ? `NT$ ${feeAmountInput || "0"}` : "免費"}</dd></div>
             </dl>
-            {mapEmbedUrl && (
-              <div className="create-preview__map">
-                <iframe
-                  key={mapEmbedUrl}
-                  src={mapEmbedUrl}
-                  title="活動地點地圖預覽"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-              </div>
-            )}
             <p className="create-preview__note">建立後，這段相聚會有自己的連結，可以送進 LINE 群組。</p>
           </div>
         </aside>

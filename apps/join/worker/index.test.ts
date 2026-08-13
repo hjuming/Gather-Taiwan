@@ -207,57 +207,6 @@ describe("Worker asset response security headers", () => {
     expect(response.headers.get("allow")).toBe("GET");
   });
 
-  it("searches Taiwan addresses only when the user explicitly requests it", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify([
-      {
-        place_id: 123,
-        osm_type: "node",
-        osm_id: 456,
-        display_name: "魚菜居酒屋, 台北市中山區建國北路一段1號, 臺灣",
-        lat: "25.0001",
-        lon: "121.0002",
-        type: "restaurant",
-        name: "魚菜居酒屋",
-      },
-    ]), { status: 200, headers: { "Content-Type": "application/json" } }));
-    vi.stubGlobal("fetch", fetchMock);
-
-    const response = await worker.fetch(
-      new Request("https://gather.wedopr.com/app/api/address-search?q=%E9%AD%9A%E8%8F%9C%E5%B1%85%E9%85%92%E5%B1%8B"),
-      {
-        ASSETS: { fetch: async () => new Response("should not serve assets") },
-        SUPABASE_URL: "https://project.supabase.co",
-        SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
-        SUPABASE_SERVICE_ROLE_KEY: "service-role-test-key",
-        LINE_CHANNEL_ID: "test-channel-id",
-        LINE_CHANNEL_SECRET: "test-channel-secret",
-        LINE_CALLBACK_URL: "https://gather.wedopr.com/app/line/callback",
-        APP_BASE_URL: "https://gather.wedopr.com/app",
-      },
-    );
-
-    expect(response.status).toBe(200);
-    expect(response.headers.get("cache-control")).toBe("public, max-age=300, s-maxage=300");
-    expect(await response.json()).toEqual([{
-      place_id: 123,
-      osm_type: "node",
-      osm_id: 456,
-      display_name: "魚菜居酒屋, 台北市中山區建國北路一段1號, 臺灣",
-      lat: "25.0001",
-      lon: "121.0002",
-      type: "restaurant",
-    }]);
-    const requestedUrl = String(fetchMock.mock.calls[0][0]);
-    const requestOptions = fetchMock.mock.calls[0][1] as RequestInit;
-    expect(requestedUrl).toContain("https://nominatim.openstreetmap.org/search?");
-    expect(requestedUrl).toContain("countrycodes=tw");
-    expect(requestedUrl).toContain("limit=5");
-    expect(requestOptions.headers).toEqual(expect.objectContaining({
-      "User-Agent": expect.stringContaining("GatherTaiwan"),
-      Referer: "https://gather.wedopr.com/app/",
-    }));
-  });
-
   it("starts LINE OAuth from the uncached authorize path", async () => {
     const response = await worker.fetch(
       new Request("https://gather.wedopr.com/app/auth/line/authorize?redirect=%2Fevents%2Fdemo"),

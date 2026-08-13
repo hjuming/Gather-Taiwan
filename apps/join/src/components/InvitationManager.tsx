@@ -10,7 +10,7 @@ import type { EventInvitationTargetRow } from "../lib/types";
 
 const RESPONSE_LABEL: Record<EventInvitationTargetRow["response"], string> = {
   pending: "待回覆",
-  attending: "已回覆出席",
+  attending: "已確認",
   declined: "不克出席",
 };
 
@@ -18,10 +18,14 @@ export default function InvitationManager({
   eventId,
   slug,
   capacity,
+  embedded = false,
+  onChanged,
 }: {
   eventId: string;
   slug: string;
   capacity: number | null;
+  embedded?: boolean;
+  onChanged?: () => void | Promise<void>;
 }) {
   const [targets, setTargets] = useState<EventInvitationTargetRow[]>([]);
   const [name, setName] = useState("");
@@ -56,6 +60,7 @@ export default function InvitationManager({
       await organizerAddEventInvitationTarget(eventId, name.trim());
       setName("");
       await load();
+      await onChanged?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "新增邀請對象失敗");
     } finally {
@@ -70,6 +75,7 @@ export default function InvitationManager({
     try {
       await organizerRemoveEventInvitationTarget(target.id);
       await load();
+      await onChanged?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "移除邀請對象失敗");
     } finally {
@@ -101,6 +107,7 @@ export default function InvitationManager({
       await organizerEditEventInvitationTarget(target.id, nextName);
       cancelEdit();
       await load();
+      await onChanged?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "修改邀請對象失敗");
     } finally {
@@ -125,15 +132,15 @@ export default function InvitationManager({
   }), [targets]);
 
   return (
-    <div className="invitation-manager">
-      <div className="invitation-manager__intro">
+    <div className={`invitation-manager${embedded ? " invitation-manager--embedded" : ""}`}>
+      {!embedded && <div className="invitation-manager__intro">
         <p className="hint">把同一個網址傳給朋友，他們不用註冊，輸入自己的名字後就能選出席或不克出席。拿到網址的人可以看到受邀暱稱、修改回覆，請只分享給受邀朋友。</p>
         <div className="actions">
           <button type="button" className="btn-secondary" onClick={handleCopyLink} disabled={busy}>
             {copied ? "已複製邀請網址 ✓" : "複製共用邀請網址"}
           </button>
         </div>
-      </div>
+      </div>}
 
       {error && <div className="banner banner--error" role="alert">{error}</div>}
 
@@ -145,7 +152,7 @@ export default function InvitationManager({
 
       <form className="roster-add-form" onSubmit={handleAdd}>
         <div className="field">
-          <label htmlFor="invitation-target-name">先加入受邀名單</label>
+          <label htmlFor="invitation-target-name">新增受邀者</label>
           <input
             id="invitation-target-name"
             type="text"
@@ -156,7 +163,7 @@ export default function InvitationManager({
             disabled={busy}
           />
         </div>
-        <button type="submit" className="btn-secondary" disabled={busy}>加入待回覆名單</button>
+        <button type="submit" className="btn-secondary" disabled={busy}>新增</button>
       </form>
 
       <div className="registration-list">

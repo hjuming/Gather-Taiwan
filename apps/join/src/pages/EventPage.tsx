@@ -425,6 +425,7 @@ export default function EventPage() {
         <section className="guest-invitation-page__intro" aria-labelledby="guest-event-title">
           <p className="section-kicker">朋友邀請</p>
           <h1 id="guest-event-title">{guestInvitation.title}</h1>
+          {guestInvitation.summary && <p className="guest-invitation-page__summary">{guestInvitation.summary}</p>}
         </section>
 
         <section className="guest-invitation-summary" aria-label="聚會資訊">
@@ -460,16 +461,27 @@ export default function EventPage() {
             {showInlineEditor && (
               <PrivateEventInlineEditor event={event} onSaved={handleInlineEventSaved} onCancel={() => setShowInlineEditor(false)} />
             )}
-            <details className="guest-invitation-host-tools__details">
-              <summary>管理受邀者</summary>
-              <InvitationManager eventId={event.id} slug={event.slug} capacity={event.capacity} />
-            </details>
           </section>
         )}
 
         <section className="guest-invitation-roster" aria-label="出席狀況">
-          {invitees.length > 0 && <p className="guest-invitation-roster__hint">點選狀態 確認是否出席。</p>}
-          {invitees.length > 0 ? (
+          {session && isOrganizerAdmin && showInlineEditor ? (
+            <InvitationManager
+              eventId={event.id}
+              slug={event.slug}
+              capacity={event.capacity}
+              embedded
+              onChanged={async () => {
+                const refreshed = await getGuestInvitationEvent(
+                  event.slug,
+                  getOrCreateGuestInvitationKey(event.slug),
+                ).catch(() => null);
+                if (refreshed) setGuestInvitation(refreshed);
+              }}
+            />
+          ) : invitees.length > 0 ? (
+            <>
+              <p className="guest-invitation-roster__hint">點選狀態 確認是否出席。</p>
             <ul className="guest-invitation-roster__list">
               {invitees.map((invitee) => (
                 <li key={invitee.id}>
@@ -486,8 +498,9 @@ export default function EventPage() {
                 </li>
               ))}
             </ul>
+            </>
           ) : <p className="hint">受邀名單尚未建立。</p>}
-          {invitees.length > 0 && (
+          {!(session && isOrganizerAdmin && showInlineEditor) && invitees.length > 0 && (
             <p className="guest-invitation-roster__stats">
               出席人數 {guestInvitation.attending_count}{guestInvitation.capacity !== null ? ` / ${guestInvitation.capacity}` : ""}
               （邀請中 {pendingCount} · 不克出席 {declinedCount}）

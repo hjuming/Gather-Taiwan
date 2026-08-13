@@ -221,7 +221,7 @@ export default function EventEditPage() {
         <div>
           <p className="eyebrow">編輯聚會</p>
           <h1>{event.title}</h1>
-          <p className="hint">時區固定為 {TAIPEI}。活動連結不會因為編輯而改變。</p>
+          <p className="hint">時區固定為 {TAIPEI}。</p>
         </div>
       </div>
 
