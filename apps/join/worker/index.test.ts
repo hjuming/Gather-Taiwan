@@ -1,23 +1,28 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import worker from "./index";
+import { getEventShareText } from "../src/lib/event-links";
 
 afterEach(() => {
   vi.unstubAllGlobals();
 });
 
 describe("Worker asset response security headers", () => {
-  it("injects event-specific Open Graph and Twitter metadata into the document", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify([{
+  it("keeps Open Graph metadata aligned with the complete share facts", async () => {
+    const event = {
       title: "魚菜居酒屋好友聚會",
       summary: "今晚一起吃飯，現場結算後分攤",
       starts_at: "2026-08-13T10:30:00.000Z",
       ends_at: "2026-08-13T13:30:00.000Z",
       location_name: "魚菜居酒屋",
       location_address: "105臺北市松山區南京東路五段250巷5-2號",
+      fee_amount: "800",
+      fee_mode: "fixed" as const,
+      capacity: 12,
       gathering_type: "friends_dinner",
-      cover_image_url: null,
+      cover_image_url: "/uploads/gather-harbor-dinner-documentary-v1.jpg",
       visibility: "private",
-    }]), { status: 200, headers: { "Content-Type": "application/json" } }));
+    };
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify([event]), { status: 200, headers: { "Content-Type": "application/json" } }));
     vi.stubGlobal("fetch", fetchMock);
 
     const response = await worker.fetch(
@@ -34,12 +39,19 @@ describe("Worker asset response security headers", () => {
     );
 
     const html = await response.text();
+    const shareText = getEventShareText(event, "https://gather.wedopr.com/app/e/event-20260813-gcrs");
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("public, max-age=60, s-maxage=60");
     expect(response.headers.get("x-robots-tag")).toBe("noindex, nofollow");
+    expect(shareText).toContain("來聚一場～魚菜居酒屋好友聚會");
     expect(html).toContain('<meta property="og:title" content="來聚一場～魚菜居酒屋好友聚會"');
-    expect(html).toContain('<meta property="og:description" content="今晚一起吃飯，現場結算後分攤｜2026-08-13（四）18:30–21:30｜魚菜居酒屋"');
-    expect(html).toContain('og:image" content="https://gather.wedopr.com/uploads/gather-neo-rechao-cheers-v1.jpg"');
+    expect(shareText).toContain("2026-08-13（四）18:30–21:30");
+    expect(shareText).toContain("魚菜居酒屋");
+    expect(shareText).toContain("105臺北市松山區南京東路五段250巷5-2號");
+    expect(shareText).toContain("NT$ 800");
+    expect(shareText).toContain("12 人");
+    expect(html).toContain('<meta property="og:description" content="今晚一起吃飯，現場結算後分攤｜2026-08-13（四）18:30–21:30｜魚菜居酒屋｜105臺北市松山區南京東路五段250巷5-2號｜NT$ 800｜12 人"');
+    expect(html).toContain('og:image" content="https://gather.wedopr.com/uploads/gather-harbor-dinner-documentary-v1.jpg"');
     expect(html).toContain('<meta name="twitter:card" content="summary_large_image"');
     expect(html).toContain('<link rel="canonical" href="https://gather.wedopr.com/app/e/event-20260813-gcrs"');
   });

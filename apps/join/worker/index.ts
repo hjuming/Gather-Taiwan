@@ -1,6 +1,7 @@
 import { withSecurityHeaders } from "./response-security";
 import { handleLineAuthCallback, handleLineAuthStart, type LineAuthEnv } from "./line-auth";
 import { isAllowedCoverImageUrl } from "../shared/event-cover-policy";
+import { getEventSocialDescription, getEventSocialFacts, type EventFeeMode } from "../shared/event-social-facts";
 
 interface Env extends LineAuthEnv {
   SUPABASE_PUBLISHABLE_KEY?: string;
@@ -94,6 +95,10 @@ interface SocialEvent {
   ends_at: string;
   location_name: string | null;
   location_address: string | null;
+  fee_amount: string | number;
+  fee_mode: EventFeeMode | null;
+  payment_instructions: string | null;
+  capacity: number | null;
   gathering_type: string | null;
   cover_image_url: string | null;
   visibility: "public" | "unlisted" | "private";
@@ -115,12 +120,9 @@ async function handleEventDocument(request: Request, env: Env, slug: string): Pr
 
   const imageUrl = getSocialImageUrl(request, event);
   const canonicalUrl = new URL(`/app/e/${encodeURIComponent(slug)}`, request.url).toString();
-  const title = `來聚一場～${event.title}`;
-  const description = [
-    event.summary?.trim(),
-    formatSocialDateRange(event.starts_at, event.ends_at),
-    event.location_name?.trim(),
-  ].filter(Boolean).join("｜");
+  const facts = getEventSocialFacts(event);
+  const title = facts.title;
+  const description = getEventSocialDescription(event);
   const imageType = imageUrl.endsWith(".png") ? "image/png" : imageUrl.endsWith(".webp") ? "image/webp" : "image/jpeg";
   const html = await assetResponse.text();
   const socialHead = [
@@ -156,7 +158,7 @@ async function getSocialEvent(env: Env, slug: string): Promise<SocialEvent | nul
   const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   if (serviceRoleKey) {
     const query = new URLSearchParams({
-      select: "title,summary,starts_at,ends_at,location_name,location_address,gathering_type,cover_image_url,visibility",
+      select: "title,summary,starts_at,ends_at,location_name,location_address,fee_amount,fee_mode,payment_instructions,capacity,gathering_type,cover_image_url,visibility",
       slug: `eq.${slug}`,
       status: "eq.published",
       limit: "1",
@@ -203,6 +205,10 @@ function normalizeSocialEvent(row: Partial<SocialEvent> | undefined): SocialEven
     ends_at: row.ends_at,
     location_name: typeof row.location_name === "string" ? row.location_name : null,
     location_address: typeof row.location_address === "string" ? row.location_address : null,
+    fee_amount: typeof row.fee_amount === "string" || typeof row.fee_amount === "number" ? row.fee_amount : 0,
+    fee_mode: row.fee_mode === "free" || row.fee_mode === "fixed" || row.fee_mode === "on_site_split" ? row.fee_mode : null,
+    payment_instructions: typeof row.payment_instructions === "string" ? row.payment_instructions : null,
+    capacity: typeof row.capacity === "number" ? row.capacity : null,
     gathering_type: typeof row.gathering_type === "string" ? row.gathering_type : null,
     cover_image_url: typeof row.cover_image_url === "string" ? row.cover_image_url : null,
     visibility: row.visibility,
@@ -215,35 +221,6 @@ function getSocialImageUrl(request: Request, event: SocialEvent): string {
     ? candidate
     : EVENT_OG_IMAGES[event.gathering_type ?? ""] ?? DEFAULT_EVENT_OG_IMAGE;
   return new URL(imagePath, request.url).toString();
-}
-
-function formatSocialDateRange(startsAt: string, endsAt: string): string {
-  const format = (value: string) => {
-    const parts = new Intl.DateTimeFormat("en-US", {
-      timeZone: "Asia/Taipei",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      weekday: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h23",
-    }).formatToParts(new Date(value));
-    const get = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
-    const weekday = {
-      Sun: "日",
-      Mon: "一",
-      Tue: "二",
-      Wed: "三",
-      Thu: "四",
-      Fri: "五",
-      Sat: "六",
-    }[get("weekday")] ?? get("weekday");
-    return { date: `${get("year")}-${get("month")}-${get("day")}`, weekday, time: `${get("hour")}:${get("minute")}` };
-  };
-  const start = format(startsAt);
-  const end = format(endsAt);
-  return `${start.date}（${start.weekday}）${start.time}–${start.date === end.date ? end.time : `${end.date}（${end.weekday}）${end.time}`}`;
 }
 
 function escapeHtml(value: string): string {

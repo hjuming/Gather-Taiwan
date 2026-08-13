@@ -1,6 +1,6 @@
 # 來聚一場：產品與技術 SSOT
 
-最後更新：2026-08-12
+最後更新：2026-08-13
 
 ## 產品目標
 
@@ -48,7 +48,7 @@
 | --- | --- | --- |
 | GitHub | `hjuming/Gather-Taiwan` | `codex/gather-mvp` 開發分支已推送 |
 | 文化主站 | `https://gather.wedopr.com/` | 獨立靜態站，不可被 app build 覆寫 |
-| 報名 App | `gather.wedopr.com/app/*`（Workers Route，2026-08-06 起改為同網域路徑，前為獨立子網域） | 尚未部署 |
+| 報名 App | `https://gather.wedopr.com/app/*`（Workers Route，2026-08-06 起改為同網域路徑，前為獨立子網域） | Wave 02 Worker 已於 2026-08-13 部署（version `9c827648-c5e3-408e-b94e-eaa99007a2f7`）；正式私密活動頁已 read-back 完整 OG metadata 與 `noindex` |
 | Supabase org | `gather Taiwan` / `qqcraliqerxjcuyztkkf` | Free |
 | Supabase project | `gather-taiwan` / `anklbpkyesdmsubyfcna` | Healthy, Tokyo |
 | Supabase URL | `https://anklbpkyesdmsubyfcna.supabase.co` | 公開 project URL，非 secret |
@@ -73,8 +73,13 @@
 - P1-03：dev JWT identity harness、Cloudflare Access 驗證、可信 rate-limit key、
   CSP/security headers 已完成正式驗收（`docs/evidence/p1-03-green.md`）；尚未
   接線真實 Cloudflare Access，未部署至任何環境。
-- 未完成：P1-04 domain RLS policies、單一席次引擎、LINE OIDC 實際登入、主辦與
-  報名 UI，staging/production 部署與雙帳號 E2E。
+- Wave 02：活動分享文字與 Worker OG metadata 共用時間、地點、費用、人數等活動
+  事實，並以精準 Vitest 覆蓋 private `noindex` 與 OG image；Worker version
+  `9c827648-c5e3-408e-b94e-eaa99007a2f7` 已部署，正式私密活動頁的
+  `og:title`／`og:description`／`og:image`、`X-Robots-Tag: noindex, nofollow` 均已 read-back。
+- 未完成：P1-04 domain RLS policies、單一席次引擎、LINE OIDC 實際登入，以及主辦／
+  報名 UI 的雙帳號 E2E。主辦、邀請名單與報名 UI 已可在正式 `/app/` 唯讀看到；未登入
+  與非主辦人帳號的實機負向驗收仍為 `NOT_RUN`。
 
 ## P1-02 資料模型裁決
 
