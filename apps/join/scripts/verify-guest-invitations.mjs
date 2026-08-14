@@ -186,7 +186,10 @@ try {
   );
 
   const [before] = await asRole("anon", (tx) => tx`select public.get_event_invitation_by_slug(${slug}, ${null}) as payload`);
-  await assert(before.payload.attending_count === 5, "a pending invitation target must replace, not double-count, a matching manual registration");
+  await assert(
+    before.payload.attending_count === 6,
+    "a pending invitation target must not subtract a matching confirmed manual registration before the invitee attends",
+  );
   await assert(before.payload.invitees?.filter((invitee) => invitee.display_name === "哈蜜瓜").length === 1, "bare roster must not duplicate an invitee");
   await assert(before.payload.invitees?.filter((invitee) => invitee.display_name === "日月MING").length === 1, "matching manual registration and invitation target must render once");
 

@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { getEventBySlug, updateEvent } from "../lib/api";
+import { canSafelyRemoveNewEventCoverAfterUpdateFailure, getEventBySlug, updateEvent } from "../lib/api";
 import { supabase } from "../lib/supabase";
 import { useSession } from "../lib/useSession";
 import type { EventRow } from "../lib/types";
@@ -196,6 +196,8 @@ export default function EventEditPage() {
         locationName: locationName.trim(),
         locationAddress: locationAddress.trim(),
         capacity: hasCapacity ? capacity : null,
+        inviteReservedSeats: row.invite_reserved_seats,
+        invitePoolDeadline: row.invite_pool_deadline,
         feeAmount,
         feeMode,
         paymentInstructions: paymentInstructions.trim(),
@@ -208,7 +210,9 @@ export default function EventEditPage() {
       }
       navigate(`/e/${row.slug}`);
     } catch (err) {
-      if (uploadedCoverUrl) await removeEventCover(uploadedCoverUrl).catch(() => undefined);
+      if (uploadedCoverUrl && canSafelyRemoveNewEventCoverAfterUpdateFailure(err)) {
+        await removeEventCover(uploadedCoverUrl).catch(() => undefined);
+      }
       setError(err instanceof Error ? err.message : "儲存失敗");
     } finally {
       setBusy(false);

@@ -1,6 +1,6 @@
 # 來聚一場：產品與技術 SSOT
 
-最後更新：2026-08-14
+最後更新：2026-08-15
 
 ## 產品目標
 
@@ -51,7 +51,7 @@
 | --- | --- | --- |
 | GitHub | `hjuming/Gather-Taiwan` | `codex/gather-mvp` 開發分支已推送 |
 | 文化主站 | `https://gather.wedopr.com/` | 獨立靜態站，不可被 app build 覆寫 |
-| 報名 App | `https://gather.wedopr.com/app/*`（Workers Route，2026-08-06 起改為同網域路徑，前為獨立子網域） | Wave 02 Worker 已於 2026-08-13 部署（version `9c827648-c5e3-408e-b94e-eaa99007a2f7`）；正式私密活動頁已 read-back 完整 OG metadata 與 `noindex` |
+| 報名 App | `https://gather.wedopr.com/app/*`（Workers Route，2026-08-06 起改為同網域路徑，前為獨立子網域） | 現行 Worker version `6cbb2977-6c73-4f72-9e2e-6251c45d5f52`；正式私密活動頁已 read-back 完整 OG metadata 與 `noindex` |
 | Supabase org | `gather Taiwan` / `qqcraliqerxjcuyztkkf` | Free |
 | Supabase project | `gather-taiwan` / `anklbpkyesdmsubyfcna` | Healthy, Tokyo |
 | Supabase URL | `https://anklbpkyesdmsubyfcna.supabase.co` | 公開 project URL，非 secret |
@@ -95,22 +95,30 @@
   已改為單欄，四個時間選單可完整顯示；`390 × 844` 與 `1440 × 900` 亦完成無水平溢位 read-back。
   CSS 修正已隨 Worker version `7992bf30-61d2-4450-b040-f04b9321a0a0` 部署；正式活動頁 HTTP 200
   並載入 `index-BAV4Y7B6.css`，其 SHA-256 與本機 build 相同。
+- Canonical hardening deploy（2026-08-15）：B migration 已完成 direct UPDATE revoke，Worker／前端
+  已部署 version `6cbb2977-6c73-4f72-9e2e-6251c45d5f52`；正式 GET read-back 為 HTTP 200，
+  私密活動 `X-Robots-Tag: noindex, nofollow`，OG description 含時間、地點、地址、費用與人數，
+  並載入 `index-1ihljKQ3.js`。匿名瀏覽器 read-back 無編輯／名單管理／狀態操作控制項；主辦人
+  capacity 編輯流程尚待登入狀態可用時完成。
 - Worker unit contract 已覆蓋 LINE 拒絕授權、state／nonce mismatch、無 email fallback 與
   cookie TTL／缺失後 fail-closed；未完成的是正式環境的同一 failure matrix（含 incognito）與
   第二個獨立 LINE 帳號 E2E。
   正式 callback 已做無憑證的 `access_denied` 與 synthetic state 負向 HTTP read-back，分別回到
   `line_error=line_declined` 與 `line_error=state_mismatch`；不等同完整登入失敗矩陣 PASS。
-- P1-06/P1-08 核心雲端行為證據（2026-08-14）為 PASS：sequential verifier 11/11；Node 22
-  concurrency verifier 的 `8 搶 3` 得到 `confirmed=3 / waitlisted=5`，`41 搶 40`
-  得到 `confirmed=40 / waitlisted=1`，兩次均無 oversell 且 synthetic fixture cleanup 完成。
-  `41 搶 40` 是最多 10 條 DB connection 的 request burst，不代表 41 條獨立連線；這些結果也不宣稱
-  已完成所有 deadlock retry、兩池合併或多席 `SUM(seats)` canonical 邊界。
-  這些證據只證明已覆蓋的單席序列／併發不變量，P1-06/P1-08 整體仍為
-  `CANONICAL_HARDENING_PENDING`，不可標為完成。Fresh review 發現：容量引擎與調降 guard
-  仍以 `count(*)` 而非 `sum(seats)` 計算；兩池 deadline 後的 merge/release 順序與併發
-  未完整證明；`authenticated` 可直接 UPDATE `capacity`、`invite_reserved_seats`、
-  `invite_pool_deadline`、`invite_pool_released_at`，前端也直寫這些欄位。後續須另作
-  forward-only migration／RLS／grant／單一 RPC 裁決，取得明確授權後才能施作與重驗。
+- P1-06/P1-08 canonical hardening A（2026-08-15）已套用兩支 forward-only migration：
+  `20260814175513_canonical_seat_engine_hardening_a` 與
+  `20260815030000_canonical_seat_engine_roster_dedupe_fix`。容量使用 `SUM(seats)`，
+  attending 邀請者計入容量；strict FIFO、pool release-before-promote、capacity settings
+  idempotency 與 organizer RPC ACL 已由遠端 read-back 證明。Node 22 真實遠端 concurrency
+  `8 搶 3` 得到 `confirmed=3 / waitlisted=5`，`41 搶 40` 得到
+  `confirmed=40 / waitlisted=1`，兩次均無 oversell 且隨機 synthetic fixture cleanup 完成。
+  `41 搶 40` 是最多 10 條 DB connection 的 request burst，不代表 41 條獨立連線。
+  private roster corrective migration 保留 active target 名稱去重，但容量只對 attending target 去重，
+  rollback guest verifier、lifecycle verifier、RLS／ACL 負向 read-back 均 PASS。
+  多席 strict-FIFO／兩池 deadline merge／capacity RPC 冪等的真實 rollback fixture 已 PASS；
+  尚未完成的是 B 階段撤銷 `authenticated` 對 `events.capacity`／邀請池欄位的 direct UPDATE。
+  B 需另取得授權並在 Worker／前端路徑 read-back 後施作，因此 P1-06/P1-08 整體仍維持
+  conditional closure，不宣稱完整完成。
   P1-04 domain policy 已完成雲端 9/9 驗證，不得再列為未完成。Wave 03 前端 Worker 部署與
   匿名／主辦人 token 流程已完成；主辦、邀請名單與報名
   UI 已可在正式 `/app/` 唯讀看到。

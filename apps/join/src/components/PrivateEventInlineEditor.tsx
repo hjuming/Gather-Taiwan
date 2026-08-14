@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { updateEvent } from "../lib/api";
+import { canSafelyRemoveNewEventCoverAfterUpdateFailure, updateEvent } from "../lib/api";
 import DateTimeField from "./DateTimeField";
 import LocationSearchField from "./LocationSearchField";
 import {
@@ -76,6 +76,8 @@ export default function PrivateEventInlineEditor({
         locationName: locationName.trim(),
         locationAddress: locationAddress.trim(),
         capacity: hasCapacity ? capacity : null,
+        inviteReservedSeats: event.invite_reserved_seats,
+        invitePoolDeadline: event.invite_pool_deadline,
         feeAmount: numericFee,
         feeMode,
         paymentInstructions: paymentInstructions.trim(),
@@ -88,7 +90,9 @@ export default function PrivateEventInlineEditor({
       }
       onSaved(updated);
     } catch (err) {
-      if (uploadedCoverUrl) await removeEventCover(uploadedCoverUrl).catch(() => undefined);
+      if (uploadedCoverUrl && canSafelyRemoveNewEventCoverAfterUpdateFailure(err)) {
+        await removeEventCover(uploadedCoverUrl).catch(() => undefined);
+      }
       setError(err instanceof Error ? err.message : "儲存修改失敗");
     } finally {
       setBusy(false);

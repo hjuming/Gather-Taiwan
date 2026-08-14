@@ -8,6 +8,7 @@
 // for the literal Master Backlog "41 搶 40" scenario).
 import postgres from "postgres";
 import { readFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 
 const envText = readFileSync(".env.supabase.local", "utf8");
 const env = Object.fromEntries(
@@ -20,15 +21,16 @@ const env = Object.fromEntries(
 const dbUrl = `postgresql://postgres.${env.SUPABASE_PROJECT_REF}:${encodeURIComponent(env.SUPABASE_DB_PASSWORD)}@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres?sslmode=require`;
 const admin = postgres(dbUrl, { max: 10 });
 
-const ownerId = "aaaaaaaa-0000-4000-8000-000000000001";
+const runSuffix = randomUUID().slice(0, 8);
+const organizerSlug = `concurrency-race-org-${runSuffix}`;
+const eventSlug = `concurrency-race-${runSuffix}`;
+const ownerId = randomUUID();
 const N = Number(process.env.RACE_N ?? 8);
 const CAPACITY = Number(process.env.RACE_CAPACITY ?? 3);
-const raceUserIds = Array.from({ length: N }, (_, i) =>
-  `bbbbbbbb-0000-4000-8000-${String(i + 1).padStart(12, "0")}`
-);
+const raceUserIds = Array.from({ length: N }, () => randomUUID());
 
 async function cleanup() {
-  const eventIds = await admin`select id from public.events where slug = 'concurrency-race-test'`;
+  const eventIds = await admin`select id from public.events where slug = ${eventSlug}`;
   const ids = eventIds.map((r) => r.id);
   if (ids.length > 0) {
     await admin`delete from public.outbox_events where event_id = any(${ids}::uuid[])`;
@@ -39,9 +41,9 @@ async function cleanup() {
     await admin`delete from public.audit_logs where event_id = any(${ids}::uuid[])`;
     await admin`delete from public.events where id = any(${ids}::uuid[])`;
   }
-  await admin`delete from public.audit_logs where organizer_id in (select id from public.organizers where slug = 'concurrency-race-org')`;
-  await admin`delete from public.organizers where slug = 'concurrency-race-org'`;
-  await admin`delete from public.users where email like '%@concurrency-test.invalid'`;
+  await admin`delete from public.audit_logs where organizer_id in (select id from public.organizers where slug = ${organizerSlug})`;
+  await admin`delete from public.organizers where slug = ${organizerSlug}`;
+  await admin`delete from public.users where id = ${ownerId}::uuid or id = any(${raceUserIds}::uuid[])`;
   await admin`delete from auth.users where id = ${ownerId}::uuid or id = any(${raceUserIds}::uuid[])`;
 }
 
@@ -59,7 +61,7 @@ try {
   const [{ create_organizer: orgId }] = await admin.begin(async (tx) => {
     await tx`set local role authenticated`;
     await tx`select set_config('request.jwt.claim.sub', ${ownerId}, true)`;
-    return tx`select public.create_organizer('concurrency-race-org', 'Concurrency Race Org')`;
+    return tx`select public.create_organizer(${organizerSlug}, 'Concurrency Race Org')`;
   });
 
   const [{ id: eventId }] = await admin.begin(async (tx) => {
@@ -70,7 +72,7 @@ try {
         organizer_id, created_by_user_id, slug, title, status, visibility,
         confirmation_mode, timezone, starts_at, ends_at, capacity
       ) values (
-        ${orgId}, ${ownerId}::uuid, 'concurrency-race-test', 'Concurrency Race Test',
+        ${orgId}, ${ownerId}::uuid, ${eventSlug}, 'Concurrency Race Test',
         'published', 'public', 'instant', 'Asia/Taipei',
         now() + interval '5 days', now() + interval '5 days 2 hours', ${CAPACITY}
       ) returning id

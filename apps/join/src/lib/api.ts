@@ -375,6 +375,8 @@ export interface UpdateEventInput {
   locationName: string;
   locationAddress: string;
   capacity: number | null;
+  inviteReservedSeats: number | null;
+  invitePoolDeadline: string | null;
   feeAmount: number;
   feeMode: EventFeeMode;
   paymentInstructions: string;
@@ -383,12 +385,72 @@ export interface UpdateEventInput {
   coverImageUrl: string | null;
 }
 
+export interface UpdateEventCapacitySettingsInput {
+  capacity: number | null;
+  inviteReservedSeats: number | null;
+  invitePoolDeadline: string | null;
+}
+
+class EventUpdatePartialCommitError extends Error {
+  constructor(cause: unknown) {
+    super("活動基本資料已儲存，但容量設定未更新。請修正後再次儲存。", { cause });
+    this.name = "EventUpdatePartialCommitError";
+  }
+}
+
+/** 新封面已可能被基本資料引用時，不能因後續容量 RPC 失敗而刪除。 */
+export function canSafelyRemoveNewEventCoverAfterUpdateFailure(error: unknown): boolean {
+  return !(error instanceof EventUpdatePartialCommitError);
+}
+
+interface UpdateEventCapacitySettingsResult {
+  event_id: string;
+  capacity: number | null;
+  invite_reserved_seats: number | null;
+  invite_pool_deadline: string | null;
+  invite_pool_released_at: string | null;
+  registration_seats: number;
+  attending_invitee_count: number;
+  total_occupied_seats: number;
+}
+
+/**
+ * 容量與邀請池欄位只能透過原子 RPC 更新；RPC 僅回傳容量摘要，故成功後
+ * 以 events 的明確白名單 read-back，避免將未授權欄位帶回前端。
+ */
+export async function updateEventCapacitySettings(
+  eventId: string,
+  input: UpdateEventCapacitySettingsInput,
+): Promise<EventRow> {
+  const { data, error } = await supabase.rpc("update_event_capacity_settings", {
+    p_event_id: eventId,
+    p_idempotency_key: randomIdempotencyKey(),
+    p_capacity: input.capacity,
+    p_invite_reserved_seats: input.inviteReservedSeats,
+    p_invite_pool_deadline: input.invitePoolDeadline,
+  });
+  if (error) throw error;
+
+  const result = data as UpdateEventCapacitySettingsResult | null;
+  if (!result || result.event_id !== eventId) {
+    throw new Error("容量設定已送出，但伺服器回傳資料不完整，請重新整理後確認。");
+  }
+
+  const { data: event, error: eventError } = await supabase
+    .from("events")
+    .select(EVENT_COLUMNS)
+    .eq("id", eventId)
+    .single();
+  if (eventError) throw eventError;
+  return event as unknown as EventRow;
+}
+
 /**
  * 更新既有聚會。欄位權限由資料庫的 events_update_admin policy 與 column grant 把關，
  * 這裡只送出主辦人可以改的欄位；slug 與 organizer 刻意不開放修改，避免既有分享連結失效。
  */
 export async function updateEvent(eventId: string, input: UpdateEventInput): Promise<EventRow> {
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("events")
     .update({
       title: input.title,
@@ -400,7 +462,6 @@ export async function updateEvent(eventId: string, input: UpdateEventInput): Pro
       ends_at: input.endsAt,
       location_name: input.locationName || null,
       location_address: input.locationAddress || null,
-      capacity: input.capacity,
       fee_amount: input.feeAmount,
       fee_mode: input.feeMode,
       payment_instructions: input.paymentInstructions || null,
@@ -408,12 +469,16 @@ export async function updateEvent(eventId: string, input: UpdateEventInput): Pro
       gathering_type: input.gatheringType,
       cover_image_url: input.coverImageUrl,
     })
-    .eq("id", eventId)
-    .select(EVENT_COLUMNS)
-    .single();
+    .eq("id", eventId);
 
   if (error) throw error;
-  return data as unknown as EventRow;
+  try {
+    return await updateEventCapacitySettings(eventId, input);
+  } catch (capacityError) {
+    // 兩次 HTTP mutation 無法提供跨請求 rollback；以明確錯誤讓 UI 保留新封面，
+    // 並告知使用者基本資料已儲存、容量設定尚未完成。
+    throw new EventUpdatePartialCommitError(capacityError);
+  }
 }
 
 export async function updateEventCover(eventId: string, coverImageUrl: string | null): Promise<EventRow> {

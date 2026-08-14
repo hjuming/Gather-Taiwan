@@ -14,6 +14,18 @@ const privateInviteeTokenMigrationPath = resolve(
   process.cwd(),
   "supabase/migrations/20260813110623_private_invitee_tokens.sql",
 );
+const canonicalSeatEngineHardeningPath = resolve(
+  process.cwd(),
+  "supabase/migrations/20260814175513_canonical_seat_engine_hardening_a.sql",
+);
+const canonicalRosterDedupeFixPath = resolve(
+  process.cwd(),
+  "supabase/migrations/20260815030000_canonical_seat_engine_roster_dedupe_fix.sql",
+);
+const canonicalSeatEngineDirectUpdateRevokePath = resolve(
+  process.cwd(),
+  "supabase/migrations/20260815040000_canonical_seat_engine_direct_update_revoke_b.sql",
+);
 const guestInvitationVerifierPath = resolve(process.cwd(), "scripts/verify-guest-invitations.mjs");
 
 describe("P1-01 framework migration contract", () => {
@@ -96,5 +108,132 @@ describe("private invitee token migration contract", () => {
     expect(verifier).toContain("GUEST_INVITATION_FIXTURE_ROLLBACK");
     expect(verifier).toContain("activeSql.savepoint");
     expect(verifier).toContain("reset role");
+  });
+});
+
+describe("canonical seat-engine hardening A migration contract", () => {
+  it("uses the locked, idempotent organizer RPC rather than widening direct table access", async () => {
+    const migration = (await readFile(canonicalSeatEngineHardeningPath, "utf8")).toLowerCase();
+
+    expect(migration).toContain("create function public.update_event_capacity_settings(");
+    expect(migration).toContain("p_event_id uuid");
+    expect(migration).toContain("p_idempotency_key text");
+    expect(migration).toContain("p_capacity integer");
+    expect(migration).toContain("p_invite_reserved_seats integer");
+    expect(migration).toContain("p_invite_pool_deadline timestamptz");
+    expect(migration).toContain("returns jsonb");
+    expect(migration).toContain("security definer");
+    expect(migration).toContain("set search_path = pg_catalog, public, extensions");
+    expect(migration).toContain("for update");
+    expect(migration).toContain("is_organizer_admin");
+    expect(migration).toContain("operation = 'update_event_capacity_settings'");
+    expect(migration).toContain("idempotency key reused with a different request");
+    expect(migration).toContain("using errcode = '23505'");
+    expect(migration).toContain("revoke all on function public.update_event_capacity_settings");
+    expect(migration).toContain("grant execute on function public.update_event_capacity_settings");
+  });
+
+  it("keeps capacity accounting canonical across registrations and attending invitees", async () => {
+    const migration = (await readFile(canonicalSeatEngineHardeningPath, "utf8")).toLowerCase();
+
+    expect(migration).toContain("coalesce(sum(registration.seats), 0)::integer");
+    expect(migration).toContain("response = 'attending'");
+    expect(migration).toContain("total_occupied_seats");
+    expect(migration).toContain("capacity cannot drop below");
+    expect(migration).toContain("invite_reserved_seats cannot drop below");
+    expect(migration).toContain("create or replace function public.guard_event_capacity_decrease()");
+
+    const guard = migration.slice(
+      migration.indexOf("create or replace function public.guard_event_capacity_decrease()"),
+      migration.indexOf("create or replace function public.sweep_event_locked"),
+    );
+    expect(guard).toContain("invite pool configuration cannot change after participant activity");
+  });
+
+  it("only deduplicates a registration against an invitee who is actually attending", async () => {
+    const migration = (await readFile(canonicalSeatEngineHardeningPath, "utf8")).toLowerCase();
+    const responseStart = migration.indexOf("create or replace function public.respond_to_event_invitation(");
+    const responseEnd = migration.indexOf("create function public.update_event_capacity_settings(");
+    const response = migration.slice(responseStart, responseEnd);
+
+    expect(migration).toContain("and target.response = 'attending'");
+    expect(responseStart).toBeGreaterThanOrEqual(0);
+    expect(response).toContain("p_invitee_token text");
+    expect(response).toContain("p_response text");
+    expect(response).not.toContain("p_display_name");
+    expect(response.match(/and target\.response = 'attending'/g)?.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("keeps the private invitation reader on the same attending-only count rule", async () => {
+    const migration = (await readFile(canonicalSeatEngineHardeningPath, "utf8")).toLowerCase();
+    const readerStart = migration.indexOf("create or replace function public.get_event_invitation_by_slug(");
+    const readerEnd = migration.indexOf("create or replace function public.register_for_event(");
+    const reader = migration.slice(readerStart, readerEnd);
+
+    expect(readerStart).toBeGreaterThanOrEqual(0);
+    expect(reader).toContain("p_guest_key text default null");
+    expect(reader).toContain("and target.response = 'attending'");
+    expect(reader).toContain("'attending_count', v_registration_count + v_guest_count");
+  });
+
+  it("releases the invite pool before any expiry promotion and preserves strict FIFO", async () => {
+    const migration = (await readFile(canonicalSeatEngineHardeningPath, "utf8")).toLowerCase();
+    const sweepStart = migration.indexOf("create or replace function public.sweep_event_locked");
+    const promoteStart = migration.indexOf("create or replace function public.promote_next_waitlisted_locked");
+    const sweep = migration.slice(sweepStart, promoteStart);
+
+    expect(sweepStart).toBeGreaterThanOrEqual(0);
+    expect(promoteStart).toBeGreaterThan(sweepStart);
+    expect(sweep.indexOf("set invite_pool_released_at = statement_timestamp()")).toBeLessThan(
+      sweep.indexOf("perform public.promote_next_waitlisted_locked"),
+    );
+    expect(migration).toContain("order by waitlisted_at, id");
+    expect(migration).toContain("strict fifo waitlist cannot be bypassed");
+    expect(migration).toContain("next_reg.seats > v_available_seats");
+    expect(migration).toContain("strict fifo head does not fit available seats");
+    expect(sweep).toContain("exit when waitlist_head_still_waiting");
+  });
+
+  it("records the capacity-settings change in the audit trail without inventing an invalid registration outbox row", async () => {
+    const migration = (await readFile(canonicalSeatEngineHardeningPath, "utf8")).toLowerCase();
+    const rpcStart = migration.indexOf("create function public.update_event_capacity_settings(");
+    const rpc = migration.slice(rpcStart);
+
+    expect(rpc).toContain("insert into public.audit_logs");
+    expect(rpc).toContain("event.capacity_settings_updated");
+    expect(rpc).not.toContain("insert into public.outbox_events");
+  });
+});
+
+describe("canonical roster de-duplication corrective migration contract", () => {
+  it("keeps attending-only capacity accounting while de-duplicating every active invite target in the roster", async () => {
+    const migration = (await readFile(canonicalRosterDedupeFixPath, "utf8")).toLowerCase();
+    const capacitySection = migration.slice(0, migration.indexOf("-- roster projection remains"));
+    const rosterSection = migration.slice(migration.indexOf("-- roster projection remains"));
+
+    expect(migration).toContain("create or replace function public.get_event_invitation_by_slug");
+    expect(capacitySection).toContain("target.response = 'attending'");
+    expect(rosterSection).not.toContain("target.response = 'attending'");
+    expect(rosterSection).toContain("revoke all on function public.get_event_invitation_by_slug(text, text)");
+    expect(rosterSection).toContain("grant execute on function public.get_event_invitation_by_slug(text, text)");
+  });
+});
+
+describe("canonical seat-engine hardening B migration contract", () => {
+  it("revokes direct capacity and invite-pool UPDATE without widening the RPC", async () => {
+    const migration = (await readFile(canonicalSeatEngineDirectUpdateRevokePath, "utf8")).toLowerCase();
+    const executableSql = migration.replace(/^--.*$/gm, "");
+
+    expect(executableSql).toContain(
+      "revoke update (\n  capacity,\n  invite_reserved_seats,\n  invite_pool_deadline,\n  invite_pool_released_at\n) on public.events from public, anon, authenticated",
+    );
+    expect(executableSql).toContain(
+      "revoke all on function public.update_event_capacity_settings(\n  uuid,\n  text,\n  integer,\n  integer,\n  timestamptz\n) from public, anon, authenticated",
+    );
+    expect(executableSql).toContain(
+      "grant execute on function public.update_event_capacity_settings(\n  uuid,\n  text,\n  integer,\n  integer,\n  timestamptz\n) to authenticated",
+    );
+    expect(executableSql).not.toContain("grant update");
+    expect(executableSql).not.toMatch(/alter\s+table\s+public\.events\s+disable\s+row\s+level\s+security/);
   });
 });
