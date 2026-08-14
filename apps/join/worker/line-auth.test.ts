@@ -21,7 +21,7 @@ function cookieValue(headers: Headers, name: string): string | undefined {
 }
 
 describe("handleLineAuthStart", () => {
-  it("redirects to LINE's authorize endpoint with state/nonce and sets both as HttpOnly cookies", async () => {
+  it("redirects to LINE's authorize endpoint with state/nonce and sets both as 600-second HttpOnly cookies", async () => {
     const request = new Request("https://gather.wedopr.com/app/auth/line/start");
     const response = await handleLineAuthStart(request, env);
 
@@ -38,6 +38,7 @@ describe("handleLineAuthStart", () => {
       true,
     );
     expect(setCookies.every((c) => c.includes("Path=/;"))).toBe(true);
+    expect(setCookies.every((c) => c.includes("Max-Age=600"))).toBe(true);
     expect(location.searchParams.get("state")).toBe(cookieValue(response.headers, "__Host-gather-line-oauth-state"));
   });
 });
@@ -77,6 +78,28 @@ describe("handleLineAuthCallback", () => {
     const response = await handleLineAuthCallback(callbackRequest({}), env);
     const location = new URL(response.headers.get("Location")!);
     expect(location.searchParams.get("line_error")).toBe("missing_code_or_state");
+  });
+
+  it.each([
+    {
+      expiredCookie: "state",
+      cookies: "__Host-gather-line-oauth-nonce=real-nonce|%2Fapp%2F",
+    },
+    {
+      expiredCookie: "nonce",
+      cookies: "__Host-gather-line-oauth-state=real-state",
+    },
+  ])("fails closed when browser expiry removes the $expiredCookie cookie", async ({ cookies }) => {
+    const response = await handleLineAuthCallback(
+      callbackRequest({ code: "abc", state: "real-state" }, cookies),
+      env,
+    );
+
+    expect(response.status).toBe(302);
+    const location = new URL(response.headers.get("Location")!);
+    expect(location.searchParams.get("line_error")).toBe("state_mismatch");
+    expect(response.headers.getSetCookie().filter((cookie) => cookie.includes("Max-Age=0"))).toHaveLength(2);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("fails closed when the returned state does not match the cookie (CSRF)", async () => {
