@@ -63,6 +63,31 @@ main {
   width: 100%;
 }
 
+.password-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.password-field input {
+  min-width: 0;
+}
+
+.password-toggle {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+  white-space: nowrap;
+}
+
+.password-toggle:hover {
+  border-color: var(--accent);
+}
+
 .auth-privacy-note {
   margin: 22px 0 8px;
   font-size: 0.875rem;

@@ -81,6 +81,9 @@ export default function TopNav() {
               <NavLink to="/me/hosting" onClick={closeMenu}>
                 我發起的聚會
               </NavLink>
+              <NavLink to="/account/password" onClick={closeMenu}>
+                設定登入密碼
+              </NavLink>
               <button type="button" className="btn-text" onClick={handleSignOut}>
                 登出
               </button>

@@ -5,6 +5,7 @@ import { ensureUserProfile, getEventBySlug } from "../lib/api";
 import { clearPendingProfile, rememberPendingProfile } from "../lib/useSession";
 
 type Step = "email" | "code";
+type AuthMethod = "password" | "email";
 
 const LINE_ERROR_LABEL: Record<string, string> = {
   line_declined: "已取消 LINE 登入",
@@ -34,8 +35,11 @@ export default function AuthPage() {
   const eventSlug = getEventSlugFromRedirect(redirectTo);
 
   const [step, setStep] = useState<Step>("email");
+  const [authMethod, setAuthMethod] = useState<AuthMethod>("password");
   const [eventTitle, setEventTitle] = useState<string | null>(null);
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -116,6 +120,28 @@ export default function AuthPage() {
     }
   }
 
+  async function handlePasswordLogin(event: FormEvent) {
+    event.preventDefault();
+    setError(null);
+    if (!email.trim() || !password) {
+      setError("請輸入 email 與密碼");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (signInError) throw signInError;
+      navigate(redirectTo, { replace: true });
+    } catch {
+      setError("Email 或密碼不正確，請重新嘗試");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function handleVerifyCode(event: FormEvent) {
     event.preventDefault();
     setError(null);
@@ -154,7 +180,7 @@ export default function AuthPage() {
         </p>
       )}
       <p className="auth-intro">
-        不需要設定密碼。用 LINE 登入即可，約 30 秒；也可以使用 email 驗證碼。
+        可以用 LINE 登入、email 驗證碼，或已設定密碼的 email 登入。
       </p>
 
       {lineError && (
@@ -185,9 +211,55 @@ export default function AuthPage() {
         </button>
       </form>
 
-      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>或使用 email 驗證碼：</p>
+      <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>或使用 email 登入：</p>
 
-      {step === "email" ? (
+      {authMethod === "password" ? (
+        <form className="stack card" onSubmit={handlePasswordLogin}>
+          <div className="field">
+            <label htmlFor="password-email">Email</label>
+            <input
+              id="password-email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="password">密碼</label>
+            <div className="password-field">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                aria-label={showPassword ? "隱藏密碼" : "顯示密碼"}
+                onClick={() => setShowPassword((visible) => !visible)}
+              >
+                {showPassword ? "隱藏" : "顯示"}
+              </button>
+            </div>
+          </div>
+          <div className="actions">
+            <button type="submit" className="btn-primary auth-action" disabled={busy}>
+              {busy ? "登入中…" : "使用 email 與密碼登入"}
+            </button>
+            <button type="button" className="btn-text" onClick={() => {
+              setAuthMethod("email");
+              setError(null);
+            }}>
+              第一次使用？用 email 驗證碼建立帳號
+            </button>
+          </div>
+        </form>
+      ) : step === "email" ? (
         <form className="stack card" onSubmit={handleSendCode}>
           <div className="field">
             <label htmlFor="email">Email</label>
@@ -215,6 +287,12 @@ export default function AuthPage() {
             <button type="submit" className="btn-primary auth-action" disabled={busy}>
               {busy ? "寄送中…" : "寄送驗證碼"}
             </button>
+            <button type="button" className="btn-text" onClick={() => {
+              setAuthMethod("password");
+              setError(null);
+            }}>
+              已設定密碼？改用 email 與密碼登入
+            </button>
           </div>
         </form>
       ) : (
@@ -241,6 +319,12 @@ export default function AuthPage() {
             </button>
             <button type="button" className="btn-text" onClick={() => setStep("email")}>
               重新輸入 email
+            </button>
+            <button type="button" className="btn-text" onClick={() => {
+              setAuthMethod("password");
+              setError(null);
+            }}>
+              已設定密碼？改用 email 與密碼登入
             </button>
           </div>
         </form>

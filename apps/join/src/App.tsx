@@ -8,6 +8,7 @@ import EventPage from "./pages/EventPage";
 import EventEditPage from "./pages/EventEditPage";
 import MyRegistrationsPage from "./pages/MyRegistrationsPage";
 import MyHostedEventsPage from "./pages/MyHostedEventsPage";
+import PasswordSettingsPage from "./pages/PasswordSettingsPage";
 import LineAuthCompletePage from "./pages/LineAuthCompletePage";
 import SiteFooter from "./components/SiteFooter";
 import Breadcrumbs from "./components/Breadcrumbs";
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/e/:slug/edit" element={<EventEditPage />} />
           <Route path="/me/registrations" element={<MyRegistrationsPage />} />
           <Route path="/me/hosting" element={<MyHostedEventsPage />} />
+          <Route path="/account/password" element={<PasswordSettingsPage />} />
         </Routes>
       </main>
       <SiteFooter />
