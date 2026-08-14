@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { ensureUserProfile, getEventBySlug } from "../lib/api";
+import { clearPendingProfile, rememberPendingProfile } from "../lib/useSession";
 
 type Step = "email" | "code";
 
@@ -89,10 +90,12 @@ export default function AuthPage() {
     }
     setBusy(true);
     try {
+      rememberPendingProfile(email, displayName);
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
           shouldCreateUser: true,
+          data: { display_name: displayName.trim() },
           // Without this, Supabase falls back to the project's dashboard
           // "Site URL" — which for this project is still the local-dev
           // default (localhost:3000), so the magic-link fallback inside
@@ -130,6 +133,7 @@ export default function AuthPage() {
       if (verifyError) throw verifyError;
 
       await ensureUserProfile(displayName.trim());
+      clearPendingProfile(email);
       await supabase.rpc("sync_verified_email");
 
       navigate(redirectTo, { replace: true });
