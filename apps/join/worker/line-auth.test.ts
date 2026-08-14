@@ -6,7 +6,7 @@ const env: LineAuthEnv = {
   SUPABASE_SERVICE_ROLE_KEY: "service-role-test-key",
   LINE_CHANNEL_ID: "2010930927",
   LINE_CHANNEL_SECRET: "channel-secret-test-value",
-  LINE_CALLBACK_URL: "https://gather.wedopr.com/app/auth/line/callback",
+  LINE_CALLBACK_URL: "https://gather.wedopr.com/app/line/callback",
   APP_BASE_URL: "https://gather.wedopr.com/app",
 };
 
