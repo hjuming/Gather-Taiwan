@@ -103,8 +103,8 @@
   本輪未儲存正式資料。
 - Production `/app/__dev/session` 已由 Worker 明確 fail-closed 為 JSON 404，避免誤落入 Assets
   runtime；正式 POST read-back 為 HTTP 404、`Cache-Control: no-store`。
-- 文化主站首頁仍由獨立 Cloudflare Pages 提供；本輪未部署主站，因此首頁 description、og:description、
-  twitter:description 的既有文案差異仍列為未處理，不宣稱已修正。
+- 文化主站首頁由獨立 Cloudflare Pages 提供；`f02c069` 的 metadata 修正已經由 Git integration
+  部署，最新 Pages deployment source `b3c1bf7`，正式首頁三組 description 已 read-back 完全一致。
 - Worker unit contract 已覆蓋 LINE 拒絕授權、state／nonce mismatch、無 email fallback 與
   cookie TTL／缺失後 fail-closed；未完成的是正式環境的同一 failure matrix（含 incognito）與
   第二個獨立 LINE 帳號 E2E。

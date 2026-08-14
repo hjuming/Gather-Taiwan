@@ -1528,6 +1528,12 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
   skip 為缺少測試 DB URL 的真實 concurrency suite，不列為 PASS。
 - ✅ commit `314f6bf`（canonical hardening）與 `19b9101`（social metadata hardening）已
   推送至 `origin/codex/gather-mvp`，目前工作樹乾淨。
-- ⚠️ 文化主站首頁仍由獨立 Cloudflare Pages 提供；本輪未部署首頁，因此首頁三組 description
-  的既有差異仍未處理。LINE failure matrix、第二獨立帳號與 Cloudflare Access staging
+- ⚠️ 文化主站首頁仍由獨立 Cloudflare Pages 提供；本輪已透過 Git integration 發布 metadata
+  修正並完成正式 read-back。LINE failure matrix、第二獨立帳號與 Cloudflare Access staging
   仍未完成；event_fields 依本輪裁決不納入。
+
+## 2026-08-15：文化主站首頁社群 metadata read-back
+
+- ✅ `index.html` 的一般 description、`og:description`、`twitter:description` 已統一。
+- ✅ Git integration Pages deployment source `b3c1bf7` 已建立；正式 `https://gather.wedopr.com/`
+  HTML read-back 三組 description 完全一致。

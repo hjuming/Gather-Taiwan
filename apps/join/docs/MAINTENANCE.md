@@ -85,7 +85,8 @@
   `20260815030000_canonical_seat_engine_roster_dedupe_fix` 套用遠端；8 搶 3、41 搶 40
   真實並發、token/RLS rollback、lifecycle、以及多席／兩池 deadline rollback verifier 均 PASS。
   B 階段 direct UPDATE revoke、Worker／前端正式 read-back 已完成；自訂 OG 圖不再宣告固定尺寸。
-  文化主站首頁仍由獨立 Pages 部署，本輪未處理首頁社群文案差異。
+  文化主站首頁仍由獨立 Pages 部署；`f02c069` metadata 修正已由 Git integration 發布，
+  最新 deployment source `b3c1bf7`，正式首頁三組 description 已 read-back 一致。
 - Production `/app/__dev/session` 由 Worker 明確回 404；不要把此 production guard 當成 staging
   Access 驗收，staging route、Access policy、rate limiter binding 與 owner-operated secrets 仍待接線。
 - LINE channel secret 與 Supabase service-role key 只存部署環境；文件、前端 bundle 與 log 只能記變數名，不記值。
