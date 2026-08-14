@@ -97,9 +97,20 @@
   並載入 `index-BAV4Y7B6.css`，其 SHA-256 與本機 build 相同。
 - Worker unit contract 已覆蓋 LINE 拒絕授權、state／nonce mismatch、無 email fallback 與
   cookie TTL／缺失後 fail-closed；未完成的是正式環境的同一 failure matrix（含 incognito）與
-  第二個獨立 LINE 帳號 E2E，以及 P1-06/P1-08 尚未覆蓋的完整席次與併發情境。
+  第二個獨立 LINE 帳號 E2E。
   正式 callback 已做無憑證的 `access_denied` 與 synthetic state 負向 HTTP read-back，分別回到
   `line_error=line_declined` 與 `line_error=state_mismatch`；不等同完整登入失敗矩陣 PASS。
+- P1-06/P1-08 核心雲端行為證據（2026-08-14）為 PASS：sequential verifier 11/11；Node 22
+  concurrency verifier 的 `8 搶 3` 得到 `confirmed=3 / waitlisted=5`，`41 搶 40`
+  得到 `confirmed=40 / waitlisted=1`，兩次均無 oversell 且 synthetic fixture cleanup 完成。
+  `41 搶 40` 是最多 10 條 DB connection 的 request burst，不代表 41 條獨立連線；這些結果也不宣稱
+  已完成所有 deadlock retry、兩池合併或多席 `SUM(seats)` canonical 邊界。
+  這些證據只證明已覆蓋的單席序列／併發不變量，P1-06/P1-08 整體仍為
+  `CANONICAL_HARDENING_PENDING`，不可標為完成。Fresh review 發現：容量引擎與調降 guard
+  仍以 `count(*)` 而非 `sum(seats)` 計算；兩池 deadline 後的 merge/release 順序與併發
+  未完整證明；`authenticated` 可直接 UPDATE `capacity`、`invite_reserved_seats`、
+  `invite_pool_deadline`、`invite_pool_released_at`，前端也直寫這些欄位。後續須另作
+  forward-only migration／RLS／grant／單一 RPC 裁決，取得明確授權後才能施作與重驗。
   P1-04 domain policy 已完成雲端 9/9 驗證，不得再列為未完成。Wave 03 前端 Worker 部署與
   匿名／主辦人 token 流程已完成；主辦、邀請名單與報名
   UI 已可在正式 `/app/` 唯讀看到。

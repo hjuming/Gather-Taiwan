@@ -65,9 +65,15 @@ migration 或 concurrency PASS。
 `P1-04` domain policies 已完成正式雲端 9/9 驗證；LINE 正常授權 production
 E2E 亦已 PASS。後續不得再把這兩項列為待施工。
 
-1) 補齊 `P1-06 / P1-08` 未覆蓋的完整席次、候補與併發情境
-2) 完成 LINE 拒絕授權、無 email、incognito、過期 `state`/`nonce` 與第二個獨立帳號 E2E
-3) 補齊真實 Cloudflare Access 接線與獨立 staging 驗收
+1) 先完成 `P1-06 / P1-08` canonical hardening 裁決並取得明確授權：另增
+   forward-only migration 將席次計算／調降 guard 收旂為 `sum(seats)`，定義兩池
+   deadline merge/release 順序，並以 RLS／grant 禁止 `authenticated` 及前端直寫
+   `capacity`、`invite_reserved_seats`、`invite_pool_deadline`、`invite_pool_released_at`，
+   改由單一 SECURITY DEFINER RPC 處理。目前只是待裁決工項，未施作。
+2) 獲授權並施作後，重跑 sequential 11 情境、`8 搶 3`、`41 搶 40`、多席與
+   兩池 deadline 併發／負向權限驗證；未重驗前不得宣稱 P1-06/P1-08 closure。
+3) 完成 LINE 拒絕授權、無 email、incognito、過期 `state`/`nonce` 與第二個獨立帳號 E2E
+4) 補齊真實 Cloudflare Access 接線與獨立 staging 驗收
 
 ## 2026-08-10 Supabase 恢復後的 LINE callback 交接
 

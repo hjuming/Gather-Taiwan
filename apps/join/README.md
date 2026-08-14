@@ -9,11 +9,11 @@
 的 session 與未來 cookie 天然共用，不需處理跨子網域問題。Vite `base` 固定為
 `/app/`（見 `vite.config.ts`），React Router `basename` 讀 `import.meta.env.BASE_URL`。
 
-## 當前狀態（2026-08-10）
+## 當前狀態（2026-08-14）
 
-- P1-01～P1-09/13（安全基礎、DB migration/seed、canonical schema、
-  dev-auth harness、RLS、RBAC、單一席次引擎、邀請制、付款聲明與年齡把關）
-  全部完成並在 Gather 專屬雲端 Supabase 通過交易內驗證＋套用＋再驗證。
+- P1-01～P1-09/13 已有分批歷史 evidence；其中 P1-04 有正式雲端 9/9 證據，
+  P1-06/P1-08 核心 sequential／concurrency 證據 PASS，但 fresh review 判定後者整體為
+  `CANONICAL_HARDENING_PENDING`，不得宣稱全部完成。
 - P1-10：網站 UI 已建立（Supabase client、型別化 API 層、路由、5 個頁面：
   首頁、email OTP 登入、建場表單、活動頁含報名/密碼閘門/付款聲明/整場取消、
   我的報名）。已用真實雲端資料在瀏覽器實際驗證匿名可見的頁面；登入後的
@@ -59,9 +59,11 @@ pnpm smoke
   證據：`docs/evidence/p1-04-green.md`。
 - P1-05：owner/admin/staff RBAC（`add_organizer_member`／
   `revoke_organizer_member`）。證據：`docs/evidence/p1-05-green.md`。
-- P1-06 / P1-08：單一席次引擎（`register_for_event` 等 8 個 RPC）、
-  idempotency、deadlock-free（併發測試抓到並修好一個真實 lock-upgrade
-  死結）。證據：`docs/evidence/p1-06-08-green.md`。
+- P1-06 / P1-08 核心證據：既有 `docs/evidence/p1-06-08-green.md` 保留當時的單席
+  引擎、idempotency 與 lock-upgrade 死結修正證據；2026-08-14 Node 22 復驗為
+  sequential 11/11、`8 搶 3 = confirmed 3 / waitlisted 5`、
+  `41 搶 40 = confirmed 40 / waitlisted 1`，均無 oversell 且 fixture cleanup 完成。
+  這些是核心不變量證據，不是 P1-06/P1-08 整體 closure。
 - P1-07：雙邀請制（verified-email 自動資格＋one-time token）、event
   password 驗證（dummy-hash 統計容差）。
   證據：`docs/evidence/p1-07-green.md`。
@@ -73,6 +75,11 @@ pnpm smoke
 
 ## 未完成 / 下一階（可接手）
 
+- P1-06/P1-08 canonical hardening 尚待裁決與明確授權：容量引擎與調降 guard
+  要由 `count(*)` 收斂為 `sum(seats)`，補證兩池 deadline merge/release 順序，並以
+  forward-only migration／RLS／grant／SECURITY DEFINER RPC 移除 `authenticated` 與前端
+  對 `capacity`、`invite_reserved_seats`、`invite_pool_deadline`、`invite_pool_released_at`
+  的直接 UPDATE。目前未施作、未重驗。
 - LINE 登入正常授權以外的失敗矩陣（拒絕、無 email、incognito、過期 state/nonce、
   第二個 LINE 帳號）尚待補跑。
 - 部署 staging（真實 Cloudflare Access 接線、`AUTH_RATE_LIMITER` binding）
@@ -136,5 +143,5 @@ DB URL 時會明確 skip 併發整合測試，不代表 migration／併發已通
 專屬雲端 Gate 的現行操作方式與回滾見 `docs/DEVELOPMENT.md` 與
 `docs/MAINTENANCE.md`。
 
-部署由後續環境 Gate 建立 staging／production Worker 後才處理；本目錄目前沒有
-deploy script。完整產品狀態以 `docs/SSOT.md` 為準。
+production Worker 已部署在 `gather.wedopr.com/app/*`；真實 Cloudflare Access staging
+仍是獨立後續 Gate。完整產品狀態以 `docs/SSOT.md` 為準。

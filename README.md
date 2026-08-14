@@ -18,19 +18,19 @@
 
 ## Registration Application
 
-「來聚一場」報名系統於 [`apps/join`](./apps/join/README.md) 獨立開發，未來以
-`join.gather.wedopr.com` 作為獨立 deploy root，不覆寫本靜態文化主站。實作的
+「來聚一場」報名系統於 [`apps/join`](./apps/join/README.md) 獨立開發，現以
+`https://gather.wedopr.com/app/*` 的 Cloudflare Workers Route 與本靜態文化主站共存。實作的
 產品真實來源與維運規則見：
 
 - [`apps/join/docs/SSOT.md`](./apps/join/docs/SSOT.md)
 - [`apps/join/docs/DEVELOPMENT.md`](./apps/join/docs/DEVELOPMENT.md)
 - [`apps/join/docs/MAINTENANCE.md`](./apps/join/docs/MAINTENANCE.md)
 
-目前已完成 P1-01 foundation 與 P1-02 canonical database schema；domain tables 在
-RLS policy 建立前仍維持 fail-closed。`apps/join` 的 LINE 登入、主辦建場、分享邀請與
-參加者報名仍在後續 Gate，請勿把目前已就緒的資料表誤認為可直接上線。
+目前 P1-04 domain policy 已有正式雲端 9/9 證據；P1-06/P1-08 核心席次／候補
+序列與併發證據亦 PASS。但 fresh review 已確認席次加總、兩池 deadline 順序與
+敏感欄位直寫尚待 canonical hardening，不得將這些核心 PASS 放大為完整席次 closure。
 
-## 2026-08-05 進度摘要（可直接接續）
+## 2026-08-14 進度摘要（可直接接續）
 
 - 完成項目
   - `apps/join`：P1-01-A/B 與 P1-02 已完成主要驗收，且有本機與雲端回讀資料。
@@ -45,10 +45,13 @@ RLS policy 建立前仍維持 fail-closed。`apps/join` 的 LINE 登入、主辦
     確認零 dev-auth 殘留。證據：`apps/join/docs/evidence/p1-03-green.md`。
 - 已知未完成/待續
   - P1-03 harness 尚未接線真實 Cloudflare Access／`AUTH_RATE_LIMITER` binding，
-    未部署至任何環境；「多 sub 受 RLS」的資料庫端強制力留待 P1-04。
-  - P1-04 domain RLS policies 還未上線；目前完整 fail-closed。
-  - P1-06/P1-08 冪等與席次引擎尚未上線。
-  - LINE callback、token 驗證與真人 E2E 尚未完成（T-01b）。
+    未部署至任何環境；P1-04 的多 sub RLS 強制力已完成正式雲端驗證。
+  - P1-04 正式雲端 9/9 證據已存在；但 fresh review 發現 `authenticated` 仍可直寫
+    容量／兩池敏感欄位，待 RLS／grant／RPC hardening 裁決與授權。
+  - P1-06/P1-08 已證明 sequential 11/11、`8 搶 3 = 3/5`、`41 搶 40 = 40/1`；
+    但 `count(*)` 與 `sum(seats)` 差異、兩池 deadline merge/release 順序尚未 closure。
+  - LINE 正常授權 production E2E 已 PASS；拒絕、無 email、incognito、過期 state/nonce
+    與第二個獨立帳號的完整失敗矩陣尚未完成。
 - 當前接力文件（優先看）
   - `apps/join/docs/SSOT.md`
   - `apps/join/docs/DEVELOPMENT.md`
