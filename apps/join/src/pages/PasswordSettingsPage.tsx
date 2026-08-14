@@ -3,6 +3,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useSession } from "../lib/useSession";
 
+function isSyntheticLineEmail(email: string | undefined): boolean {
+  return /^line\+[^@]+@users\.noreply\.gather\.wedopr\.com$/i.test(email?.trim() ?? "");
+}
+
 export default function PasswordSettingsPage() {
   const navigate = useNavigate();
   const { session, loading } = useSession();
@@ -16,6 +20,7 @@ export default function PasswordSettingsPage() {
   const [emailBusy, setEmailBusy] = useState(false);
   const [emailNotice, setEmailNotice] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
+  const syntheticLineIdentity = isSyntheticLineEmail(session?.user.email);
 
   useEffect(() => {
     if (!loading && !session) {
@@ -102,7 +107,9 @@ export default function PasswordSettingsPage() {
         <p className="eyebrow">目前登入身份</p>
         <p className="account-login-email__value">{session.user.email ?? "尚未提供登入 email"}</p>
         <p className="hint">
-          之後使用 email＋密碼登入時，請填這個 email。它可能和 LINE 帳號或公開顯示資料中的 email 不同。
+          {syntheticLineIdentity
+            ? "這是 LINE 建立的系統登入身份，不是你平常使用的 email；請先在下方綁定自己的 email，再用自己的 email＋密碼登入。"
+            : "之後使用 email＋密碼登入時，請填這個 email。它可能和 LINE 帳號或公開顯示資料中的 email 不同。"}
         </p>
       </div>
 
@@ -159,6 +166,7 @@ export default function PasswordSettingsPage() {
           <h2>綁定自己的 email</h2>
           <p className="hint">
             系統會寄確認信到新 email。你完成信件確認前，目前登入 email 不會改變；確認後才可用新 email＋目前密碼登入。
+            若系統要求確認原本與新的 email，請依信件指示完成兩次確認。
           </p>
         </div>
         {emailError && <div className="banner banner--error" role="alert">{emailError}</div>}

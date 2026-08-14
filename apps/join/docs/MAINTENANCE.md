@@ -66,7 +66,8 @@
   未確認的 email，Supabase Auth email 確認後才由 `sync_verified_email()` 同步驗證狀態。
 - 目前沒有獨立的忘記密碼／reset flow；若忘記密碼，仍可用原本的 LINE 或 email 驗證碼登入後重新設定。
 - LINE email scope 未提供或與既有 Auth 帳號衝突時，Worker 會使用 synthetic Auth email；
-  介面必須顯示該目前登入 email，避免使用者猜測或誤綁定其他帳號。
+  介面必須顯示該目前登入 email，並明確標示它是 LINE 系統身份、引導使用者先綁定自己的
+  email，避免使用者猜測或誤綁定其他帳號。
 
 ## 回滾
 

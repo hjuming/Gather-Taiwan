@@ -26,9 +26,11 @@ describe("PasswordSettingsPage login identity guidance", () => {
     );
 
     expect(markup).toContain("line+test@users.noreply.gather.wedopr.com");
+    expect(markup).toContain("這是 LINE 建立的系統登入身份，不是你平常使用的 email");
     expect(markup).toContain("綁定自己的 email");
     expect(markup).toContain("寄送確認信");
     expect(markup).toContain("確認後才可用新 email＋目前密碼登入");
+    expect(markup).toContain("若系統要求確認原本與新的 email");
     expect(markup).toContain('aria-label="顯示密碼"');
   });
 });
