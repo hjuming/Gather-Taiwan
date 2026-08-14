@@ -20,6 +20,7 @@ const LINE_AUTH_CALLBACK_PATHS = new Set([
 ]);
 const PUBLIC_EVENTS_PATH = "/app/api/public-events";
 const EVENT_SUMMARY_PATH = "/app/api/event-summary";
+const STAGING_DEV_SESSION_PATH = "/app/__dev/session";
 const EVENT_DOCUMENT_PATTERN = /^\/app\/e\/([a-z0-9][a-z0-9-]{2,95})\/?$/;
 const FALLBACK_PUBLISHABLE_KEY = "sb_publishable_Qc-0shSK0ISVXiWmo8AtaQ_Wmu_5xU7";
 const DEFAULT_EVENT_OG_IMAGE = "/uploads/gather-home-hero-documentary-v1.jpg";
@@ -58,6 +59,15 @@ export default {
     }
     if (url.pathname === EVENT_SUMMARY_PATH) {
       return withSecurityHeaders(await handleEventSummary(request, env), { includeCacheControl: false });
+    }
+    // The development session endpoint belongs only to the separately deployed
+    // staging worker. Keep production fail-closed with a deterministic 404
+    // instead of forwarding POST requests into the Assets runtime.
+    if (url.pathname === STAGING_DEV_SESSION_PATH) {
+      return withSecurityHeaders(new Response(JSON.stringify({ error: "not_found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+      }), { includeCacheControl: false });
     }
     const eventDocumentMatch = EVENT_DOCUMENT_PATTERN.exec(url.pathname);
     if (request.method === "GET" && eventDocumentMatch) {

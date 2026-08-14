@@ -383,4 +383,23 @@ describe("Worker asset response security headers", () => {
 
     expect(requestedPath).toBe("/");
   });
+
+  it("keeps the staging-only dev session endpoint fail-closed in production", async () => {
+    const response = await worker.fetch(
+      new Request("https://gather.wedopr.com/app/__dev/session", { method: "POST" }),
+      {
+        ASSETS: { fetch: vi.fn(async () => new Response("must not reach assets", { status: 500 })) },
+        SUPABASE_URL: "https://project.supabase.co",
+        SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
+        SUPABASE_SERVICE_ROLE_KEY: "service-role-test-key",
+        LINE_CHANNEL_ID: "test-channel-id",
+        LINE_CHANNEL_SECRET: "test-channel-secret",
+        LINE_CALLBACK_URL: "https://gather.wedopr.com/app/line/callback",
+        APP_BASE_URL: "https://gather.wedopr.com/app",
+      },
+    );
+    expect(response.status).toBe(404);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(await response.json()).toEqual({ error: "not_found" });
+  });
 });

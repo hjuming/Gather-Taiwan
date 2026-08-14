@@ -1519,7 +1519,7 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
   `invite_pool_released_at` 對 `anon`／`authenticated` 均無 direct UPDATE；
   `update_event_capacity_settings(uuid,text,integer,integer,timestamptz)` 僅 authenticated
   可執行，anonymous direct DML 回傳 `permission denied for table events`。
-- ✅ Worker／前端 version `e29bf538-9a2d-472e-b340-446ddca8e1f3` 已部署至
+- ✅ Worker／前端 version `e0fcc0c2-c834-480b-b9d3-424783e20b19` 已部署至
   `gather.wedopr.com/app/*`；活動頁 GET HTTP 200、`X-Robots-Tag: noindex, nofollow`，
   OG／Twitter 活動事實一致。
 - ✅ 活動自訂代表圖可能不是 1200×630，Worker 已移除未量測的固定 `og:image:width`／height

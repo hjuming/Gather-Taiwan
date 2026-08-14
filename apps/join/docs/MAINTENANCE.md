@@ -78,7 +78,7 @@
   `apps/join/docs/evidence/p1-03-green.md`；過程中修正 `scripts/smoke-staging.mjs`
   既有 marker 檢查 bug（三檔誤共用同一符號）。
 - 正式 Worker 已部署；當前 SSOT 記錄的最新 version 為
-  `e29bf538-9a2d-472e-b340-446ddca8e1f3`。真實 Cloudflare Access 接線、獨立 staging 驗收、
+  `e0fcc0c2-c834-480b-b9d3-424783e20b19`。真實 Cloudflare Access 接線、獨立 staging 驗收、
   LINE failure matrix 與第二個獨立帳號 E2E 仍待完成。
 - 2026-08-15 canonical seat-engine A 已以
   `20260814175513_canonical_seat_engine_hardening_a` 與
@@ -86,4 +86,6 @@
   真實並發、token/RLS rollback、lifecycle、以及多席／兩池 deadline rollback verifier 均 PASS。
   B 階段 direct UPDATE revoke、Worker／前端正式 read-back 已完成；自訂 OG 圖不再宣告固定尺寸。
   文化主站首頁仍由獨立 Pages 部署，本輪未處理首頁社群文案差異。
+- Production `/app/__dev/session` 由 Worker 明確回 404；不要把此 production guard 當成 staging
+  Access 驗收，staging route、Access policy、rate limiter binding 與 owner-operated secrets 仍待接線。
 - LINE channel secret 與 Supabase service-role key 只存部署環境；文件、前端 bundle 與 log 只能記變數名，不記值。
