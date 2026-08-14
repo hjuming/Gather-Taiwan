@@ -98,6 +98,8 @@
 - Worker unit contract 已覆蓋 LINE 拒絕授權、state／nonce mismatch、無 email fallback 與
   cookie TTL／缺失後 fail-closed；未完成的是正式環境的同一 failure matrix（含 incognito）與
   第二個獨立 LINE 帳號 E2E，以及 P1-06/P1-08 尚未覆蓋的完整席次與併發情境。
+  正式 callback 已做無憑證的 `access_denied` 與 synthetic state 負向 HTTP read-back，分別回到
+  `line_error=line_declined` 與 `line_error=state_mismatch`；不等同完整登入失敗矩陣 PASS。
   P1-04 domain policy 已完成雲端 9/9 驗證，不得再列為未完成。Wave 03 前端 Worker 部署與
   匿名／主辦人 token 流程已完成；主辦、邀請名單與報名
   UI 已可在正式 `/app/` 唯讀看到。
