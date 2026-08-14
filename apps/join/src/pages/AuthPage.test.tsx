@@ -28,6 +28,6 @@ describe("AuthPage LINE login entry", () => {
 
     expect(markup).toContain('autoComplete="current-password"');
     expect(markup).toContain('aria-label="顯示密碼"');
-    expect(markup).toContain("第一次使用？用 email 驗證碼建立帳號");
+    expect(markup).toContain("需要 email 驗證碼？用它登入或建立帳號");
   });
 });

@@ -41,6 +41,16 @@ describe("handleLineAuthStart", () => {
     expect(setCookies.every((c) => c.includes("Max-Age=600"))).toBe(true);
     expect(location.searchParams.get("state")).toBe(cookieValue(response.headers, "__Host-gather-line-oauth-state"));
   });
+
+  it("stores only an internal redirect when the caller supplies an external URL", async () => {
+    const request = new Request(
+      "https://gather.wedopr.com/app/auth/line/start?redirect=https%3A%2F%2Fevil.example%2Fphish",
+    );
+    const response = await handleLineAuthStart(request, env);
+    const nonceCookie = response.headers.getSetCookie().find((cookie) => cookie.startsWith("__Host-gather-line-oauth-nonce="));
+    expect(nonceCookie).toContain("%2F");
+    expect(nonceCookie).not.toContain("evil.example");
+  });
 });
 
 describe("handleLineAuthCallback", () => {

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { ensureUserProfile, getEventBySlug } from "../lib/api";
 import { clearPendingProfile, rememberPendingProfile } from "../lib/useSession";
+import { normalizeInternalRedirect } from "../../shared/auth-redirect";
 
 type Step = "email" | "code";
 type AuthMethod = "password" | "email";
@@ -30,7 +31,7 @@ function getEventSlugFromRedirect(redirectTo: string): string | null {
 export default function AuthPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/";
+  const redirectTo = normalizeInternalRedirect(searchParams.get("redirect"));
   const lineError = searchParams.get("line_error");
   const eventSlug = getEventSlugFromRedirect(redirectTo);
 
@@ -44,6 +45,23 @@ export default function AuthPage() {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasRedirectParam = searchParams.has("redirect");
+
+  useEffect(() => {
+    if (!hasRedirectParam) return;
+    let active = true;
+    const redirectIfSession = (nextSession: unknown) => {
+      if (active && nextSession) navigate(redirectTo, { replace: true });
+    };
+    void supabase.auth.getSession().then(({ data }) => redirectIfSession(data.session));
+    const { data: authState } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      redirectIfSession(nextSession);
+    });
+    return () => {
+      active = false;
+      authState.subscription.unsubscribe();
+    };
+  }, [hasRedirectParam, navigate, redirectTo]);
 
   useEffect(() => {
     let active = true;
@@ -108,7 +126,7 @@ export default function AuthPage() {
           // detectSessionInUrl: true), so this also makes clicking the
           // email link itself work as a login path, not just the 6-digit
           // code this page actually asks for.
-          emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}`,
+          emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}auth?redirect=${encodeURIComponent(redirectTo)}`,
         },
       });
       if (otpError) throw otpError;
@@ -156,12 +174,21 @@ export default function AuthPage() {
         token: code.trim(),
         type: "email",
       });
-      if (verifyError) throw verifyError;
+      if (verifyError) {
+        setError(verifyError.message || "驗證碼錯誤或已過期");
+        return;
+      }
 
-      await ensureUserProfile(displayName.trim());
+      // OTP verification has already created a valid session. Profile and
+      // verified-email sync are best-effort follow-up work; they must not turn
+      // a successful, consumed code into a misleading "expired" error.
+      await ensureUserProfile(displayName.trim()).catch(() => undefined);
       clearPendingProfile(email);
-      await supabase.rpc("sync_verified_email");
-
+      try {
+        await supabase.rpc("sync_verified_email");
+      } catch {
+        // useSession will retry this safety-net sync after navigation.
+      }
       navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "驗證碼錯誤或已過期");
@@ -258,7 +285,7 @@ export default function AuthPage() {
               setAuthMethod("email");
               setError(null);
             }}>
-              第一次使用？用 email 驗證碼建立帳號
+              需要 email 驗證碼？用它登入或建立帳號
             </button>
           </div>
         </form>

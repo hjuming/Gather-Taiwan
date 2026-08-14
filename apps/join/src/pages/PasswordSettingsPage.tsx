@@ -98,9 +98,11 @@ export default function PasswordSettingsPage() {
   return (
     <div className="page">
       <p className="eyebrow">帳號設定</p>
-      <h1>設定登入密碼</h1>
+      <h1>{syntheticLineIdentity ? "完成登入設定" : "設定登入密碼"}</h1>
       <p className="auth-intro">
-        設定後，你可以用目前帳號的 email 與密碼登入；LINE 與 email 驗證碼登入仍然保留。
+        {syntheticLineIdentity
+          ? "請先綁定自己的 email 並完成確認；確認完成後，再設定密碼，之後就能用自己的 email＋密碼登入。LINE 與 email 驗證碼登入仍然保留。"
+          : "設定後，你可以用目前帳號的 email 與密碼登入；LINE 與 email 驗證碼登入仍然保留。"}
       </p>
 
       <div className="card account-login-email">
@@ -116,9 +118,15 @@ export default function PasswordSettingsPage() {
       {error && <div className="banner banner--error" role="alert">{error}</div>}
       {notice && <div className="banner banner--success" role="status">{notice}</div>}
 
+      {syntheticLineIdentity && (
+        <div className="banner banner--success" role="status">
+          目前是 LINE 系統身份；完成下方 email 確認前，不能用這個 `line+…` 地址收信登入。
+        </div>
+      )}
+
       <form className="stack card" onSubmit={handleSubmit}>
         <div className="field">
-          <label htmlFor="new-password">新密碼</label>
+          <label htmlFor="new-password">{syntheticLineIdentity ? "確認 Email 後設定新密碼" : "新密碼"}</label>
           <div className="password-field">
             <input
               id="new-password"
@@ -127,6 +135,7 @@ export default function PasswordSettingsPage() {
               minLength={8}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
+              disabled={syntheticLineIdentity}
               required
             />
             <button
@@ -134,6 +143,7 @@ export default function PasswordSettingsPage() {
               className="password-toggle"
               aria-label={showPassword ? "隱藏密碼" : "顯示密碼"}
               onClick={() => setShowPassword((visible) => !visible)}
+              disabled={syntheticLineIdentity}
             >
               {showPassword ? "隱藏" : "顯示"}
             </button>
@@ -149,12 +159,13 @@ export default function PasswordSettingsPage() {
             minLength={8}
             value={confirmation}
             onChange={(event) => setConfirmation(event.target.value)}
+            disabled={syntheticLineIdentity}
             required
           />
         </div>
         <div className="actions">
-          <button type="submit" className="btn-primary auth-action" disabled={busy}>
-            {busy ? "儲存中…" : "儲存登入密碼"}
+          <button type="submit" className="btn-primary auth-action" disabled={busy || syntheticLineIdentity}>
+            {syntheticLineIdentity ? "完成 Email 確認後設定" : busy ? "儲存中…" : "儲存登入密碼"}
           </button>
           <Link className="btn-text" to="/">返回首頁</Link>
         </div>
