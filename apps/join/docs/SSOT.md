@@ -90,6 +90,7 @@
   `6 / 8` 更新為 `7 / 8`，重新整理後狀態仍維持，主辦人頁同步 read-back 為 `7 / 8`。未暴露個人 token。
 - Responsive follow-up（2026-08-14）：主辦人編輯頁在 iPad portrait 級距 `772 × 1072` 的開始／結束時間欄
   已改為單欄，四個時間選單可完整顯示；`390 × 844` 與 `1440 × 900` 亦完成無水平溢位 read-back。
+  這筆 CSS 修正已提交，但本次 Worker 重新部署因缺少 Cloudflare owner credentials 尚未完成。
 - 未完成：LINE OIDC 實際登入、不同已登入會員的雙帳號 E2E，以及所有剩餘 P1-04 domain policy／
   席次情境的完整驗收。Wave 03 前端 Worker 部署與匿名／主辦人 token 流程已完成；主辦、邀請名單與報名
   UI 已可在正式 `/app/` 唯讀看到。
