@@ -51,7 +51,7 @@
 | --- | --- | --- |
 | GitHub | `hjuming/Gather-Taiwan` | `codex/gather-mvp` 開發分支已推送 |
 | 文化主站 | `https://gather.wedopr.com/` | 獨立靜態站，不可被 app build 覆寫 |
-| 報名 App | `https://gather.wedopr.com/app/*`（Workers Route，2026-08-06 起改為同網域路徑，前為獨立子網域） | 現行 Worker version `e0fcc0c2-c834-480b-b9d3-424783e20b19`；正式私密活動頁已 read-back 完整 OG metadata 與 `noindex` |
+| 報名 App | `https://gather.wedopr.com/app/*`（Workers Route，2026-08-06 起改為同網域路徑，前為獨立子網域） | 現行 Worker version `3c47c470-2844-423e-ab92-022ef427ae46`；正式 `/app` 已載入 `index-CTlbf1Vx.js`，私密活動頁已 read-back 完整 OG metadata 與 `noindex` |
 | Supabase org | `gather Taiwan` / `qqcraliqerxjcuyztkkf` | Free |
 | Supabase project | `gather-taiwan` / `anklbpkyesdmsubyfcna` | Healthy, Tokyo |
 | Supabase URL | `https://anklbpkyesdmsubyfcna.supabase.co` | 公開 project URL，非 secret |
@@ -103,6 +103,15 @@
   本輪未儲存正式資料。
 - Production `/app/__dev/session` 已由 Worker 明確 fail-closed 為 JSON 404，避免誤落入 Assets
   runtime；正式 POST read-back 為 HTTP 404、`Cache-Control: no-store`。
+- Email magic-link profile bootstrap（2026-08-15）：`935de99` 讓 magic-link session 自動補建
+  `public.users` profile，並保存送出 email 時的顯示名稱；Worker version
+  `3c47c470-2844-423e-ab92-022ef427ae46` 已部署。正式 bundle 的 OTP request 已 read-back
+  `redirect_to=https://gather.wedopr.com/app/`；本輪 B 身分 `gather@wedopr.com` 已成功建立 session，
+  在 Wave 04 報名後「我的報名」顯示「已確認參加」。舊信件曾落到 `localhost:3000`，以正式 `/app/`
+  重導後完成驗證；Gather Supabase Dashboard URL allowlist 未由目前操作員帳號讀回，仍列為 follow-up。
+- Wave 04 隔離測試（2026-08-15）：活動 `event-20260815-wave-04-5mbn` 容量由 20 儲存為 8；
+  主辦人建立後 reload 為 `0 / 8`，B email 身分報名後個人頁顯示 1 筆已確認報名。B 直接開啟
+  `/edit` 顯示只有活動主人可編輯；未登入頁無編輯／名單管理／狀態控制項。未刪除測試活動。
 - 文化主站首頁由獨立 Cloudflare Pages 提供；`f02c069` 的 metadata 修正已經由 Git integration
   部署，最新 Pages deployment source `b3c1bf7`，正式首頁三組 description 已 read-back 完全一致。
 - Worker unit contract 已覆蓋 LINE 拒絕授權、state／nonce mismatch、無 email fallback 與

@@ -78,8 +78,12 @@
   `apps/join/docs/evidence/p1-03-green.md`；過程中修正 `scripts/smoke-staging.mjs`
   既有 marker 檢查 bug（三檔誤共用同一符號）。
 - 正式 Worker 已部署；當前 SSOT 記錄的最新 version 為
-  `e0fcc0c2-c834-480b-b9d3-424783e20b19`。真實 Cloudflare Access 接線、獨立 staging 驗收、
+  `3c47c470-2844-423e-ab92-022ef427ae46`。真實 Cloudflare Access 接線、獨立 staging 驗收、
   LINE failure matrix 與第二個獨立帳號 E2E 仍待完成。
+- Email magic-link 目前由正式 bundle 以 `redirect_to=https://gather.wedopr.com/app/` 發送，並在
+  session bootstrap 時補建 `public.users` profile；若使用者仍收到舊的 `localhost:3000` 連結，
+  先確認信件是否為部署前寄出。Gather Supabase Dashboard 的 URL allowlist 尚未由目前操作員帳號
+  read-back，不得宣稱該 Dashboard 設定已驗收。
 - 2026-08-15 canonical seat-engine A 已以
   `20260814175513_canonical_seat_engine_hardening_a` 與
   `20260815030000_canonical_seat_engine_roster_dedupe_fix` 套用遠端；8 搶 3、41 搶 40
