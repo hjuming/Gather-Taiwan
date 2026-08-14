@@ -43,13 +43,43 @@ export interface GuestInvitationEvent {
   organizer_display_name: string | null;
   attending_count: number;
   invitees: GuestInvitationInvitee[];
+  guest_invitee_id: string | null;
   guest_response: GuestInvitationRosterResponse | null;
   guest_display_name: string | null;
 }
 
-export function getGuestInvitationStorageKey(slug: string, displayName?: string): string {
-  const suffix = displayName ? `:${encodeURIComponent(normalizeGuestDisplayName(displayName))}` : "";
-  return `gather:guest-invite:${slug}${suffix}`;
+const INVITEE_TOKEN_FRAGMENT_KEY = "invitee_token";
+const INVITEE_TOKEN_STORAGE_PREFIX = "gather:invitee-token:";
+
+export function buildInviteeResponseUrl(slug: string, token: string, origin = window.location.origin): string {
+  const url = new URL(`/app/e/${encodeURIComponent(slug)}`, origin);
+  url.hash = new URLSearchParams({ [INVITEE_TOKEN_FRAGMENT_KEY]: token }).toString();
+  return url.toString();
+}
+
+export function getInviteeTokenStorageKey(slug: string): string {
+  return `${INVITEE_TOKEN_STORAGE_PREFIX}${encodeURIComponent(slug)}`;
+}
+
+/** Personal links survive a refresh in the same tab, but never persist across browser sessions. */
+export function getStoredInviteeToken(slug: string): string | null {
+  if (typeof window === "undefined") return null;
+  return window.sessionStorage.getItem(getInviteeTokenStorageKey(slug))?.trim() || null;
+}
+
+/** Tokens are page capabilities: retain only in this tab's session storage, never URL history or local storage. */
+export function consumeInviteeTokenFragment(slug: string): string | null {
+  if (typeof window === "undefined") return null;
+  const fragment = new URLSearchParams(window.location.hash.slice(1));
+  const token = fragment.get(INVITEE_TOKEN_FRAGMENT_KEY)?.trim() || null;
+  if (!token) return null;
+
+  window.sessionStorage.setItem(getInviteeTokenStorageKey(slug), token);
+  fragment.delete(INVITEE_TOKEN_FRAGMENT_KEY);
+  const remainingFragment = fragment.toString();
+  const cleanUrl = `${window.location.pathname}${window.location.search}${remainingFragment ? `#${remainingFragment}` : ""}`;
+  window.history.replaceState(window.history.state, "", cleanUrl);
+  return token;
 }
 
 export function normalizeGuestDisplayName(value: string): string {
@@ -78,17 +108,6 @@ export function mergeGuestInvitationInvitee(
     }
     return next;
   }, []);
-}
-
-export function getOrCreateGuestInvitationKey(slug: string, displayName?: string): string {
-  if (typeof window === "undefined") return "";
-  const storageKey = getGuestInvitationStorageKey(slug, displayName);
-  const existing = window.localStorage.getItem(storageKey)?.trim();
-  if (existing) return existing;
-
-  const key = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  window.localStorage.setItem(storageKey, key);
-  return key;
 }
 
 export function guestResponseLabel(response: GuestInvitationRosterResponse | null): string {

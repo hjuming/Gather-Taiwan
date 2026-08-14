@@ -3,9 +3,11 @@ import {
   getEventInvitationTargets,
   organizerAddEventInvitationTarget,
   organizerEditEventInvitationTarget,
+  organizerIssueEventInvitationToken,
   organizerRemoveEventInvitationTarget,
 } from "../lib/api";
 import { copyText, getEventShareUrl } from "../lib/event-links";
+import { buildInviteeResponseUrl } from "../lib/guest-invitations";
 import type { EventInvitationTargetRow } from "../lib/types";
 
 const RESPONSE_LABEL: Record<EventInvitationTargetRow["response"], string> = {
@@ -34,6 +36,8 @@ export default function InvitationManager({
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [issuedLink, setIssuedLink] = useState<{ targetId: string; displayName: string; value: string } | null>(null);
+  const [issuedCopied, setIssuedCopied] = useState(false);
 
   async function load() {
     try {
@@ -56,8 +60,11 @@ export default function InvitationManager({
     }
     setBusy(true);
     setError(null);
+    setIssuedCopied(false);
     try {
-      await organizerAddEventInvitationTarget(eventId, name.trim());
+      const targetId = await organizerAddEventInvitationTarget(eventId, name.trim());
+      const token = await organizerIssueEventInvitationToken(targetId);
+      setIssuedLink({ targetId, displayName: name.trim(), value: buildInviteeResponseUrl(slug, token) });
       setName("");
       await load();
       await onChanged?.();
@@ -125,6 +132,30 @@ export default function InvitationManager({
     }
   }
 
+  async function handleIssueLink(target: EventInvitationTargetRow) {
+    setBusy(true);
+    setError(null);
+    setIssuedCopied(false);
+    try {
+      const token = await organizerIssueEventInvitationToken(target.id);
+      setIssuedLink({ targetId: target.id, displayName: target.display_name, value: buildInviteeResponseUrl(slug, token) });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "產生個人邀請連結失敗");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleCopyIssuedLink() {
+    if (!issuedLink) return;
+    try {
+      await copyText(issuedLink.value);
+      setIssuedCopied(true);
+    } catch {
+      setError("複製失敗，請手動複製個人邀請連結");
+    }
+  }
+
   const stats = useMemo(() => ({
     pending: targets.filter((target) => target.response === "pending").length,
     attending: targets.filter((target) => target.response === "attending").length,
@@ -134,15 +165,27 @@ export default function InvitationManager({
   return (
     <div className={`invitation-manager${embedded ? " invitation-manager--embedded" : ""}`}>
       {!embedded && <div className="invitation-manager__intro">
-        <p className="hint">把同一個網址傳給朋友，他們不用註冊，輸入自己的名字後就能選出席或不克出席。拿到網址的人可以看到受邀暱稱、修改回覆，請只分享給受邀朋友。</p>
+        <p className="hint">此網址只供查看受邀名單與出席狀況；每位朋友需使用自己的個人邀請連結回覆。</p>
         <div className="actions">
           <button type="button" className="btn-secondary" onClick={handleCopyLink} disabled={busy}>
-            {copied ? "已複製邀請網址 ✓" : "複製共用邀請網址"}
+            {copied ? "已複製名單網址 ✓" : "複製名單檢視網址"}
           </button>
         </div>
       </div>}
 
       {error && <div className="banner banner--error" role="alert">{error}</div>}
+
+      {issuedLink && (
+        <div className="banner banner--success" role="status">
+          <p>「{issuedLink.displayName}」的個人邀請連結只顯示這一次，請現在複製傳送；收件人可用原始連結再次開啟，重新產生後舊連結會失效。</p>
+          <div className="actions">
+            <button type="button" className="btn-secondary" onClick={handleCopyIssuedLink}>
+              {issuedCopied ? "已複製個人連結 ✓" : "複製個人邀請連結"}
+            </button>
+            <button type="button" className="btn-text" onClick={() => setIssuedLink(null)}>關閉</button>
+          </div>
+        </div>
+      )}
 
       <div className="roster-stats" aria-label="邀請回覆統計">
         <div><span>已回覆出席</span><strong>{stats.attending}{capacity ? ` / ${capacity}` : ""}</strong></div>
@@ -163,7 +206,7 @@ export default function InvitationManager({
             disabled={busy}
           />
         </div>
-        <button type="submit" className="btn-secondary" disabled={busy}>新增</button>
+        <button type="submit" className="btn-secondary" disabled={busy}>新增並取得個人連結</button>
       </form>
 
       <div className="registration-list">
@@ -195,6 +238,9 @@ export default function InvitationManager({
                   </span>
                 </div>
                 <div className="actions roster-entry__actions">
+                  <button type="button" className="btn-secondary" onClick={() => handleIssueLink(target)} disabled={busy}>
+                    {issuedLink?.targetId === target.id ? "重新產生個人連結" : "產生個人連結"}
+                  </button>
                   <button type="button" className="btn-secondary" onClick={() => startEdit(target)} disabled={busy}>修改</button>
                   <button type="button" className="btn-text" onClick={() => handleRemove(target)} disabled={busy}>移除</button>
                 </div>

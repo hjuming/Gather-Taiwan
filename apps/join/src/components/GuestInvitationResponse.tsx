@@ -1,21 +1,20 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { respondToGuestInvitation } from "../lib/api";
 import {
   guestResponseLabel,
-  normalizeGuestDisplayName,
   type GuestInvitationEvent,
   type GuestInvitationRosterResponse as ResponseValue,
 } from "../lib/guest-invitations";
 
 export default function GuestInvitationResponse({
   event,
-  guestKey,
+  inviteeToken,
   busy,
   onUpdated,
   onError,
 }: {
   event: GuestInvitationEvent;
-  guestKey: string;
+  inviteeToken: string;
   busy: boolean;
   onUpdated: (result: {
     id: string;
@@ -26,22 +25,16 @@ export default function GuestInvitationResponse({
   }) => void;
   onError: (message: string) => void;
 }) {
-  const [displayName, setDisplayName] = useState(event.guest_display_name ?? "");
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (event.guest_display_name) setDisplayName(event.guest_display_name);
-  }, [event.guest_display_name]);
-
   async function submit(response: ResponseValue) {
-    const normalizedName = normalizeGuestDisplayName(displayName);
-    if (!normalizedName) {
-      onError("請先輸入你的名字，讓主辦人知道是誰回覆。");
+    if (!event.guest_invitee_id) {
+      onError("這個個人邀請連結已失效，請向主辦人索取新的連結。");
       return;
     }
     setSaving(true);
     try {
-      const result = await respondToGuestInvitation(event.slug, guestKey, normalizedName, response);
+      const result = await respondToGuestInvitation(event.slug, inviteeToken, response);
       onUpdated(result);
     } catch (error) {
       onError(error instanceof Error && error.message.includes("額滿") ? "這場聚會目前已額滿。" : "回覆沒有送出，請稍後再試。");
@@ -56,19 +49,7 @@ export default function GuestInvitationResponse({
       <div className="guest-invitation-response__intro">
         <p className="section-kicker">回覆邀請</p>
         <h2>你會來嗎？</h2>
-        <p>填上名字後，選擇一個回覆即可。</p>
-      </div>
-      <div className="field">
-        <label htmlFor="guest-display-name">你的名字</label>
-        <input
-          id="guest-display-name"
-          type="text"
-          value={displayName}
-          onChange={(event_) => setDisplayName(event_.target.value)}
-          placeholder="例如：哈蜜瓜"
-          maxLength={80}
-          disabled={busy || saving}
-        />
+        <p>{event.guest_display_name ? `嗨，${event.guest_display_name}。` : "請使用主辦人提供的個人邀請連結。"}</p>
       </div>
       <p className="guest-invitation-response__status" aria-live="polite">
         目前狀態：<strong>{responseLabel}</strong>
@@ -81,7 +62,7 @@ export default function GuestInvitationResponse({
           這次不克出席
         </button>
       </div>
-      <p className="hint">不用註冊；之後回到同一個網址，就能修改自己的回覆。</p>
+      <p className="hint">不用註冊；保留原始個人邀請連結即可再次開啟並修改，主辦人重發後舊連結會失效。</p>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 # 來聚一場：產品與技術 SSOT
 
-最後更新：2026-08-13
+最後更新：2026-08-14
 
 ## 產品目標
 
@@ -66,8 +66,8 @@
 - P1-02：canonical domain schema、完整活動／報名狀態 enum、owner 每 organizer
   恰一位與交易式轉移、合法 registration transition、開始後 INSERT 拒絕、membership
   identity 不可變、跨活動 composite FK、時區／DST、active registration／冪等／outbox
-  unique seam 及交易資料邊界已在 Gather 雲端通過 read-back。所有 domain table 目前
-  沒有 policy、沒有 App role privilege，預期完全 fail-closed。
+  unique seam 及交易資料邊界已在 Gather 雲端通過 read-back。後續 P1-04／Wave 03 僅以
+  最小 RLS policy 與 SECURITY DEFINER RPC 開放既定流程；App role 仍無 direct domain-table DML。
 - 站內表示資產：`apps/join/public/favicon_io/*` 與 `apps/join/public/site.webmanifest`
   已更新，與 LINE T-01a 圖示 read-back 一致。
 - P1-03：dev JWT identity harness、Cloudflare Access 驗證、可信 rate-limit key、
@@ -78,8 +78,15 @@
   `9c827648-c5e3-408e-b94e-eaa99007a2f7` 已部署，正式私密活動頁的
   `og:title`／`og:description`／`og:image`、`X-Robots-Tag: noindex, nofollow` 均已 read-back；
   MING 已完成未登入／非主辦人不顯示編輯控制項與實體 iPad 驗收。
-- 未完成：P1-04 domain RLS policies、單一席次引擎、LINE OIDC 實際登入，以及主辦／
-  報名 UI 的雙帳號 E2E。主辦、邀請名單與報名 UI 已可在正式 `/app/` 唯讀看到。
+- Wave 03 DB：`20260813110623_private_invitee_tokens` 已於 Gather 雲端套用。已發布私密
+  invite-only 活動的 8 筆 legacy guest key hash 已作廢並留下 audit；回覆 RPC 改為僅接受
+  個人 token 的三參數簽名，新增／移除／發 token 僅限 authenticated，匿名只可讀名單與持
+  token 回覆。遠端 rollback fixture 已通過 token、ACL、容量、名單去重與無殘留驗證；Security
+  Advisor 無 issue。Wave 03 Worker 已於 2026-08-14 部署（version
+  `863ee4ad-6e8f-4955-9878-67c40f7d7a36`）；匿名正式私密頁 read-back 顯示名單與
+  出席狀態為唯讀，並提示使用個人邀請連結回覆。主辦人可登入新版 UI 逐一重發個人連結。
+- 未完成：Wave 03 前端 Worker 部署與真實雙帳號 E2E、LINE OIDC 實際登入，以及所有剩餘
+  P1-04 domain policy／席次情境的完整驗收。主辦、邀請名單與報名 UI 已可在正式 `/app/` 唯讀看到。
 
 ## P1-02 資料模型裁決
 

@@ -35,7 +35,8 @@ import { getGatheringTypeLabel, resolveCoverImage } from "../lib/gathering-types
 import { formatTaipeiDateTimeRange } from "../lib/date-time";
 import { formatEventFee } from "../lib/event-fee";
 import {
-  getOrCreateGuestInvitationKey,
+  consumeInviteeTokenFragment,
+  getStoredInviteeToken,
   mergeGuestInvitationInvitee,
   type GuestInvitationEvent,
   type GuestInvitationInvitee,
@@ -78,6 +79,8 @@ export default function EventPage() {
 
   const load = useCallback(async () => {
     if (!slug) return;
+    const fragmentToken = consumeInviteeTokenFragment(slug);
+    const tokenForSlug = fragmentToken ?? getStoredInviteeToken(slug);
     try {
       const row = await getEventBySlug(slug);
       setPublicSummary(null);
@@ -86,8 +89,7 @@ export default function EventPage() {
       setGuestInvitation(null);
       setIsOrganizerAdmin(false);
       if (!row) {
-        const guestKey = getOrCreateGuestInvitationKey(slug);
-        const guestEvent = await getGuestInvitationEvent(slug, guestKey).catch(() => null);
+        const guestEvent = await getGuestInvitationEvent(slug, tokenForSlug).catch(() => null);
         if (guestEvent) {
           setGuestInvitation(guestEvent);
           setPublicSummary({
@@ -123,7 +125,7 @@ export default function EventPage() {
         if (isAdmin && row.visibility === "private" && row.invite_only) {
           const hostGuestEvent = await getGuestInvitationEvent(
             row.slug,
-            getOrCreateGuestInvitationKey(row.slug),
+            null,
           ).catch(() => null);
           if (hostGuestEvent) setGuestInvitation(hostGuestEvent);
         }
@@ -345,16 +347,15 @@ export default function EventPage() {
     setUpdatingInviteeId(invitee.id);
     setError(null);
     try {
-      const result = await respondToGuestInvitation(
-        guestInvitation.slug,
-        getOrCreateGuestInvitationKey(guestInvitation.slug, invitee.display_name),
-        invitee.display_name,
-        nextResponse,
-      );
+      const tokenForSlug = getStoredInviteeToken(guestInvitation.slug);
+      if (!tokenForSlug || guestInvitation.guest_invitee_id !== invitee.id) {
+        throw new Error("這個邀請連結只能回覆自己的出席狀態");
+      }
+      const result = await respondToGuestInvitation(guestInvitation.slug, tokenForSlug, nextResponse);
       handleGuestUpdated(result);
       const refreshed = await getGuestInvitationEvent(
         guestInvitation.slug,
-        getOrCreateGuestInvitationKey(guestInvitation.slug),
+        tokenForSlug,
       ).catch(() => null);
       if (refreshed) {
         setGuestInvitation(refreshed);
@@ -372,7 +373,7 @@ export default function EventPage() {
     setShowInlineEditor(false);
     const refreshed = await getGuestInvitationEvent(
       updated.slug,
-      getOrCreateGuestInvitationKey(updated.slug),
+        getStoredInviteeToken(updated.slug),
     ).catch(() => null);
     if (refreshed) {
       setGuestInvitation(refreshed);
@@ -526,27 +527,37 @@ export default function EventPage() {
                 onChanged={async () => {
                   const refreshed = await getGuestInvitationEvent(
                     event.slug,
-                    getOrCreateGuestInvitationKey(event.slug),
+                    getStoredInviteeToken(event.slug),
                   ).catch(() => null);
                   if (refreshed) setGuestInvitation(refreshed);
                 }}
               />
             ) : invitees.length > 0 ? (
               <>
-                <p className="guest-invitation-roster__hint">點選狀態 確認是否出席。</p>
+                <p className="guest-invitation-roster__hint">
+                  {guestInvitation.guest_invitee_id
+                    ? "這是你的個人邀請連結；可再次用原始連結開啟並修改，主辦人重發後舊連結會失效。"
+                    : "此連結可查看名單與出席狀況；請使用個人邀請連結回覆。"}
+                </p>
                 <ul className="guest-invitation-roster__list">
                   {invitees.map((invitee) => (
                     <li key={invitee.id}>
                       <strong>{invitee.display_name}</strong>
-                      <button
-                        type="button"
-                        className={`status-pill guest-invitation-roster__status ${invitee.response === "attending" ? "status-pill--confirmed" : invitee.response === "declined" ? "status-pill--declined" : "status-pill--muted"}`}
-                        onClick={() => handleGuestStatusChange(invitee)}
-                        disabled={updatingInviteeId !== null}
-                        aria-label={`${invitee.display_name}目前${responseLabel[invitee.response]}，點選切換狀態`}
-                      >
-                        {responseLabel[invitee.response]}
-                      </button>
+                      {guestInvitation.guest_invitee_id === invitee.id ? (
+                        <button
+                          type="button"
+                          className={`status-pill guest-invitation-roster__status ${invitee.response === "attending" ? "status-pill--confirmed" : invitee.response === "declined" ? "status-pill--declined" : "status-pill--muted"}`}
+                          onClick={() => handleGuestStatusChange(invitee)}
+                          disabled={updatingInviteeId !== null}
+                          aria-label={`${invitee.display_name}目前${responseLabel[invitee.response]}，點選切換狀態`}
+                        >
+                          {responseLabel[invitee.response]}
+                        </button>
+                      ) : (
+                        <span className={`status-pill ${invitee.response === "attending" ? "status-pill--confirmed" : invitee.response === "declined" ? "status-pill--declined" : "status-pill--muted"}`}>
+                          {responseLabel[invitee.response]}
+                        </span>
+                      )}
                     </li>
                   ))}
                 </ul>

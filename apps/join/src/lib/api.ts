@@ -75,11 +75,11 @@ export async function getPublicEventSummary(slug: string): Promise<PublicEventSu
 
 export async function getGuestInvitationEvent(
   slug: string,
-  guestKey: string,
+  inviteeToken: string | null = null,
 ): Promise<GuestInvitationEvent | null> {
   const { data, error } = await supabase.rpc("get_event_invitation_by_slug", {
     p_slug: slug,
-    p_guest_key: guestKey,
+    p_guest_key: inviteeToken,
   });
   if (error) throw error;
   return (data as GuestInvitationEvent | null) ?? null;
@@ -87,8 +87,7 @@ export async function getGuestInvitationEvent(
 
 export async function respondToGuestInvitation(
   slug: string,
-  guestKey: string,
-  displayName: string,
+  inviteeToken: string,
   response: GuestInvitationRosterResponse,
 ): Promise<{
   id: string;
@@ -99,8 +98,7 @@ export async function respondToGuestInvitation(
 }> {
   const { data, error } = await supabase.rpc("respond_to_event_invitation", {
     p_slug: slug,
-    p_guest_key: guestKey,
-    p_display_name: displayName,
+    p_invitee_token: inviteeToken,
     p_response: response,
   });
   if (error) throw error;
@@ -145,6 +143,15 @@ export async function organizerRemoveEventInvitationTarget(targetId: string): Pr
     p_target_id: targetId,
   });
   if (error) throw error;
+}
+
+/** Plaintext is returned exactly once by the database; callers must not persist it. */
+export async function organizerIssueEventInvitationToken(targetId: string): Promise<string> {
+  const { data, error } = await supabase.rpc("organizer_issue_event_invitation_token", {
+    p_target_id: targetId,
+  });
+  if (error) throw error;
+  return data as string;
 }
 
 export async function organizerEditEventInvitationTarget(targetId: string, displayName: string): Promise<void> {
