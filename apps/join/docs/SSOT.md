@@ -30,8 +30,8 @@
 - 報名資格：參加者必須先註冊／登入會員，未登入者只能閱讀公開活動與進入登入引導。
 - 帳號登入密碼：已完成 LINE 或 email 驗證的會員，可在 `/app/account/password` 設定密碼；
   帳號設定頁會顯示目前真正的 Auth 登入 email，並以 Supabase Auth confirmation flow 綁定新的
-  登入 email。確認完成前維持原登入 email；`public.users.email` 只由
-  `sync_verified_email()` 同步，不接受前端直接寫入。
+  登入 email。確認完成前維持原登入 email；前端不可直接寫入驗證狀態，LINE server-only provisioning
+  可初始 upsert 未確認的 email，Supabase Auth email 確認後才由 `sync_verified_email()` 同步。
 - 公開揭露白名單：主辦人自訂顯示名稱、aggregate 報名人數、時間、地點與費用；公開頁
   不顯示參加者姓名。是否在報名後對參加者顯示姓名或只顯示人數，由主辦人設定，預設
   仍為 organizer-only。

@@ -303,10 +303,13 @@ export async function handleLineAuthCallback(request: Request, env: LineAuthEnv)
         if (!(error instanceof SupabaseAdminError) || error.status !== 422) throw error;
         const fallbackEmail = syntheticLineEmail(lineUserId);
         const existingFallback = await findAuthUserByEmail(fallbackEmail, env);
-        authUser = existingFallback ?? (await createAuthUser(fallbackEmail, true, env));
+        authUser = existingFallback ?? (await createAuthUser(fallbackEmail, false, env));
       }
       userId = authUser.id;
-      await upsertPublicUserRow(userId, lineUserId, claims.name, claims.email, hasRealEmail, env);
+      const authEmailMatchesClaim = Boolean(
+        claims.email && authUser.email.trim().toLowerCase() === claims.email.trim().toLowerCase(),
+      );
+      await upsertPublicUserRow(userId, lineUserId, claims.name, claims.email, authEmailMatchesClaim, env);
     } else {
       authUser = await getAuthUserById(userId, env);
     }

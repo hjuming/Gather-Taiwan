@@ -64,8 +64,8 @@ pnpm smoke
   sequential 11/11、`8 搶 3 = confirmed 3 / waitlisted 5`、
   `41 搶 40 = confirmed 40 / waitlisted 1`，均無 oversell 且 fixture cleanup 完成。
   這些是核心不變量證據，不是 P1-06/P1-08 整體 closure。
-- P1-07：雙邀請制（verified-email 自動資格＋one-time token）、event
-  password 驗證（dummy-hash 統計容差）。
+- P1-07：雙邀請制（verified-email 自動資格＋one-time token）、活動檢視密碼驗證（與帳號登入密碼不同；
+  dummy-hash 統計容差）。
   證據：`docs/evidence/p1-07-green.md`。
 - P1-09 / P1-13：付款聲明（無金額/帳號欄位）、`min_age` 強制、2/29 生日
   年齡計算。證據：`docs/evidence/p1-09-13-green.md`。

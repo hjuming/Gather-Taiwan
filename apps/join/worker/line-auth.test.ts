@@ -300,6 +300,7 @@ describe("handleLineAuthCallback", () => {
     expect(createCalls).toHaveLength(2);
     const fallbackBody = JSON.parse((createCalls[1][1] as RequestInit).body as string);
     expect(fallbackBody.email).toBe("line+line-user-123@users.noreply.gather.wedopr.com");
+    expect(fallbackBody.email_confirm).toBe(false);
     const location = new URL(response.headers.get("Location")!);
     expect(location.searchParams.get("token_hash")).toBe("the-hashed-token");
   });
