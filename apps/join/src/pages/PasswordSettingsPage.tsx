@@ -67,7 +67,10 @@ export default function PasswordSettingsPage() {
 
     setEmailBusy(true);
     try {
-      const { error: updateError } = await supabase.auth.updateUser({ email: normalizedEmail });
+      const { error: updateError } = await supabase.auth.updateUser(
+        { email: normalizedEmail },
+        { emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}account/password` },
+      );
       if (updateError) throw updateError;
       setEmailNotice(`確認信已寄到 ${normalizedEmail}。完成確認後，它才會成為新的登入 email。`);
       setNewEmail("");
