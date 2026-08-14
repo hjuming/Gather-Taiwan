@@ -1509,3 +1509,25 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ✅ Cloudflare Pages production deployment `22527b61-ce76-4ca9-9225-ec8365bd43a2`（source `a67d38d`）已部署；`/`、`/gatherings/` 正式 HTML 回讀 `navigator.maxTouchPoints` 與 `html[data-touch-nav]`；`/app/` 回讀 `index-s6CRvfvH.css`。
 - ✅ 驗證：typecheck、lint、Vitest `71 passed / 1 skipped`、build、static touch-nav contract、`git diff --check` PASS。
 - ⚠️ 尚未取得實體 iPad screenshot E2E；請在正式網域強制重新整理一次，並分別驗證直式／橫式右上角漢堡可見、可開啟、可關閉。若仍看到舊版，先使用無痕視窗再回報當下 URL 與 Safari 是否開啟「要求桌面版網站」。
+
+## 2026-08-15：canonical seat-engine B 與社群 metadata hardening
+
+- ✅ 依已取得授權套用 forward-only migration
+  `20260815040000_canonical_seat_engine_direct_update_revoke_b`；正式 ledger 已含
+  `20260814175513`、`20260815030000` 與 B migration。
+- ✅ 遠端 read-back：`events.capacity`、`invite_reserved_seats`、`invite_pool_deadline`、
+  `invite_pool_released_at` 對 `anon`／`authenticated` 均無 direct UPDATE；
+  `update_event_capacity_settings(uuid,text,integer,integer,timestamptz)` 僅 authenticated
+  可執行，anonymous direct DML 回傳 `permission denied for table events`。
+- ✅ Worker／前端 version `e29bf538-9a2d-472e-b340-446ddca8e1f3` 已部署至
+  `gather.wedopr.com/app/*`；活動頁 GET HTTP 200、`X-Robots-Tag: noindex, nofollow`，
+  OG／Twitter 活動事實一致。
+- ✅ 活動自訂代表圖可能不是 1200×630，Worker 已移除未量測的固定 `og:image:width`／height
+  宣告；新增 Worker regression test。正式活動頁 read-back 未再出現錯誤尺寸 metadata。
+- ✅ Node 22 gates：typecheck、lint、Vitest `119 passed / 1 skipped`、build、smoke 全部通過；
+  skip 為缺少測試 DB URL 的真實 concurrency suite，不列為 PASS。
+- ✅ commit `314f6bf`（canonical hardening）與 `19b9101`（social metadata hardening）已
+  推送至 `origin/codex/gather-mvp`，目前工作樹乾淨。
+- ⚠️ 文化主站首頁仍由獨立 Cloudflare Pages 提供；本輪未部署首頁，因此首頁三組 description
+  的既有差異仍未處理。LINE failure matrix、第二獨立帳號與 Cloudflare Access staging
+  仍未完成；event_fields 依本輪裁決不納入。

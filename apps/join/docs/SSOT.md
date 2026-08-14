@@ -119,9 +119,9 @@
   private roster corrective migration 保留 active target 名稱去重，但容量只對 attending target 去重，
   rollback guest verifier、lifecycle verifier、RLS／ACL 負向 read-back 均 PASS。
   多席 strict-FIFO／兩池 deadline merge／capacity RPC 冪等的真實 rollback fixture 已 PASS；
-  尚未完成的是 B 階段撤銷 `authenticated` 對 `events.capacity`／邀請池欄位的 direct UPDATE。
-  B 需另取得授權並在 Worker／前端路徑 read-back 後施作，因此 P1-06/P1-08 整體仍維持
-  conditional closure，不宣稱完整完成。
+  B 階段已撤銷 `authenticated` 對 `events.capacity`／邀請池欄位的 direct UPDATE，並完成
+  capacity RPC ACL、負向權限與 Worker／前端正式路徑 read-back。P1-06/P1-08 仍以核心席次／
+  併發證據作 conditional closure，不把未完成的完整 failure matrix 放大為已完成。
   P1-04 domain policy 已完成雲端 9/9 驗證，不得再列為未完成。Wave 03 前端 Worker 部署與
   匿名／主辦人 token 流程已完成；主辦、邀請名單與報名
   UI 已可在正式 `/app/` 唯讀看到。

@@ -27,10 +27,11 @@
 - [`apps/join/docs/MAINTENANCE.md`](./apps/join/docs/MAINTENANCE.md)
 
 目前 P1-04 domain policy 已有正式雲端 9/9 證據；P1-06/P1-08 核心席次／候補
-序列與併發證據亦 PASS。但 fresh review 已確認席次加總、兩池 deadline 順序與
-敏感欄位直寫尚待 canonical hardening，不得將這些核心 PASS 放大為完整席次 closure。
+序列與併發證據亦 PASS。canonical hardening A/B 已完成 SUM(seats)、strict FIFO、兩池
+deadline 順序與敏感欄位 direct UPDATE revoke；仍不把完整 LINE failure matrix、staging
+與第二帳號 E2E 放大為已完成。
 
-## 2026-08-14 進度摘要（可直接接續）
+## 2026-08-15 進度摘要（可直接接續）
 
 - 完成項目
   - `apps/join`：P1-01-A/B 與 P1-02 已完成主要驗收，且有本機與雲端回讀資料。
@@ -46,10 +47,11 @@
 - 已知未完成/待續
   - P1-03 harness 尚未接線真實 Cloudflare Access／`AUTH_RATE_LIMITER` binding，
     未部署至任何環境；P1-04 的多 sub RLS 強制力已完成正式雲端驗證。
-  - P1-04 正式雲端 9/9 證據已存在；但 fresh review 發現 `authenticated` 仍可直寫
-    容量／兩池敏感欄位，待 RLS／grant／RPC hardening 裁決與授權。
-  - P1-06/P1-08 已證明 sequential 11/11、`8 搶 3 = 3/5`、`41 搶 40 = 40/1`；
-    但 `count(*)` 與 `sum(seats)` 差異、兩池 deadline merge/release 順序尚未 closure。
+  - B migration 已撤銷 `authenticated` 對容量／兩池敏感欄位的 direct UPDATE；容量 RPC
+    ACL 與正式 Worker／前端路徑已完成 read-back。
+  - P1-06/P1-08 已證明 sequential 11/11、`8 搶 3 = 3/5`、`41 搶 40 = 40/1`，並補上
+    `SUM(seats)`、兩池 deadline merge/release 與 strict FIFO 的 rollback／遠端證據；完整
+    failure matrix 仍另列未完成。
   - LINE 正常授權 production E2E 已 PASS；拒絕、無 email、incognito、過期 state/nonce
     與第二個獨立帳號的完整失敗矩陣尚未完成。
 - 當前接力文件（優先看）

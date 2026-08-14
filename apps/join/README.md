@@ -9,21 +9,19 @@
 的 session 與未來 cookie 天然共用，不需處理跨子網域問題。Vite `base` 固定為
 `/app/`（見 `vite.config.ts`），React Router `basename` 讀 `import.meta.env.BASE_URL`。
 
-## 當前狀態（2026-08-14）
+## 當前狀態（2026-08-15）
 
 - P1-01～P1-09/13 已有分批歷史 evidence；其中 P1-04 有正式雲端 9/9 證據，
-  P1-06/P1-08 核心 sequential／concurrency 證據 PASS，但 fresh review 判定後者整體為
-  `CANONICAL_HARDENING_PENDING`，不得宣稱全部完成。
+  P1-06/P1-08 的 canonical hardening A/B、核心 sequential／concurrency 與 direct UPDATE
+  revoke 已完成 read-back；完整 failure matrix、staging 與第二帳號仍分開列為未完成。
 - P1-10：網站 UI 已建立（Supabase client、型別化 API 層、路由、5 個頁面：
   首頁、email OTP 登入、建場表單、活動頁含報名/密碼閘門/付款聲明/整場取消、
-  我的報名）。已用真實雲端資料在瀏覽器實際驗證匿名可見的頁面；登入後的
-  互動流程尚未經瀏覽器實測（見下方「未完成」）。
+  我的報名）。匿名與已登入主辦人正式瀏覽器 read-back 已涵蓋活動資訊、容量控制與名單
+  管理控制項；正式資料儲存 round-trip 仍以隔離測試活動補驗。
 - LINE 登入已完成正式 production 正常授權 E2E：LINE callback、Supabase Auth
   session、`/app/` authenticated DOM 均已驗證；email OTP 仍保留作為備援登入。
   正式 Cloudflare Access staging 接線仍未完成。
-- P2-02 的 server-only Supabase grant 已以 Dashboard SQL 套用並 read-back；本地
-  forward-only migration 已建立，但 migration ledger 尚待依維運流程同步，不能把
-  Dashboard 直接執行誤報為 ledger PASS。
+- P2-02 的 server-only Supabase grant 與本輪 B migration 均已完成正式 ledger／ACL read-back。
 - production source 與 build output 不得含 dev-auth 或 service-role 字詞；`pnpm smoke`
   會檢查（掃描範圍已修正為安全性掃全部、程式碼衛生只掃自家原始碼，避免
   vendored 依賴內部字串造成誤判）。
@@ -75,11 +73,10 @@ pnpm smoke
 
 ## 未完成 / 下一階（可接手）
 
-- P1-06/P1-08 canonical hardening 尚待裁決與明確授權：容量引擎與調降 guard
-  要由 `count(*)` 收斂為 `sum(seats)`，補證兩池 deadline merge/release 順序，並以
-  forward-only migration／RLS／grant／SECURITY DEFINER RPC 移除 `authenticated` 與前端
+- P1-06/P1-08 canonical hardening A/B 已完成：容量以 `SUM(seats)`、attending 邀請者計入、
+  strict FIFO／兩池 deadline merge 有遠端 rollback／併發證據，B 已撤銷 `authenticated` 與前端
   對 `capacity`、`invite_reserved_seats`、`invite_pool_deadline`、`invite_pool_released_at`
-  的直接 UPDATE。目前未施作、未重驗。
+  的直接 UPDATE；仍以 conditional closure 管理完整 failure matrix 邊界。
 - LINE 登入正常授權以外的失敗矩陣（拒絕、無 email、incognito、過期 state/nonce、
   第二個 LINE 帳號）尚待補跑。
 - 部署 staging（真實 Cloudflare Access 接線、`AUTH_RATE_LIMITER` binding）
@@ -87,7 +84,7 @@ pnpm smoke
   （目前只驗證了匿名可見頁面的真實瀏覽器渲染）。
 - 自訂報名欄位（`event_fields`）的主辦端建立／編輯 UI；參加者端動態渲染、必填與選項驗證、
   `p_answers` 送出已完成（2026-08-08）。
-- 主辦端報名者名單管理頁面（confirm/decline/remove 的 UI 化）。
+- 主辦端報名者 confirm/decline/remove 的完整 UI 化仍待後續；本輪已完成邀請名單新增／編輯／移除。
 - 通知：Phase-2 前續（隱私權條款、callback、secret 寫入後）。
 
 ## 2026-08-10 LINE production E2E 交接
