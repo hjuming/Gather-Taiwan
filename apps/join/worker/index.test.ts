@@ -52,6 +52,8 @@ describe("Worker asset response security headers", () => {
     expect(shareText).toContain("12 人");
     expect(html).toContain('<meta property="og:description" content="今晚一起吃飯，現場結算後分攤｜2026-08-13（四）18:30–21:30｜魚菜居酒屋｜105臺北市松山區南京東路五段250巷5-2號｜NT$ 800｜12 人"');
     expect(html).toContain('og:image" content="https://gather.wedopr.com/uploads/gather-harbor-dinner-documentary-v1.jpg"');
+    expect(html).not.toContain('og:image:width');
+    expect(html).not.toContain('og:image:height');
     expect(html).toContain('<meta name="twitter:card" content="summary_large_image"');
     expect(html).toContain('<link rel="canonical" href="https://gather.wedopr.com/app/e/event-20260813-gcrs"');
   });

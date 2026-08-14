@@ -51,7 +51,7 @@
 | --- | --- | --- |
 | GitHub | `hjuming/Gather-Taiwan` | `codex/gather-mvp` 開發分支已推送 |
 | 文化主站 | `https://gather.wedopr.com/` | 獨立靜態站，不可被 app build 覆寫 |
-| 報名 App | `https://gather.wedopr.com/app/*`（Workers Route，2026-08-06 起改為同網域路徑，前為獨立子網域） | 現行 Worker version `6cbb2977-6c73-4f72-9e2e-6251c45d5f52`；正式私密活動頁已 read-back 完整 OG metadata 與 `noindex` |
+| 報名 App | `https://gather.wedopr.com/app/*`（Workers Route，2026-08-06 起改為同網域路徑，前為獨立子網域） | 現行 Worker version `e29bf538-9a2d-472e-b340-446ddca8e1f3`；正式私密活動頁已 read-back 完整 OG metadata 與 `noindex` |
 | Supabase org | `gather Taiwan` / `qqcraliqerxjcuyztkkf` | Free |
 | Supabase project | `gather-taiwan` / `anklbpkyesdmsubyfcna` | Healthy, Tokyo |
 | Supabase URL | `https://anklbpkyesdmsubyfcna.supabase.co` | 公開 project URL，非 secret |
@@ -96,10 +96,13 @@
   CSS 修正已隨 Worker version `7992bf30-61d2-4450-b040-f04b9321a0a0` 部署；正式活動頁 HTTP 200
   並載入 `index-BAV4Y7B6.css`，其 SHA-256 與本機 build 相同。
 - Canonical hardening deploy（2026-08-15）：B migration 已完成 direct UPDATE revoke，Worker／前端
-  已部署 version `6cbb2977-6c73-4f72-9e2e-6251c45d5f52`；正式 GET read-back 為 HTTP 200，
+  已部署 version `e29bf538-9a2d-472e-b340-446ddca8e1f3`；正式 GET read-back 為 HTTP 200，
   私密活動 `X-Robots-Tag: noindex, nofollow`，OG description 含時間、地點、地址、費用與人數，
-  並載入 `index-1ihljKQ3.js`。匿名瀏覽器 read-back 無編輯／名單管理／狀態操作控制項；主辦人
-  capacity 編輯流程尚待登入狀態可用時完成。
+  自訂 OG 圖不再宣告未量測的固定尺寸，並載入 `index-1ihljKQ3.js`。匿名瀏覽器 read-back 無編輯／
+  名單管理／狀態操作控制項；已登入主辦人可看到 capacity 儲存控制與名單新增／修改／移除控制項，
+  本輪未儲存正式資料。
+- 文化主站首頁仍由獨立 Cloudflare Pages 提供；本輪未部署主站，因此首頁 description、og:description、
+  twitter:description 的既有文案差異仍列為未處理，不宣稱已修正。
 - Worker unit contract 已覆蓋 LINE 拒絕授權、state／nonce mismatch、無 email fallback 與
   cookie TTL／缺失後 fail-closed；未完成的是正式環境的同一 failure matrix（含 incognito）與
   第二個獨立 LINE 帳號 E2E。

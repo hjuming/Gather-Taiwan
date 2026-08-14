@@ -69,10 +69,10 @@ E2E 亦已 PASS。後續不得再把這兩項列為待施工。
    邀請者計入容量、strict FIFO 與 pool release-before-promote 已覆蓋。8 搶 3、41 搶 40
    真實並發與 token／RLS rollback verifier 均 PASS。
 2) 多席 strict-FIFO、兩池 deadline merge 與 capacity RPC 冪等的 rollback-only verifier 已 PASS。
-   待 Worker／前端 capacity RPC 正式 read-back 後，另取得授權施作 B migration，撤銷
-   `authenticated` 及前端對 `capacity`、`invite_reserved_seats`、`invite_pool_deadline`、
-   `invite_pool_released_at` 的 direct UPDATE；再補跑 B 後負向權限驗證。
-   未完成前維持 P1-06/P1-08 conditional closure，不宣稱完整完成。
+   B migration 已套用並完成 direct UPDATE revoke、容量 RPC ACL 與正式 Worker／前端 read-back；
+   `authenticated` 及前端已不能直接更新 `capacity`、`invite_reserved_seats`、`invite_pool_deadline`、
+   `invite_pool_released_at`。P1-06/P1-08 仍以既有核心席次／併發證據作 conditional closure，
+   不把未完成的完整 failure matrix 或 event_fields UI 放大為已完成。
 3) 完成 LINE 拒絕授權、無 email、incognito、過期 `state`/`nonce` 與第二個獨立帳號 E2E
 4) 補齊真實 Cloudflare Access 接線與獨立 staging 驗收
 

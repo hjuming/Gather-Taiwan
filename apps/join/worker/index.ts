@@ -137,8 +137,10 @@ async function handleEventDocument(request: Request, env: Env, slug: string): Pr
     `<meta property="og:image" content="${escapeHtml(imageUrl)}" />`,
     `<meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}" />`,
     `<meta property="og:image:type" content="${imageType}" />`,
-    `<meta property="og:image:width" content="1200" />`,
-    `<meta property="og:image:height" content="630" />`,
+    // Event covers may be organizer-uploaded and are not guaranteed to be
+    // 1200x630. Omit dimensions unless we have measured the selected asset;
+    // declaring a guessed size causes social crawlers to render a distorted
+    // preview for custom covers.
     `<meta property="og:image:alt" content="${escapeHtml(`${event.title}｜聚場台灣活動代表圖`)}" />`,
     `<meta property="og:locale" content="zh_TW" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
