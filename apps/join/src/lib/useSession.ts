@@ -53,6 +53,7 @@ function profileNameForSession(session: Session): string {
 }
 
 const profileBootstrap = new Map<string, Promise<void>>();
+const verifiedEmailSync = new Map<string, string>();
 
 function ensureSessionProfile(session: Session | null): Promise<void> {
   if (!session) return Promise.resolve();
@@ -66,6 +67,22 @@ function ensureSessionProfile(session: Session | null): Promise<void> {
   return pending;
 }
 
+async function syncVerifiedEmail(session: Session | null): Promise<void> {
+  if (!session?.user.email) return Promise.resolve();
+  const userId = session.user.id;
+  const email = session.user.email.trim().toLowerCase();
+  if (verifiedEmailSync.get(userId) === email) return Promise.resolve();
+
+  verifiedEmailSync.set(userId, email);
+  try {
+    const { error } = await supabase.rpc("sync_verified_email");
+    if (error) throw error;
+  } catch (error) {
+    if (verifiedEmailSync.get(userId) === email) verifiedEmailSync.delete(userId);
+    throw error;
+  }
+}
+
 export function useSession(): { session: Session | null; loading: boolean } {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -73,6 +90,7 @@ export function useSession(): { session: Session | null; loading: boolean } {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       await ensureSessionProfile(data.session).catch(() => undefined);
+      await syncVerifiedEmail(data.session).catch(() => undefined);
       setSession(data.session);
       setLoading(false);
     });
@@ -80,6 +98,7 @@ export function useSession(): { session: Session | null; loading: boolean } {
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
       void ensureSessionProfile(nextSession).catch(() => undefined);
+      void syncVerifiedEmail(nextSession).catch(() => undefined);
     });
 
     return () => subscription.subscription.unsubscribe();

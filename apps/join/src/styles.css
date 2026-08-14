@@ -63,6 +63,21 @@ main {
   width: 100%;
 }
 
+.account-login-email {
+  margin: 0 0 20px;
+}
+
+.account-login-email__value {
+  margin: 0 0 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.account-email-binding h2 {
+  margin-top: 0;
+}
+
 .password-field {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

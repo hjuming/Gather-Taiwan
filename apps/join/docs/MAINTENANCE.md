@@ -56,6 +56,17 @@
 - 上線驗收必須包含：正常授權、拒絕授權、無 email、incognito、過期
   state/nonce、兩個獨立 LINE 帳號。
 
+## Email／密碼與登入 email
+
+- 密碼只交給 Supabase Auth；不得寫入 `public.users`、log、DOM 或文件。
+- 已登入會員可在 `/app/account/password` 設定密碼；登入頁使用帳號設定頁顯示的 Auth 登入 email，
+  不把 LINE 顯示 email 或公開會員資料 email 自動當成登入 email。
+- 綁定新登入 email 必須走 Supabase Auth 的確認信流程；確認完成前維持原登入 email，
+  `public.users.email` 與 `email_verified_at` 只能由 `sync_verified_email()` 同步。
+- 目前沒有獨立的忘記密碼／reset flow；若忘記密碼，仍可用原本的 LINE 或 email 驗證碼登入後重新設定。
+- LINE email scope 未提供或與既有 Auth 帳號衝突時，Worker 會使用 synthetic Auth email；
+  介面必須顯示該目前登入 email，避免使用者猜測或誤綁定其他帳號。
+
 ## 回滾
 
 - 程式：回滾當次 Gate commit，不覆寫靜態主站或使用者的無關變更。

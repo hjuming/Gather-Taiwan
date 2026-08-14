@@ -15,11 +15,13 @@
   P1-06/P1-08 的 canonical hardening A/B、核心 sequential／concurrency 與 direct UPDATE
   revoke 已完成 read-back；完整 failure matrix、staging 與第二帳號仍分開列為未完成。
 - P1-10：網站 UI 已建立（Supabase client、型別化 API 層、路由、5 個頁面：
-  首頁、email OTP 登入、建場表單、活動頁含報名/密碼閘門/付款聲明/整場取消、
+  首頁、LINE／email OTP／email＋密碼登入、帳號密碼與登入 email 設定、建場表單、活動頁含報名/密碼閘門/付款聲明/整場取消、
   我的報名）。匿名與已登入主辦人正式瀏覽器 read-back 已涵蓋活動資訊、容量控制與名單
   管理控制項；正式資料儲存 round-trip 仍以隔離測試活動補驗。
 - LINE 登入已完成正式 production 正常授權 E2E：LINE callback、Supabase Auth
   session、`/app/` authenticated DOM 均已驗證；email OTP 仍保留作為備援登入。
+  已登入會員可在 `/app/account/password` 設定帳號登入密碼、查看目前 Auth 登入 email，
+  並以確認信綁定新的登入 email；確認前不會切換登入身份。
   正式 Cloudflare Access staging 接線仍未完成。
 - P2-02 的 server-only Supabase grant 與本輪 B migration 均已完成正式 ledger／ACL read-back。
 - production source 與 build output 不得含 dev-auth 或 service-role 字詞；`pnpm smoke`
@@ -67,8 +69,8 @@ pnpm smoke
   證據：`docs/evidence/p1-07-green.md`。
 - P1-09 / P1-13：付款聲明（無金額/帳號欄位）、`min_age` 強制、2/29 生日
   年齡計算。證據：`docs/evidence/p1-09-13-green.md`。
-- P1-10：網站 UI（建場表單、活動頁、報名、我的報名、email OTP 登入）、
-  activity password 解鎖的實際 RLS 授權路徑（`event_password_grants`）、
+- P1-10：網站 UI（建場表單、活動頁、報名、我的報名、LINE／email OTP／email＋密碼登入）、
+  帳號登入密碼與登入 email 設定、活動檢視密碼解鎖的實際 RLS 授權路徑（`event_password_grants`）、
   整場取消（`cancel_event`）。證據：`docs/evidence/p1-10-green.md`。
 
 ## 未完成 / 下一階（可接手）

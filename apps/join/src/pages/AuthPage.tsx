@@ -136,7 +136,7 @@ export default function AuthPage() {
       if (signInError) throw signInError;
       navigate(redirectTo, { replace: true });
     } catch {
-      setError("Email 或密碼不正確，請重新嘗試");
+      setError("Email 或密碼不正確。請確認使用的是帳號設定頁顯示的登入 email；若尚未綁定自己的 email，請先用原本的 LINE 登入。");
     } finally {
       setBusy(false);
     }
@@ -181,6 +181,9 @@ export default function AuthPage() {
       )}
       <p className="auth-intro">
         可以用 LINE 登入、email 驗證碼，或已設定密碼的 email 登入。
+      </p>
+      <p className="hint auth-login-hint">
+        第一次用 LINE 登入後，請到「設定登入密碼」查看目前登入 email；綁定並確認自己的 email 後，之後就能用它搭配密碼登入。
       </p>
 
       {lineError && (

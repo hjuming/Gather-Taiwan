@@ -12,6 +12,10 @@ export default function PasswordSettingsPage() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailBusy, setEmailBusy] = useState(false);
+  const [emailNotice, setEmailNotice] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !session) {
@@ -46,6 +50,34 @@ export default function PasswordSettingsPage() {
     }
   }
 
+  async function handleEmailBinding(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setEmailNotice(null);
+    setEmailError(null);
+    const normalizedEmail = newEmail.trim().toLowerCase();
+    const currentEmail = session?.user.email?.trim().toLowerCase();
+    if (!normalizedEmail) {
+      setEmailError("請輸入要綁定的 email");
+      return;
+    }
+    if (normalizedEmail === currentEmail) {
+      setEmailError("這就是目前的登入 email，請直接用它登入");
+      return;
+    }
+
+    setEmailBusy(true);
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({ email: normalizedEmail });
+      if (updateError) throw updateError;
+      setEmailNotice(`確認信已寄到 ${normalizedEmail}。完成確認後，它才會成為新的登入 email。`);
+      setNewEmail("");
+    } catch {
+      setEmailError("這個 email 無法綁定，可能已被其他帳號使用；請改用其他 email，或先用該帳號登入。");
+    } finally {
+      setEmailBusy(false);
+    }
+  }
+
   if (loading || !session) {
     return (
       <div className="page">
@@ -62,6 +94,14 @@ export default function PasswordSettingsPage() {
       <p className="auth-intro">
         設定後，你可以用目前帳號的 email 與密碼登入；LINE 與 email 驗證碼登入仍然保留。
       </p>
+
+      <div className="card account-login-email">
+        <p className="eyebrow">目前登入身份</p>
+        <p className="account-login-email__value">{session.user.email ?? "尚未提供登入 email"}</p>
+        <p className="hint">
+          之後使用 email＋密碼登入時，請填這個 email。它可能和 LINE 帳號或公開顯示資料中的 email 不同。
+        </p>
+      </div>
 
       {error && <div className="banner banner--error" role="alert">{error}</div>}
       {notice && <div className="banner banner--success" role="status">{notice}</div>}
@@ -107,6 +147,35 @@ export default function PasswordSettingsPage() {
             {busy ? "儲存中…" : "儲存登入密碼"}
           </button>
           <Link className="btn-text" to="/">返回首頁</Link>
+        </div>
+      </form>
+
+      <form className="stack card account-email-binding" onSubmit={handleEmailBinding}>
+        <div>
+          <p className="eyebrow">登入 email</p>
+          <h2>綁定自己的 email</h2>
+          <p className="hint">
+            系統會寄確認信到新 email。你完成信件確認前，目前登入 email 不會改變；確認後才可用新 email＋目前密碼登入。
+          </p>
+        </div>
+        {emailError && <div className="banner banner--error" role="alert">{emailError}</div>}
+        {emailNotice && <div className="banner banner--success" role="status">{emailNotice}</div>}
+        <div className="field">
+          <label htmlFor="new-login-email">新的登入 email</label>
+          <input
+            id="new-login-email"
+            type="email"
+            autoComplete="email"
+            value={newEmail}
+            onChange={(event) => setNewEmail(event.target.value)}
+            placeholder="name@example.com"
+            required
+          />
+        </div>
+        <div className="actions">
+          <button type="submit" className="btn-secondary" disabled={emailBusy}>
+            {emailBusy ? "寄送中…" : "寄送確認信"}
+          </button>
         </div>
       </form>
     </div>
