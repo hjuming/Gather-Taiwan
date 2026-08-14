@@ -68,6 +68,9 @@
 - LINE email scope 未提供或與既有 Auth 帳號衝突時，Worker 會使用 synthetic Auth email；
   介面必須顯示該目前登入 email，並明確標示它是 LINE 系統身份、引導使用者先綁定自己的
   email，避免使用者猜測或誤綁定其他帳號。
+- 2026-08-15 Cloud DB 唯讀稽核發現 1 筆歷史 synthetic Auth confirmed／public verified 身份；
+  verified guard migration 尚待使用者授權。不得直接修改 managed `auth.users`，也不得將唯讀稽核
+  當成 migration 已套用。
 
 ## 回滾
 
