@@ -5,15 +5,17 @@ import { pathToFileURL } from "node:url";
 const distDirectory = join(process.cwd(), "dist");
 const sourceDirectories = [
   join(process.cwd(), "src"),
-  join(process.cwd(), "worker/index.ts"),
   join(process.cwd(), "worker/response-security.ts"),
 ];
-// worker/line-auth.ts legitimately references SUPABASE_SERVICE_ROLE_KEY by
+// Worker-only sources legitimately reference SUPABASE_SERVICE_ROLE_KEY by
 // *name* (an env var property access, never a literal value) to run the
 // LINE OAuth user-provisioning flow server-side — that's the correct place
 // for elevated Supabase access to live. It's audited by every check except
 // the bare "service_role" keyword scan (see forbiddenServiceRoleKeyword).
-const privilegedWorkerSourceFiles = [join(process.cwd(), "worker/line-auth.ts")];
+const privilegedWorkerSourceFiles = [
+  join(process.cwd(), "worker/index.ts"),
+  join(process.cwd(), "worker/line-auth.ts"),
+];
 const configFiles = ["index.html", "package.json", "vite.config.ts", "wrangler.jsonc"].map((file) => join(process.cwd(), file));
 
 // Checked everywhere — source, privileged worker source, and every build

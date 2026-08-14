@@ -35,12 +35,15 @@
   與 migration gate；本輪不變更資料表。Gather Taiwan 未來自辦活動的金流與真實對帳，
   另以不對外開放的 private workflow 評估。
 
-## Phase 2 預定技術路徑（尚未驗收）
+## Phase 2 LINE 現行技術路徑與驗收邊界
 
-- 2026-08-02 依 Supabase 現行官方 Custom OAuth/OIDC provider 與 LINE OIDC/PKCE
-  文件，預定使用 `custom:line`，不採 service-role magic-link 舊 workaround。
-- 這是 P2-02 的實作 ADR，不是 P1-01-B 驗收結果。必須以 Dashboard 顯示的
-  callback URL、實際 LINE channel 與登入負向測試後，才能轉為已驗收架構。
+- 正式網域現行由 Worker 處理 LINE OAuth/OIDC `state`/`nonce`、callback 與帳號
+  provisioning，再以 server-only service-role bridge 建立 Supabase session；前端 bundle 不持有
+  LINE channel secret 或 Supabase service-role key。
+- 2026-08-10 正常授權的 production E2E 已 PASS，最終返回 `/app/` 並建立會話。
+  這不代表完整 LINE 驗收；拒絕授權、無 email、incognito、過期 `state`/`nonce`
+  與第二個獨立 LINE 帳號仍未完成。不得把單一帳號正常流程 PASS 放大為
+  LINE Console、雙帳號或完整 failure matrix PASS。
 
 ## 環境與外部資源
 
@@ -92,8 +95,10 @@
   已改為單欄，四個時間選單可完整顯示；`390 × 844` 與 `1440 × 900` 亦完成無水平溢位 read-back。
   CSS 修正已隨 Worker version `7992bf30-61d2-4450-b040-f04b9321a0a0` 部署；正式活動頁 HTTP 200
   並載入 `index-BAV4Y7B6.css`，其 SHA-256 與本機 build 相同。
-- 未完成：LINE OIDC 實際登入、不同已登入會員的雙帳號 E2E，以及所有剩餘 P1-04 domain policy／
-  席次情境的完整驗收。Wave 03 前端 Worker 部署與匿名／主辦人 token 流程已完成；主辦、邀請名單與報名
+- 未完成：LINE 拒絕授權／無 email／incognito／過期 `state`/`nonce` failure matrix、
+  第二個獨立 LINE 帳號 E2E，以及 P1-06/P1-08 尚未覆蓋的完整席次與併發情境。
+  P1-04 domain policy 已完成雲端 9/9 驗證，不得再列為未完成。Wave 03 前端 Worker 部署與
+  匿名／主辦人 token 流程已完成；主辦、邀請名單與報名
   UI 已可在正式 `/app/` 唯讀看到。
 
 ## P1-02 資料模型裁決

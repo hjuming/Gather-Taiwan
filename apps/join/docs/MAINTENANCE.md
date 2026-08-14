@@ -21,8 +21,8 @@
   統一 `BigInt(value)`；不可對字串直接 `+ 1n`。
 - 有限容量不得在 UI 端先讀後寫。必須使用事務、鎖、唯一約束、單一席次
   引擎與 deferred constraint trigger 共同維持。
-- P1-02 新增的 domain tables 目前全部 `ENABLE/FORCE RLS`、無 policy、無 App role
-  privilege；查不到資料是預期 fail-closed，不可用 service role 或暫時 grant 繞過。
+- P1-04 已在維持 `ENABLE/FORCE RLS` 下新增最小 policy、欄位 grant 與 scoped RPC；
+  base-table direct DML 與尚未開放的流程仍 fail-closed，不可用 service role 或暫時 grant 繞過。
 - Owner transfer 同時受 partial unique 與 deferred「恰一位 owner」constraint trigger
   保護。若 caller 先把 constraints 改為 immediate，RPC 仍會在自身交易內延後該 trigger、
   完成雙更新後立刻重驗；不得拆成兩次 API update。
@@ -46,9 +46,11 @@
 - LINE callback 使用的 `service_role` grant 只限 `public.users` 必要欄位；任何權限修正須以
   forward-only migration 記錄，並在 Dashboard 直接套用時同步留下 SQL/read-back 證據。
 - 2026-08-10 正常 LINE production E2E 已通過，最終 URL 應為 `/app/` 且 DOM 有「我的報名」
-  與「登出」；若出現 `/app/app/`，優先檢查 callback redirect 是否誤帶 app basename。
-  與大小寫。
-- Supabase custom OIDC callback 以 Dashboard 顯示的 read-only callback URL 為準，不猜測。
+  與「登出」；若出現 `/app/app/`，優先檢查 callback redirect 是否誤帶 app basename
+  或大小寫錯誤。
+- 現行正式路徑是 Worker 處理 LINE OAuth/OIDC callback，再以 server-only
+  service-role bridge 建立 Supabase session。正常流程 PASS 不等於下方 failure matrix 或第二帳號 PASS。
+- LINE callback URL 以已部署環境與受控設定記錄為準，不猜測、不把 Console 未讀回的狀態寫成 PASS。
 - RLS 身分只信任 `auth.uid()` 與 server-validated claims，不信任可自行編輯的
   `user_metadata`。
 - 上線驗收必須包含：正常授權、拒絕授權、無 email、incognito、過期
@@ -75,7 +77,7 @@
 - P1-03（dev-only auth harness）已完成正式驗收，見
   `apps/join/docs/evidence/p1-03-green.md`；過程中修正 `scripts/smoke-staging.mjs`
   既有 marker 檢查 bug（三檔誤共用同一符號）。
-- 本輪未調整 `join` 的 deployment pipeline；staging/production 部署仍留待真實
-  Cloudflare Access／`AUTH_RATE_LIMITER` binding 接線與 T-01b。
-- 本次不新增新型憑證；`jose` 只記錄在 lockfile 作為未來 auth 基礎，
-  `app secret` 仍需依 Phase 2 secret store 寫入。
+- 正式 Worker 已部署；當前 SSOT 記錄的最新 version 為
+  `7992bf30-61d2-4450-b040-f04b9321a0a0`。真實 Cloudflare Access 接線、獨立 staging 驗收、
+  LINE failure matrix 與第二個獨立帳號 E2E 仍待完成。
+- LINE channel secret 與 Supabase service-role key 只存部署環境；文件、前端 bundle 與 log 只能記變數名，不記值。

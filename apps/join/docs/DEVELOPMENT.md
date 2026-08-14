@@ -62,10 +62,12 @@ migration 或 concurrency PASS。
 `P1-03`（dev-only auth harness）已完成正式驗收，證據見
 `docs/evidence/p1-03-green.md`；尚未接線真實 Cloudflare Access，未部署。
 
-1) 先做 `P1-04`（domain policies）
-2) 同步補 `P1-06 / P1-08`（席次引擎與冪等）
-3) 完成 `T-01b`（LINE callback 與 E2E）
-4) 補齊 staging/production 部署與真實 Cloudflare Access 接線
+`P1-04` domain policies 已完成正式雲端 9/9 驗證；LINE 正常授權 production
+E2E 亦已 PASS。後續不得再把這兩項列為待施工。
+
+1) 補齊 `P1-06 / P1-08` 未覆蓋的完整席次、候補與併發情境
+2) 完成 LINE 拒絕授權、無 email、incognito、過期 `state`/`nonce` 與第二個獨立帳號 E2E
+3) 補齊真實 Cloudflare Access 接線與獨立 staging 驗收
 
 ## 2026-08-10 Supabase 恢復後的 LINE callback 交接
 
@@ -93,8 +95,8 @@ incognito、過期 state/nonce、第二帳號等失敗矩陣仍是待辦。
 5. 容量與報名狀態只能經單一席次引擎 RPC 改動，App role 不可直寫。
 6. 已套用 migration 永不回改；修正必須新增 forward-only migration。P1-02 的 owner
    transfer 修正即保留為獨立 ledger 版本，避免本地檔與雲端 checksum 漂移。
-7. P1-02 domain tables 尚無 policy 是刻意的 fail-closed Gate；只有 P1-04 驗收後才可
-   grant 最小權限。不得為了 UI 開發先給 base-table DML。
+7. P1-04 已對 domain tables 建立最小 policy／欄位 grant 與 scoped RPC；base-table
+   direct DML 與尚未開放的流程仍維持 fail-closed。不得為了 UI 開發額外放寬。
 8. LINE callback 的 server-only 存取另以 `20260810010000_p2_02_line_service_role_grants.sql`
    維持最小欄位 grant；不得把這些權限複製給 `anon`／`authenticated`，也不得把
    `service_role` key 放進前端。若以 Dashboard SQL 緊急套用，必須在控制紀錄標註
