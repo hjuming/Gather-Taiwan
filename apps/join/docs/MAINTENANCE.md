@@ -91,7 +91,7 @@
   `apps/join/docs/evidence/p1-03-green.md`；過程中修正 `scripts/smoke-staging.mjs`
   既有 marker 檢查 bug（三檔誤共用同一符號）。
 - 正式 Worker 已部署；當前 SSOT 記錄的最新 version 為
-  `2ce51aca-bdae-4bc5-b55f-a16a7340106d`。真實 Cloudflare Access 接線、獨立 staging 驗收、
+  `a5123237-c470-4047-a953-353aad4dc6a9`。真實 Cloudflare Access 接線、獨立 staging 驗收、
   LINE failure matrix 與第二個獨立帳號 E2E 仍待完成。
 - Email magic-link 目前由正式 bundle 以
   `redirect_to=https://gather.wedopr.com/app/auth?redirect=…` 發送，保留原活動導向，並在

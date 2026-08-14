@@ -58,7 +58,7 @@
 | --- | --- | --- |
 | GitHub | `hjuming/Gather-Taiwan` | `codex/gather-mvp` 開發分支已推送 |
 | 文化主站 | `https://gather.wedopr.com/` | 獨立靜態站，不可被 app build 覆寫 |
-| 報名 App | `https://gather.wedopr.com/app/*`（Workers Route，2026-08-06 起改為同網域路徑，前為獨立子網域） | 現行 Worker version `2ce51aca-bdae-4bc5-b55f-a16a7340106d`；正式 `/app/auth` 已載入 `index-C0t3h57S.js`，私密活動頁已 read-back 完整 OG metadata 與 `noindex` |
+| 報名 App | `https://gather.wedopr.com/app/*`（Workers Route，2026-08-06 起改為同網域路徑，前為獨立子網域） | 現行 Worker version `a5123237-c470-4047-a953-353aad4dc6a9`；正式 `/app/auth` 已載入 `index-BeJCmF3D.js`，私密活動頁已 read-back 完整 OG metadata 與 `noindex` |
 | Supabase org | `gather Taiwan` / `qqcraliqerxjcuyztkkf` | Free |
 | Supabase project | `gather-taiwan` / `anklbpkyesdmsubyfcna` | Healthy, Tokyo |
 | Supabase URL | `https://anklbpkyesdmsubyfcna.supabase.co` | 公開 project URL，非 secret |
@@ -118,10 +118,10 @@
   在 Wave 04 報名後「我的報名」顯示「已確認參加」。舊信件曾落到 `localhost:3000`，以正式 `/app/`
   重導後完成驗證；Gather Supabase Dashboard URL allowlist 未由目前操作員帳號讀回，仍列為 follow-up。
 - Email／密碼與登入 email（2026-08-15）：`29e7567`、`4fd5c9f`、`a8cb0b2`、`958f20d`、
-  `863f226`、`7b3cc41` 已推送並部署。登入頁明確區分
+  `863f226`、`7b3cc41`、`ce19ef6` 已推送並部署。登入頁明確區分
   LINE、email OTP 與 email＋密碼；已登入會員可在 `/app/account/password` 查看 Auth 登入 email、
   設定密碼並以 Supabase Auth confirmation flow 綁定新 email，確認前不切換；synthetic LINE 身份
-  必須先完成自己的 email 綁定，才可設定密碼。正式 `/app/auth` 已 read-back `index-C0t3h57S.js`，
+  必須先完成自己的 email 綁定，才可設定密碼。正式 `/app/auth` 已 read-back `index-BeJCmF3D.js`，
   並明確標示 synthetic LINE 系統身份；真實確認信 round-trip 與 Supabase Auth
   `double_confirm_changes` 設定仍未查證。
 - Wave 04 隔離測試（2026-08-15）：活動 `event-20260815-wave-04-5mbn` 容量由 20 儲存為 8；

@@ -22,8 +22,8 @@
   session、`/app/` authenticated DOM 均已驗證；email OTP 仍保留作為備援登入。
   已登入會員可在 `/app/account/password` 設定帳號登入密碼、查看目前 Auth 登入 email，
   並以確認信綁定新的登入 email；確認前不會切換登入身份。
-  最新正式 Worker version 為 `2ce51aca-bdae-4bc5-b55f-a16a7340106d`，登入資產為
-  `index-C0t3h57S.js`；OTP confirmation link 會保留原活動導向，synthetic LINE 身份須先綁定自己的
+  最新正式 Worker version 為 `a5123237-c470-4047-a953-353aad4dc6a9`，登入資產為
+  `index-BeJCmF3D.js`；OTP confirmation link 會保留原活動導向，synthetic LINE 身份須先綁定自己的
   email 才能設定密碼。
   正式 Cloudflare Access staging 接線仍未完成。
 - P2-02 的 server-only Supabase grant 與本輪 B migration 均已完成正式 ledger／ACL read-back。
