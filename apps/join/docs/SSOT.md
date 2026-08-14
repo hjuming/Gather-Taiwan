@@ -95,7 +95,8 @@
   已改為單欄，四個時間選單可完整顯示；`390 × 844` 與 `1440 × 900` 亦完成無水平溢位 read-back。
   CSS 修正已隨 Worker version `7992bf30-61d2-4450-b040-f04b9321a0a0` 部署；正式活動頁 HTTP 200
   並載入 `index-BAV4Y7B6.css`，其 SHA-256 與本機 build 相同。
-- 未完成：LINE 拒絕授權／無 email／incognito／過期 `state`/`nonce` failure matrix、
+- Worker unit contract 已覆蓋 LINE 拒絕授權、state／nonce mismatch、無 email fallback 與
+  cookie TTL／缺失後 fail-closed；未完成的是正式環境的同一 failure matrix（含 incognito）與
   第二個獨立 LINE 帳號 E2E，以及 P1-06/P1-08 尚未覆蓋的完整席次與併發情境。
   P1-04 domain policy 已完成雲端 9/9 驗證，不得再列為未完成。Wave 03 前端 Worker 部署與
   匿名／主辦人 token 流程已完成；主辦、邀請名單與報名
