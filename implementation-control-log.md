@@ -1789,3 +1789,17 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 ### Safepoint boundary
 
 - 目前本機 dirty WIP 可作 safepoint candidate，供後續在同一 fixed point 重啟；明確不是 release、DB acceptance、remote apply 或 deployment readiness。
+
+## 2026-08-15：Local WIP safepoint established
+
+### Commit evidence
+
+- Local commit：`669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`；message：`wip(join): checkpoint wave 0 capacity hardening`。
+- Exact 9-file allowlist：`apps/join/package.json`、`apps/join/scripts/migration-contract.test.ts`、`apps/join/scripts/verify-guest-invitations.mjs`、`apps/join/scripts/verify-manual-roster-capacity.mjs`、`apps/join/scripts/verify-manual-roster-concurrency.mjs`、`apps/join/supabase/migrations/20260815060000_manual_roster_capacity_seat_engine_fix.sql`、`docs/squad/CHARTER.md`、`docs/squad/LEDGER.md`、`implementation-control-log.md`。
+- Post-commit read-back：working tree clean；未 push、tag 或建立 PR。此證據只成立於 commit 建立當下；本次 Echo 兩份 docs sync 是後續未提交差異，不在 `669f42d` 內。
+
+### Boundary and restart concept
+
+- `669f42d` 只是一個 local WIP safepoint，不是 release、DB runtime acceptance 或 Wave 0 closure；Wave 1 不得開。
+- External blockers 保持：isolated runtime 不穩、GitHub auth invalid、remote DB credential unavailable；未執行 remote migration、deploy 或 push。
+- 重啟時先讀回 branch／HEAD／dirty baseline；Docker／db-start 穩定後只跑一次 phase-aware concurrency diagnostic，若取得 phase 再做 root-cause 判定，之後交 Fresh runtime 驗收。

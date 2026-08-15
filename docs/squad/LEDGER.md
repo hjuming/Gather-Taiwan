@@ -10,7 +10,7 @@
 - Atlas production read-back：**PASS（PRODUCTION）**；Worker version `e0fcc0c2-c834-480b-b9d3-424783e20b19`、route `gather.wedopr.com/app/*`、production assets／headers read-back PASS。
 - GitHub：**BLOCKED**（auth invalid）。Remote DB migration／runtime：**NOT_RUN**（credential unavailable）；唯讀 catalog 僅確認 `20260815060000` 為 `MISSING`，不等於 remote DB PASS。
 - Wave 0 safe diagnostic：**ACCEPTED（Fresh LOCAL-code）**。Fallback3 DB runtime 僅 partial PASS、concurrency `FAIL`；後續 phase-aware one-shot 在 bootstrap 失敗，所有 fixed fields=`null`／`NOT_RUN`。Wave 0 未關閉，Wave 1 不得開。
-- 本機 dirty WIP 可作 **safepoint candidate**；明確不是 release、DB runtime acceptance、remote migration 或 deploy readiness。
+- Local WIP safepoint 已建立：`669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`（`wip(join): checkpoint wave 0 capacity hardening`）；exact 9-file allowlist，commit 當下 post-commit clean，未 push／tag／PR。明確不是 release，Wave 0 未關閉。
 - Git 規則：只 stage 明確檔案，禁止 `git add -A`；本狀態檔不代表已 commit、push、deploy 或 Pilot ready。
 
 ## Wave 0 workboard
@@ -32,6 +32,7 @@
 | W0-FRESH7 | done | Node 24：`51/51`、`173 passed / 1 skipped`、`14/14`、build PASS | ACCEPTED（STATIC／LOCAL-code，P0=0、P1=0） | Fallback3 partial runtime；runtime diagnosis blocked；Wave 0 尚未關閉 |
 | W0-FRESH runtime diagnosis | blocked | Fallback3 partial runtime＋phase-aware bootstrap failure；不含 secrets／IDs | runtime acceptance=pending | 等 Docker／db-start 穩定；單次 diagnostic 後再 Fresh runtime |
 | W0-Forge-DB instrumentation | done | safe fixed-field diagnostic；只保留定位所需 `phase`／`code` | ACCEPTED（Fresh LOCAL-code） | DB diagnostic `pending`；不得視為 DB acceptance |
+| W0-GIT safepoint | done | local commit `669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`；exact 9-file allowlist | post-commit clean；非 release／DB acceptance | 未 push／tag／PR；等 external blockers 解除 |
 
 ### W0 DB discovery：三個 RPC 缺口與最小 allowlist
 
@@ -142,6 +143,14 @@
 - 下一步條件：Docker／db-start 穩定後只跑一次 concurrency diagnostic；若取得 phase，再做 root-cause 判定，之後交 Fresh runtime 驗收。
 - 目前本機 dirty WIP 僅可標為 safepoint candidate；明確不是 release、DB acceptance、remote apply 或 deployment readiness。
 
+### Local WIP safepoint established
+
+- Commit：`669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`；message：`wip(join): checkpoint wave 0 capacity hardening`。
+- Exact 9-file allowlist：`apps/join/package.json`、`apps/join/scripts/migration-contract.test.ts`、`apps/join/scripts/verify-guest-invitations.mjs`、`apps/join/scripts/verify-manual-roster-capacity.mjs`、`apps/join/scripts/verify-manual-roster-concurrency.mjs`、`apps/join/supabase/migrations/20260815060000_manual_roster_capacity_seat_engine_fix.sql`、`docs/squad/CHARTER.md`、`docs/squad/LEDGER.md`、`implementation-control-log.md`。
+- Post-commit read-back：working tree clean；未 push、tag 或建立 PR。此 commit 只是一個 local WIP safepoint，不是 release、DB runtime acceptance 或 Wave 0 closure。
+- Restart concept：先確認 branch／HEAD 與 blockers；Docker／db-start 穩定後只執行一次 phase-aware concurrency diagnostic，取得 phase 後再判 root cause，最後交 Fresh runtime。GitHub auth 與 remote DB credential 仍 `BLOCKED`。
+- 本段兩份 Echo docs sync 發生在 commit 之後，未包含於 `669f42d`；不得用 commit 當下 clean 宣稱目前工作樹 clean。
+
 ## Wave 1–6 workboard
 
 | Wave | 狀態 | Closure gate |
@@ -163,14 +172,14 @@
 - 此 acceptance 不含 DB runtime、CI、remote DB 或 production；Fallback3 雖取得部分 isolated DB runtime PASS，但 concurrency verifier `FAIL`，後續 bootstrap 亦失敗，runtime diagnosis `blocked`。
 - Concurrency 的 sanitized `database_connection` 不足以判定 H1 connection slots 或 H2 business `53300`／class `53` collision；先以固定 `phase`／`code` diagnostic 修補 observable rewrap 缺口，不先改 retry／pool／SQLSTATE。
 - Safe diagnostic 已獲 Fresh LOCAL-code acceptance；phase-aware one-shot bootstrap failure 令所有 fixed fields 為 `null`／`NOT_RUN`，因此 DB root cause 與 runtime acceptance 仍 pending。
-- 本機 dirty WIP 只形成 safepoint candidate，不是 release／DB acceptance；isolated runtime、GitHub auth 與 remote DB credential blockers 解除前，Wave 1 不開，也不做 remote migration／deploy／push。
+- Local WIP safepoint `669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0` 已建立且 commit 當下 post-commit clean；它不是 release／DB acceptance。Isolated runtime、GitHub auth 與 remote DB credential blockers 解除前，Wave 1 不開，也不做 remote migration／deploy／push。
 - Explicit linkage 依 MING 原計畫留到 Wave 3，且不得只靠 `display_name`；Wave 0 以保守高估優先避免 oversell。
 - Migration-list false alarm 已解除：`Local` 是 filesystem、`Remote` 才是 applied；catalog `MISSING` 證明 `20260815060000` 未套用，但正式 remote apply 前仍須 ledger＋function definitions read-back。
 - Worker／Pages 既有 deploy／rollback、合格 forward-only migration、allowlist commit／push／PR，以及 CI＋Fresh 後 merge 已獲授權，不需重問；仍須留下 evidence。
 
 ## Restart guide
 
-1. 先讀本檔、`docs/squad/CHARTER.md` 與本段 control log；重新確認 branch、HEAD、dirty baseline、Worker／DB live state，不假設舊 status 仍為真。
+1. 先讀本檔、`docs/squad/CHARTER.md` 與本段 control log；確認 branch=`codex/gather-mvp`、local safepoint HEAD=`669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`、目前 dirty baseline、Worker／DB live state，不假設 commit 當下 clean 仍為真。
 2. 保留 Fallback3 partial runtime 與 cleanup 證據；safe diagnostic 已 Fresh LOCAL-code accepted，但 phase-aware one-shot bootstrap failed、fixed fields=`null`／`NOT_RUN`。等待 Docker／db-start 穩定後單次 concurrency diagnostic；取得 phase 才判 root cause，再交 Fresh runtime。Wave 0 未關閉，Wave 1 不開。
 3. Wave 0 關閉前不得開始 Wave 1；解除後仍只依 app discovery allowlist 施工，並將 STATIC／LOCAL／CI／STAGING／PRODUCTION／DEVICE／NOT_RUN 分開記錄。
 4. Wave 2 只處理三個線上報名者 RPC 缺口；命中 CHARTER 六類 hard stop 即停，rollback 以後續 corrective migration 或既有 Worker version 回退處理，未執行不得寫 PASS。
