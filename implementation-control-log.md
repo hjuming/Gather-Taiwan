@@ -1537,3 +1537,255 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ✅ `index.html` 的一般 description、`og:description`、`twitter:description` 已統一。
 - ✅ Git integration Pages deployment source `b3c1bf7` 已建立；正式 `https://gather.wedopr.com/`
   HTML read-back 三組 description 完全一致。
+
+## 2026-08-15：Orion Closure Squad／Wave 0 啟動
+
+### Goal
+
+- 以 `聚場台灣 Orion Closure Squad`、T1 orchestrator-workers 與目標模式，建立 Wave 0–6 的可重啟控制面。
+- Wave 0 先收束 manual roster P0：固定 app／DB／Worker／Git／CI 證據層級，確認既有 wrapper／RPC 契約，並為 Wave 1 Release baseline 與 Wave 2 線上報名者管理留出最小 allowlist。
+
+### Non-goals
+
+- 本段不施工 event_fields、不新增登入／通知／金流／名單政策、不改真實 DB、不直接改 `auth.users`，不執行 deploy、rollback、commit 或 push。
+- 不把文件、local build、Worker read-back 或既有 production evidence 擴寫成 remote DB、GitHub CI、staging、device 或 Pilot PASS。
+
+### Explicit authorization and hard-risk gate
+
+- MING 已由本次提示詞明確授權：唯讀／測試／瀏覽器 QA；本 repo code／test／docs／migration；相容 dependency patch；隔離 worktree；明確 allowlist commit／push／PR；CI＋Fresh 通過後 merge；合格 forward-only migration；既有 Worker／Pages deploy／rollback；以上不需重問，仍須留下 evidence。
+- hard-risk gate confirmation 已由本提示詞提供。六類 MING hard stop 逐字收錄於 `docs/squad/CHARTER.md`：刪覆／不可逆正式資料、破壞性 DB 操作、產品定位、法律／隱私／費用／品牌、新 secret／2FA／LINE／Cloudflare／Supabase Console owner 操作、真實資料損壞且修復影響使用者。
+
+### Affected candidates and absolute boundaries
+
+- 候選檔案／系統：`docs/squad/CHARTER.md`、`docs/squad/LEDGER.md`、`implementation-control-log.md`；Wave 1 候選為 `apps/join/scripts/smoke.mjs`、`smoke-staging.mjs`、CI gate 與最小 mutation test；Wave 2 候選為 manual／online registration RPC、API wrapper、主辦名單 UI 與 verifier。
+- 絕不觸碰：本段以外的程式／SQL／資產、event_fields、付款模型、LINE／Cloudflare／Supabase Console owner 設定、secrets／2FA、真實資料與 `auth.users`；不得 `git add -A`。
+
+### Wave 0 acceptance and evidence
+
+- Acceptance：Atlas fixed point done／acceptance pending；LOCAL Git clean、local refs `50 ahead / 0 behind`、Node `24.15`、pnpm `10.33.2`；production Worker version `e0fcc0c2-c834-480b-b9d3-424783e20b19`、route `gather.wedopr.com/app/*`、assets／headers read-back PASS；GitHub `BLOCKED`、remote DB `NOT_RUN`。
+- DB discovery done／acceptance pending：三個 Wave 2 RPC 缺口為主辦人對線上報名者 confirm、decline、remove；最小 allowlist 為 forward-only migration（狀態／ACL／RLS／audit／席次／通知不變量）＋API wrapper／UI／測試／rollback verifier。
+- APP discovery done／acceptance pending：manual roster 為前端 Supabase wrapper，Worker 無 roster API；Wave 0 app 不改。manual `user_id is null` 沒有 recipient，不造 outbox。
+- Evidence labels：`STATIC`、`LOCAL`、`CI`、`STAGING`、`PRODUCTION`、`DEVICE`、`NOT_RUN`；Fresh Reviewer 尚未驗收，pending 不得改寫成 PASS。
+
+### Rollback and decisions
+
+- Rollback：後續 corrective migration＋既有 Worker version 回退；本段尚未執行 rollback。
+- AI decisions：Wave 0 app 不改；event_fields 排除；manual null recipient 不造 outbox；Wave 1 先修 hermetic smoke／Release baseline，再進 Wave 2 三個 online-registration RPC 缺口。
+- Blockers：GitHub workflow／CI read-back `BLOCKED`；remote DB read-back `NOT_RUN`；W0-FRESH pending。Echo 已由 needs-correction 修正為 done，Forge-DB implementation in-progress。
+
+## 2026-08-15：Wave 0 Fresh decision — REJECT
+
+### Decision
+
+- Fresh 結論：**needs-correction／REJECT（P0=0、P1=6）**。普通 LOCAL typecheck／lint／test／security／build／smoke 即使全綠，也只能證明一般 gate，不能抵銷 manual roster semantic REJECT。
+- Wave 0 不得關閉、不得進 Wave 1；Forge-DB correction 維持 `in-progress`，完成後須由 fresh context 重驗。
+
+### P1 findings
+
+1. **state transition**：狀態轉移語意尚未形成可接受的 fail-closed contract。
+2. **confirmed insert**：confirmed insert 路徑尚未證明受同一席次不變量保護。
+3. **total＋pool capacity**：總容量與 pool 容量必須同時約束，現有證據不足。
+4. **FIFO 插隊**：manual roster 不得繞過既有候補 FIFO 順序。
+5. **鎖序 deadlock**：鎖取得順序仍有 deadlock 風險，需固定鎖序並補 concurrency evidence。
+6. **negative verifier aborted transaction**：預期錯誤令 transaction aborted，後續斷言失效；負向 verifier 必須以 savepoint／rollback 隔離。
+
+### P2 follow-up
+
+- **concurrency zero-residue**：併發 verifier 結束後必須讀回 synthetic fixture 零殘留。
+- **audit snapshot**：補 before／after audit snapshot，證明狀態、席次與 actor 記錄一致。
+
+### Corrective plan and evidence boundary
+
+- Forge-DB 依最小 allowlist 修正 migration／verifier／package wiring；先跑 focused semantic／mutation cases，再跑普通 LOCAL gates，最後交 Fresh 重驗。
+- DB runtime、remote DB、production 均為 `NOT_RUN`；GitHub／CI 為 `BLOCKED`。不得用 LOCAL green、歷史 Worker production evidence 或文件 read-back 代替。
+- rollback 尚未執行。本輪沒有套用 remote migration 或部署 Worker；若後續已套用 migration 才發現問題，只能新增 corrective forward-only migration，Worker 則回退至既有已驗證版本。
+
+## 2026-08-15：Wave 0 Fresh2 decision — REJECT／correction round 3
+
+### Decision
+
+- Fresh2 結論：**needs-correction／REJECT（P0=0、P1=3、P2=2）**。Wave 0 維持開啟，Forge-DB correction round 3 為 `in-progress`。
+- 普通 LOCAL gates 綠燈仍不能抵銷 semantic REJECT；DB runtime／remote／production 維持 `NOT_RUN`，GitHub／CI 維持 `BLOCKED`。
+
+### P1 findings
+
+1. **deadlock retry**：retry 契約仍未形成可接受的可重跑證據。
+2. **managed `auth.users` DML**：correction／verifier 仍碰到 managed `auth.users` 直接 DML 邊界。
+3. **trim／audit 不實**：trim 與 audit snapshot 未如實反映實際持久化的 before／after 值。
+
+### P2 follow-up
+
+- **concurrency params**：concurrency verifier 的參數與預期結果仍需完整斷言。
+- **台帳未同步**：correction round、驗證狀態與台帳 evidence 尚未同步；本段與 LEDGER 已開始修正，但仍待 Fresh3 驗收。
+
+### Correction round 3 and stop rule
+
+- Forge-DB round 3 僅修正上述 P1×3、P2×2，完成 focused semantic／mutation evidence 與普通 LOCAL gates 後交 Fresh3。
+- 若 Fresh3 再出現同類 P1，立即停止疊加 patch，回到 Orion 架構裁決；未裁決前不得以更多局部 migration／verifier patch 推進。
+- rollback 尚未執行；本輪沒有 remote DB、production 或 CI 執行證據。
+
+## 2026-08-15：Wave 0 Fresh3 decision — REJECT／Orion architecture replacement
+
+### Decision
+
+- Fresh3 結論：**needs-correction／REJECT（P0=0、P1=2）**。Fresh、Fresh2、Fresh3 前三輪普通 LOCAL gates 即使全綠，也不能抵銷 semantic REJECT。
+- Forge-DB correction round 3 停止疊加局部 patch，改由 Orion 已裁決的 architecture replacement 推進，狀態為 `in-progress`。
+
+### P1 findings
+
+1. **invite pool bypass**：manual／invite 路徑仍可繞過 invite pool 的共用容量邊界。
+2. **promotion audit actor／usage**：promotion audit 尚未同時保存正確 actor 與實際 capacity usage。
+
+### Orion architecture decision
+
+- 採 backward-compatible capacity envelope：`event_capacity_usage` 保留既有 keys，新增 `limits`、`available`、`within_limits`、`merged`，避免破壞既有 caller。
+- manual／invite 保留各自狀態機，但統一使用同一 capacity envelope；token verifier 必須讀回 after-state 並驗證 rollback；promotion 改用 actor-aware core，另保留 2-arg wrapper 作為相容入口。
+- 選擇理由：繼續增加局部 `if` 會讓容量規則跨路徑漂移；萬能 candidate helper 則過度抽象，帶來較高相容風險。
+
+### Migration branch and evidence boundary
+
+- 若 `20260815060000_manual_roster_capacity_seat_engine_fix.sql` 尚未套用，直接在原檔收斂；若 remote migration ledger 讀回顯示已套用，改新增下一支 forward-only corrective migration。Remote ledger 尚未讀回，不預先宣稱任何分支成立。
+- DB runtime、remote DB、production 仍為 `NOT_RUN`；GitHub／CI 仍為 `BLOCKED`。本段未執行 DB、migration、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Migration-list false alarm 解除
+
+### Evidence correction
+
+- `supabase migration list --local` 的 `Local` 欄代表 filesystem migration 是否存在；只有 `Remote` 欄代表目標 DB 的 applied 狀態。`Local` 欄不得作為 remote apply 放行證據。
+- 直接唯讀查詢目標 DB catalog `supabase_migrations.schema_migrations`，`20260815060000` 結果為 `MISSING`；因此該 migration 尚未套用，可繼續修改原 untracked `20260815060000_manual_roster_capacity_seat_engine_fix.sql`。
+- 這只解除 migration-list false alarm，不代表 DB runtime／remote migration／production PASS。正式 remote 套用前仍必須重新取得 remote migration ledger 與目標 function definitions read-back。
+
+### Work status
+
+- Forge-DB architecture replacement 恢復 `in-progress`，依 Orion backward-compatible capacity envelope 裁決繼續收斂原 migration。
+- GitHub／CI 仍為 `BLOCKED`；DB runtime／remote migration／production 仍為 `NOT_RUN`。本段沒有寫入敏感值，也未執行 migration、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Wave 0 Fresh4 decision — REJECT／Orion conservative identity
+
+### Decision and P1 findings
+
+- Fresh4 結論：**needs-correction／REJECT（P1=2）**；普通 LOCAL gates 不能抵銷 identity／cardinality semantic REJECT。
+
+1. **manual／invite mutable `display_name` dedupe**：可變姓名不得作為 identity 或 capacity 去重鍵，rename 不得改變 usage。
+2. **多重同名 cardinality**：不同人的同名資料不得被折成單一 seat；`registration` 與 `attending` invite 必須各自計席。
+
+### Orion conservative identity decision
+
+- MING 原計畫在 Wave 3 才建立 explicit linkage，且不得只靠 `display_name`；Wave 0 不提前引入推測性身份關聯。
+- Wave 0 移除姓名去重，讓 registration 與 attending invite 各自計席，並保證 rename 不改 usage；保守高估優先於 oversell。
+- Forge-DB 維持 `in-progress`，依此裁決修正原未套用 migration 與 verifier，完成後交 fresh-context 重驗。
+
+### Pre-apply hard stop and evidence boundary
+
+- 正式 apply 前只執行 aggregate-only preflight，不讀出或保存個人明細。若任何既有 event 在保守計量下超額，或後續修復將影響真實使用者，命中 MING hard stop，必須停止並回報裁決。
+- DB runtime／remote migration／production 仍為 `NOT_RUN`；GitHub／CI 仍為 `BLOCKED`。本段未執行 DB、migration、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Wave 0 Fresh5 decision — REJECT／reader consistency
+
+### Decision and P1 finding
+
+- Fresh5 結論：**needs-correction／REJECT（P1 reader consistency）**。RSVP canonical total 與 private invitation reader 的 reload 容量數字不一致。
+- 根因是 private invitation reader 仍沿用舊 `display_name` dedupe；舊 guest verifier 又固化舊數值，因此未能偵測 reader 與 canonical total 的漂移。
+
+### Correction boundary
+
+- Correction 只讓 private invitation reader 的容量 facts 讀取 capacity envelope，並將最小 guest verifier assertion 改為驗證 canonical total 與 reload reader 一致。
+- 名單呈現、公開／私密政策與其他產品行為不改；不得藉 reader consistency 擴大 Wave 0 scope。
+- Forge-DB 維持 `in-progress`，完成 correction 後交 fresh-context 重驗。
+
+### Evidence boundary
+
+- DB runtime／remote migration／CI／production 仍為 `NOT_RUN`；GitHub 仍為 `BLOCKED`。本段未執行程式／migration 修改、DB、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Wave 0 Fresh6 decision — REJECT／verifier evidence
+
+### Decision and P1 findings
+
+- Fresh6 結論：**needs-correction／REJECT（P1×2）**。
+
+1. **capacity verifier actor fixture**：random UUID 被誤標為 staff，實際只證明 non-member；correction 改用 explicit member ID，並將案例正名為 non-organizer。
+2. **guest verifier rollback residue**：rollback 後缺少逐表 zero-residue read-back；correction 必須逐表證明 synthetic fixture 無殘留。
+
+### Evidence boundary
+
+- Migration source 其餘 semantic checks 為 PASS，但只代表局部 source evidence，不等於 Fresh acceptance、Wave 0 closure、DB runtime 或 remote evidence。
+- Forge-DB 維持 `in-progress`；DB runtime／remote migration／CI／production 均為 `NOT_RUN`，GitHub 仍為 `BLOCKED`。本段未執行程式／migration 修改、DB、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Wave 0 Fresh7 acceptance／isolated runtime in-progress
+
+### Acceptance
+
+- Fresh7 結論：**ACCEPTED（STATIC／LOCAL-code，P0=0、P1=0）**。
+- Node 24 evidence：`51/51`、`173 passed / 1 skipped`、`14/14`、build PASS。Skipped case 不得視為 DB runtime 證據。
+- 此 acceptance 不包含 DB runtime、CI、remote DB 或 production；各層仍為 `NOT_RUN`，GitHub 仍為 `BLOCKED`，Wave 0 尚未關閉。
+
+### Isolated runtime plan
+
+- Forge-DB 維持 `in-progress`。runtime 使用獨立 `project_id`、專用 port range 與 temporary root，不啟停、重設、重用或污染 existing stack。
+- Synthetic identities 只透過 Admin API 建立與清理，不直接對 managed `auth.users` 執行 DML。
+- Runtime gates：capacity、concurrency、guest 三個 verifiers；migration catalog read-back；function／table ACL；RLS；aggregate-only preflight；最後逐項 cleanup 與 zero-residue read-back。
+- 任一 gate 未完成或 cleanup 有殘留即不得宣稱 runtime acceptance。本段只記錄方案，未執行 DB、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Isolated runtime hard stop／Atlas fallback in-progress
+
+### Runtime attempt result
+
+- 兩次 temporary Supabase start 均在 pull／health／timeout 階段失敗；兩次過程 Wave0 resources 始終為 `0`，因此沒有可執行的 isolated DB runtime。
+- Migrations、migration catalog read-back、aggregate-only preflight，以及 capacity／concurrency／guest 三個 verifiers 全部 `NOT_RUN`。
+- 不做第三次同路線 retry；此路線已 hard stop。Atlas single-DB fallback 只做唯讀調查，狀態為 `in-progress`。
+
+### Cleanup and existing-stack evidence
+
+- 兩個 temporary targets 均已對 exact target cleanup；cleanup 後 Wave0 resources=`0`。
+- Existing baseline 的 13 IDs／ports、2 volumes、1 network 均 unchanged。Strict health snapshot mismatch 來自 existing edge-runtime 的既有 exited 狀態，非本輪建立、改動或殘留。
+
+### Acceptance boundary
+
+- Fresh7 `ACCEPTED（STATIC／LOCAL-code，P0=0、P1=0）` 保留，但不包含 DB runtime、CI、remote DB 或 production；Wave 0 尚未關閉。
+- DB runtime／remote／CI／production 維持 `NOT_RUN`，GitHub 維持 `BLOCKED`。本段沒有 migration apply、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Fallback3 partial runtime／Fresh diagnosis in-progress
+
+### Runtime evidence
+
+- PASS：isolated DB 啟動；32 migrations 套至 latest `20260815060000`；migration catalog、SECURITY DEFINER／`search_path`／reader、ACL、5 項 RLS 與 aggregate-only preflight=`0` 通過。
+- PASS：GoTrue health；透過允許的管理介面建立 2 個 synthetic identities，profiles read-back 通過；guest 與 capacity verifiers 通過，rollback residue=`0`。
+- FAIL：concurrency verifier 回報 sanitized `database_connection`。此為 one-shot，依邊界不 retry；runtime overall 不合格、Fresh not ready，Fresh diagnosis 為 `in-progress`。
+
+### Cleanup and evidence boundary
+
+- Cleanup read-back：synthetic identities=`0`、Wave0 resources=`0`、temporary target 已刪除、existing stack unchanged。
+- Fresh7 STATIC／LOCAL-code acceptance 保留，但 Fallback3 的局部 runtime PASS 不等於 runtime overall acceptance；remote DB、CI、production 仍為 `NOT_RUN`／`BLOCKED`，Wave 0 未關閉。
+- 本段不記錄 secrets 或 IDs，未執行 retry、remote migration、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Concurrency root-cause diagnosis／safe instrumentation
+
+### Diagnosis boundary
+
+- Sanitized `database_connection` 不能唯一判定根因。H1 是 connection slots；H2 是 business `53300`／class `53` collision；兩者維持待 DB diagnostic 區分的競爭假說。
+- 已確定的 observable bug 是 concurrency verifier 在 error rewrap 時丟失原始 `phase`／`code`，導致 infrastructure 與 business failure 無法安全分類。
+
+### Orion decision and work status
+
+- 先做 safe fixed-field diagnostic，只補定位所需固定 `phase`／`code`；禁止輸出 message、stack、query、params、address、port、DSN 或 IDs。
+- DB diagnostic 前禁止先改 retry、pool 或 SQLSTATE 語意。Forge-DB instrumentation 後續已完成並獲 Fresh LOCAL-code acceptance；DB diagnostic 仍為 `pending`，runtime overall 不合格、Wave 0 未關閉。
+- 本段未執行 DB diagnostic、retry、remote migration、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Wave 0 blocker final sync／local WIP safepoint candidate
+
+### Acceptance and runtime evidence
+
+- Safe diagnostic 已由 Fresh **ACCEPTED（LOCAL-code）**；此 acceptance 只涵蓋 fixed-field instrumentation，不是 DB runtime acceptance。
+- Fallback3 DB runtime partial PASS：32 migrations（latest `20260815060000`）、catalog、ACL、RLS、aggregate preflight=`0`、guest 與 capacity verifier；concurrency verifier `FAIL`，runtime overall 不合格。
+- 後續 phase-aware one-shot 在 bootstrap 階段失敗，所有 safe diagnostic fixed fields=`null`／`NOT_RUN`；未取得 phase，不能進行 root-cause 判定。
+- Cleanup read-back：Wave0 resources=`0`、temporary target deleted、existing stack unchanged。
+
+### External blockers and gate
+
+- External blockers：isolated runtime 不穩定；GitHub auth invalid；remote DB credential unavailable。
+- Wave 0 未關閉，Wave 1 不得開；本輪沒有 remote migration、deploy 或 push。
+- 下一步僅在 Docker／db-start 穩定後執行一次 concurrency diagnostic；若取得 phase，再判 root cause，之後交 Fresh runtime 驗收。
+
+### Safepoint boundary
+
+- 目前本機 dirty WIP 可作 safepoint candidate，供後續在同一 fixed point 重啟；明確不是 release、DB acceptance、remote apply 或 deployment readiness。
