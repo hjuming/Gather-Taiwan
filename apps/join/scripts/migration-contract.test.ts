@@ -26,6 +26,10 @@ const canonicalSeatEngineDirectUpdateRevokePath = resolve(
   process.cwd(),
   "supabase/migrations/20260815040000_canonical_seat_engine_direct_update_revoke_b.sql",
 );
+const syntheticLineVerifiedGuardPath = resolve(
+  process.cwd(),
+  "supabase/migrations/20260815050000_synthetic_line_verified_guard.sql",
+);
 const guestInvitationVerifierPath = resolve(process.cwd(), "scripts/verify-guest-invitations.mjs");
 
 describe("P1-01 framework migration contract", () => {
@@ -235,5 +239,68 @@ describe("canonical seat-engine hardening B migration contract", () => {
     );
     expect(executableSql).not.toContain("grant update");
     expect(executableSql).not.toMatch(/alter\s+table\s+public\.events\s+disable\s+row\s+level\s+security/);
+  });
+});
+
+describe("synthetic LINE verified guard migration contract", () => {
+  it("is a unique, forward-only migration addressable by the Supabase ledger", async () => {
+    const migration = (await readFile(syntheticLineVerifiedGuardPath, "utf8")).toLowerCase();
+
+    expect(syntheticLineVerifiedGuardPath).toMatch(
+      /supabase\/migrations\/20260815050000_synthetic_line_verified_guard\.sql$/,
+    );
+    expect(migration).toContain("forward-only correction");
+    expect(migration).not.toContain("insert into supabase_migrations.schema_migrations");
+    expect(migration).not.toMatch(/\b(drop|truncate|delete)\s+/);
+  });
+
+  it("fails closed for synthetic LINE email identities while preserving real-email sync", async () => {
+    const migration = (await readFile(syntheticLineVerifiedGuardPath, "utf8")).toLowerCase();
+
+    expect(migration).toContain("create or replace function public.sync_verified_email()");
+    expect(migration).toContain("security definer");
+    expect(migration).toContain(
+      "set search_path = pg_catalog, public, extensions, auth",
+    );
+    expect(migration).toMatch(
+      /if\s+lower\(btrim\(coalesce\(v_email,\s*''\)\)\)\s+~\*\s+'\^line\\\+\[\^@\]\+@users\\\.noreply\\\.gather\\\.wedopr\\\.com\$'/,
+    );
+
+    const syntheticGuardStart = migration.indexOf("if lower(btrim(coalesce(v_email");
+    const syncUpdateStart = migration.indexOf("update public.users", syntheticGuardStart);
+    expect(syntheticGuardStart).toBeGreaterThanOrEqual(0);
+    expect(syncUpdateStart).toBeGreaterThan(syntheticGuardStart);
+    expect(migration.slice(syntheticGuardStart, syncUpdateStart)).toContain("return");
+    expect(migration.slice(syncUpdateStart)).toContain("set email = v_email");
+  });
+
+  it("repairs only the derived public verification timestamp and keeps auth/linkage untouched", async () => {
+    const migration = (await readFile(syntheticLineVerifiedGuardPath, "utf8")).toLowerCase();
+    const repairStart = migration.indexOf("update public.users\nset email_verified_at = null");
+    const aclStart = migration.indexOf("revoke all on function public.sync_verified_email()");
+    const repair = migration.slice(repairStart, aclStart);
+
+    expect(repairStart).toBeGreaterThanOrEqual(0);
+    expect(aclStart).toBeGreaterThan(repairStart);
+    expect(repair).toContain("set email_verified_at = null");
+    expect(repair).toContain("where email_verified_at is not null");
+    expect(repair).toContain("email_normalized ~*");
+    expect(repair).not.toContain("update auth.users");
+    expect(repair).not.toContain("set email =");
+    expect(repair).not.toContain("set line_user_id =");
+    expect(repair).not.toContain("set display_name =");
+    expect(repair).not.toMatch(/\b(delete|truncate)\b/);
+  });
+
+  it("keeps sync RPC ACL explicit and fail-closed for anonymous callers", async () => {
+    const migration = (await readFile(syntheticLineVerifiedGuardPath, "utf8")).toLowerCase();
+
+    expect(migration).toContain(
+      "revoke all on function public.sync_verified_email() from public, anon, authenticated;",
+    );
+    expect(migration).toContain(
+      "grant execute on function public.sync_verified_email() to authenticated;",
+    );
+    expect(migration).not.toMatch(/grant\s+execute[\s\S]+to\s+(public|anon)\s*;/);
   });
 });

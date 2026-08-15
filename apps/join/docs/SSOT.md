@@ -123,9 +123,11 @@
   設定密碼並以 Supabase Auth confirmation flow 綁定新 email，確認前不切換；synthetic LINE 身份
   必須先完成自己的 email 綁定，才可設定密碼。正式 `/app/auth` 已 read-back `index-BeJCmF3D.js`，
   並明確標示 synthetic LINE 系統身份；真實確認信 round-trip 與 Supabase Auth
-  `double_confirm_changes` 設定仍未查證。2026-08-15 Cloud DB 唯讀稽核發現 1 筆歷史
-  synthetic Auth confirmed／public verified 身份；verified guard migration 已提出但尚未獲授權，
-  未修改 managed `auth.users`。
+  `double_confirm_changes` 設定仍未查證。2026-08-15 已套用
+  `20260815050000_synthetic_line_verified_guard`：歷史 synthetic 身份的
+  `public.users.email_verified_at` 已清除，保留 managed `auth.users`、email、LINE linkage 與
+  其他關聯資料；`sync_verified_email()` 對 synthetic LINE email fail-closed，僅 authenticated
+  可執行。
 - Wave 04 隔離測試（2026-08-15）：活動 `event-20260815-wave-04-5mbn` 容量由 20 儲存為 8；
   主辦人建立後 reload 為 `0 / 8`，B email 身分報名後個人頁顯示 1 筆已確認報名。B 直接開啟
   `/edit` 顯示只有活動主人可編輯；未登入頁無編輯／名單管理／狀態控制項。未刪除測試活動。
