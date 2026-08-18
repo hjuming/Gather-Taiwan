@@ -33,21 +33,21 @@
 | 工單 | 狀態 | 產物／證據路徑摘要 | 驗收狀態 | 下一步 |
 |---|---|---|---|---|
 | W0-ATLAS fixed point | done | branch／HEAD、LOCAL Git、Node／pnpm、Worker／Pages route／deployment read-back | acceptance=pending | Fresh re-review |
-| W0-DB discovery | done | `apps/join/supabase/migrations/`、`apps/join/scripts/verify-p1-11-manual-roster.sql`、RLS／RPC 契約 | acceptance=pending；remote DB=PASS | 三個線上報名者 RPC 缺口進 Wave 2；只依 allowlist 施工 |
-| W0-APP discovery | done | `apps/join/src/components/RosterManager.tsx`、`src/lib/api.ts`、`worker/index.ts`、`scripts/smoke.mjs`、`scripts/smoke-staging.mjs`、`.github/workflows/join-gates.yml` | CI／staging read-back PASS；Fresh pending | Wave 1 Release baseline |
-| W0-ECHO | needs-correction → done | `docs/squad/CHARTER.md`、`docs/squad/LEDGER.md`、本段 control log | docs sync in progress | Fresh Reviewer read-back |
-| W0-Forge-DB correction round 3 | needs-correction | `20260815060000_manual_roster_capacity_seat_engine_fix.sql`、manual-roster capacity／concurrency verifiers、package gate wiring；不得擴大至 event_fields | REJECT（Fresh3） | 停止疊加局部 patch，依 Orion 架構裁決替換 |
-| W0-Forge-DB architecture replacement | done／Fresh pending | isolated local cleanup／one-shot concurrency／catalog／ACL／RLS／aggregate gates；remote read-back | isolated local＋remote PASS；Fresh overall pending | CI／staging read-back 後交 Fresh runtime |
-| W0-ATLAS single-DB fallback | done | Fallback3 isolated DB route 與 cleanup evidence；existing stack unchanged | acceptance=pending | 由 Fresh 診斷 runtime failure |
-| W0-FRESH2 | needs-correction | REJECT：P0=0、P1=3、P2=2 | REJECT | 已由 Fresh3 重驗；見 W0-FRESH3 |
-| W0-FRESH3 | needs-correction | REJECT：P0=0、P1=2 | REJECT | 已由 Fresh4 重驗；見 W0-FRESH4 |
-| W0-FRESH4 | needs-correction | REJECT：P1=2 | REJECT | 已由 Fresh5 重驗；見 W0-FRESH5 |
-| W0-FRESH5 | needs-correction | REJECT：P1 reader consistency | REJECT | 已由 Fresh6 重驗；見 W0-FRESH6 |
-| W0-FRESH6 | needs-correction | REJECT：P1×2 | REJECT | 已由 Fresh7 重驗；見 W0-FRESH7 |
-| W0-FRESH7 | done | Node 24：`51/51`、`173 passed / 1 skipped`、`14/14`、build PASS | ACCEPTED（STATIC／LOCAL-code，P0=0、P1=0） | Fallback3 partial runtime；runtime diagnosis blocked；Wave 0 尚未關閉 |
+| W0-DB discovery | done | `apps/join/supabase/migrations/`、`apps/join/scripts/verify-p1-11-manual-roster.sql`、RLS／RPC 契約 | remote DB read-back PASS；Fresh pending | 只交獨立 Fresh re-review；Wave 2 維持 blocked |
+| W0-APP discovery | done | `apps/join/src/components/RosterManager.tsx`、`src/lib/api.ts`、`worker/index.ts`、`scripts/smoke.mjs`、`scripts/smoke-staging.mjs`、`.github/workflows/join-gates.yml` | CI／staging read-back PASS；Fresh pending | 只交獨立 Fresh re-review；Wave 1 維持 blocked |
+| W0-ECHO | done | `docs/squad/CHARTER.md`、`docs/squad/LEDGER.md`、本段 control log | docs sync complete；Fresh pending | 只交獨立 Fresh re-review |
+| W0-Forge-DB correction round 3 | historical / superseded | `20260815060000_manual_roster_capacity_seat_engine_fix.sql`、manual-roster capacity／concurrency verifiers、package gate wiring；不得擴大至 event_fields | Fresh3 historical REJECT；已由 architecture replacement supersede | No action；不得重開舊 correction round |
+| W0-Forge-DB architecture replacement | done／Fresh pending | isolated local cleanup／one-shot concurrency／catalog／ACL／RLS／aggregate gates；remote read-back | isolated local＋remote PASS；Fresh overall pending | 只交獨立 Fresh re-review |
+| W0-ATLAS single-DB fallback | done／historical evidence | Fallback3 isolated DB route 與 cleanup evidence；existing stack unchanged | historical partial runtime；current closeout evidence 已另列 | No action；不得重跑舊 fallback |
+| W0-FRESH2 | historical / superseded | REJECT：P0=0、P1=3、P2=2 | historical REJECT | No action；已由後續 Fresh round supersede |
+| W0-FRESH3 | historical / superseded | REJECT：P0=0、P1=2 | historical REJECT | No action；已由後續 Fresh round supersede |
+| W0-FRESH4 | historical / superseded | REJECT：P1=2 | historical REJECT | No action；已由後續 Fresh round supersede |
+| W0-FRESH5 | historical / superseded | REJECT：P1 reader consistency | historical REJECT | No action；已由後續 Fresh round supersede |
+| W0-FRESH6 | historical / superseded | REJECT：P1×2 | historical REJECT | No action；已由後續 Fresh round supersede |
+| W0-FRESH7 | done／historical | Node 24：`51/51`、`173 passed / 1 skipped`、`14/14`、build PASS | ACCEPTED（STATIC／LOCAL-code，P0=0、P1=0） | No action；Fresh overall pending，Wave 0 尚未關閉 |
 | W0-FRESH runtime diagnosis | in-progress | isolated local＋remote＋CI＋staging＋Pages read-back completed | 前一輪 `READY_WITH_BLOCKERS`；文件 sync 後 Fresh re-review pending | 交獨立 Fresh Reviewer |
-| W0-Forge-DB instrumentation | done | safe fixed-field diagnostic；只保留定位所需 `phase`／`code` | ACCEPTED（Fresh LOCAL-code） | DB diagnostic `pending`；不得視為 DB acceptance |
-| W0-GIT safepoint | done | local commit `669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`；exact 9-file allowlist | post-commit clean；非 release／DB acceptance | 未 push／tag／PR；等 external blockers 解除 |
+| W0-Forge-DB instrumentation | done／historical | safe fixed-field diagnostic；只保留定位所需 `phase`／`code` | ACCEPTED（Fresh LOCAL-code）；非 DB acceptance | No action；只交獨立 Fresh re-review |
+| W0-GIT safepoint | done／historical | local commit `669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`；exact 9-file allowlist | post-commit clean；非 release／DB acceptance | No action；current HEAD／origin 以 fixed point 為準 |
 
 ### W0 DB discovery：三個 RPC 缺口與最小 allowlist
 

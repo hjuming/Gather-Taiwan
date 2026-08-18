@@ -2051,3 +2051,9 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - 第二位獨立 fresh-context reviewer `Ampere` 確認前述修正已涵蓋舊 safepoint、decision record 與 restart guide，但指出 LEDGER 更早的 Fresh6／Fresh7／isolated-runtime attempt 區段仍可能被讀成 current `NOT_RUN`／`BLOCKED`。
 - 只在 `docs/squad/LEDGER.md` 新增歷史快照邊界，明示該段不得覆寫 current fixed point，也不得誘導重跑已完成的一次性 gate。
 - 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
+
+## 2026-08-19：Fresh review active-workboard correction
+
+- 第三位獨立 fresh-context reviewer `Mencius` 確認歷史區段邊界已補齊，但指出 current workboard 仍把已完成的 CI／staging／runtime read-back、舊 external blockers 與 Wave 1／Wave 2 後續工作列為 active next steps。
+- 只更新 `docs/squad/LEDGER.md` workboard：將已 supersede 的 Fresh rounds、舊 Forge／fallback／safepoint／instrumentation 標為 historical，並將 current rows 的唯一下一步統一為獨立 Fresh re-review；Wave 1／Wave 2 維持 blocked。
+- 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
