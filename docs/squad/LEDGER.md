@@ -54,6 +54,10 @@
 - 缺口一：主辦人 confirm 線上報名者；缺口二：主辦人 decline 線上報名者；缺口三：主辦人 remove 線上報名者。現有 `organizer_edit_manual_participant` 僅適用 `user_id is null` 的 manual row，不能替代三者。
 - 最小 allowlist：一條 forward-only migration（3 個 RPC、狀態矩陣、ACL／RLS、audit／席次／通知不變量）＋`apps/join/src/lib/api.ts` wrapper＋主辦名單 UI／測試＋最小 rollback verifier；不改 event_fields、不改 Worker、不改付款模型。
 
+## 歷史快照（2026-08-17 以前）：W0 Fresh1–Fresh5 decisions
+
+> 本節以下內容是早期 Fresh1–Fresh5 的歷史裁決；其中的 `NOT_RUN`、`BLOCKED`、`pending` 與修正建議不得覆寫 current fixed point，也不得誘導接手者重跑已完成的 one-shot gate。現行 evidence 以本檔頂部 current fixed point、closeout read-back 與最新獨立 Fresh review 為準。
+
 ### W0 Fresh decision：REJECT
 
 - P1-1 state transition：狀態轉移語意未形成可接受的 fail-closed contract。
@@ -179,7 +183,7 @@
 | Wave | 狀態 | Closure gate |
 |---|---|---|
 | Wave 1｜Release baseline | blocked（Wave 0 未關閉） | hermetic smoke、CI 分工、verifier、mutation evidence、Fresh |
-| Wave 2｜線上報名者 confirm／decline／remove | pending | RPC／RLS／席次／audit／通知 contract、app E2E、Fresh |
+| Wave 2｜線上報名者 confirm／decline／remove | blocked（Wave 0 未關閉） | RPC／RLS／席次／audit／通知 contract、app E2E、Fresh |
 | Wave 3｜登入／私密入口／依賴安全 | pending | auth failure matrix、private capability、dependency／security gate、explicit linkage（不得只靠 `display_name`） |
 | Wave 4｜通知與 outbox | pending | Email／站內通知、retry、DLQ、recipient boundary、Fresh |
 | Wave 5｜event_fields／發現／名單隱私 | pending | event_fields UI、公開發現政策、roster privacy、role UAT |

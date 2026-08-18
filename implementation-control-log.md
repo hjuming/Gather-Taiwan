@@ -2057,3 +2057,9 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - 第三位獨立 fresh-context reviewer `Mencius` 確認歷史區段邊界已補齊，但指出 current workboard 仍把已完成的 CI／staging／runtime read-back、舊 external blockers 與 Wave 1／Wave 2 後續工作列為 active next steps。
 - 只更新 `docs/squad/LEDGER.md` workboard：將已 supersede 的 Fresh rounds、舊 Forge／fallback／safepoint／instrumentation 標為 historical，並將 current rows 的唯一下一步統一為獨立 Fresh re-review；Wave 1／Wave 2 維持 blocked。
 - 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
+
+## 2026-08-19：Fresh review historical-boundary and gate correction
+
+- 第四位獨立 fresh-context reviewer `Popper` 確認 active workboard 已收斂，但指出 Fresh1–Fresh5 仍未納入歷史邊界、Wave 2 在 workboard 間狀態矛盾，且 HANDOFF current closeout gate 仍把已完成的 docs-only commit／push 當成下一步。
+- 只更新 `docs/squad/LEDGER.md` 與 `docs/squad/HANDOFF.md`：補 Fresh1–Fresh5 historical snapshot、將 Wave 2 統一為 blocked，並把 current next step 統一為獨立 Fresh reviewer。
+- 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。

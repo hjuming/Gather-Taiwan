@@ -134,7 +134,7 @@
 
 - Wave 0：**未關閉／Fresh pending**。
 - Wave 1：**blocked，未啟動**。
-- 下一步：docs-only commit／push 後重新讀回 CI／Pages，再交獨立 Fresh reviewer。
+- 下一步：只交獨立 Fresh reviewer；docs-only commit／push 與 CI／Pages read-back 已完成，不能再當作 current next step。
 
 ## 2026-08-18：Fresh closeout re-review preparation
 
