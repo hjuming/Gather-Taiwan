@@ -28,16 +28,16 @@
 
 ## Current engineering handoff（2026-08-18）
 
-目前工程固定點是 branch `codex/gather-mvp`、HEAD `fd5a3d3`、working tree clean。
+目前工程固定點是 branch `codex/gather-mvp`、HEAD `6622f72`、working tree clean。
 這是 Wave 0 manual roster 的收尾階段，不代表 Wave 0 已接受關閉；Wave 1 維持 blocked、不得開始。
 
 | Gate | 最新結果 | 證據 |
 | --- | --- | --- |
 | Local／isolated runtime | PASS | cleanup zero-residue；phase-aware concurrency one-shot `confirmed=1 / waitlisted=5`；catalog `33`、ACL PASS、RLS `8/8`、aggregate `0` |
 | Remote Supabase | PASS（REMOTE read-back） | 兩支指定 migration present；function `9/9` conforming；ACL PASS；RLS `8/8` enabled＋forced；aggregate `0` |
-| GitHub CI | PASS | Draft PR #1；run `32148850377` 的 `verify`、`local-supabase`、Pages check 均 PASS |
+| GitHub CI | PASS | Draft PR #1；run `32149787655` 的 `verify`、`local-supabase`、Pages check 均 PASS |
 | Staging | PASS（workers.dev public URL gate） | `gather-join-staging` version `82b00639-298b-4f73-aa91-d3169c75258a`；homepage `200`；無 Access assertion 的 protected route `403` |
-| Pages | PASS（PRODUCTION read-back） | source `fd5a3d3`；deployment [`bb3f7583.neo-rechao.pages.dev`](https://bb3f7583.neo-rechao.pages.dev) 與 [`gather.wedopr.com`](https://gather.wedopr.com) 均 `200` |
+| Pages | PASS（PRODUCTION read-back） | source `6622f72`；deployment [`2625040c.neo-rechao.pages.dev`](https://2625040c.neo-rechao.pages.dev) 與 [`gather.wedopr.com`](https://gather.wedopr.com) 均 `200` |
 | Independent Fresh review | pending | 前一輪 reviewer `Russell` 為 `READY_WITH_BLOCKERS`；文件已同步，尚待重新交 Fresh 複核 |
 
 已知邊界：`staging.join.gather.wedopr.com` 尚無 DNS／custom domain／zone route，因此只能宣稱 workers.dev staging gate，不能宣稱 canonical staging host 或同源瀏覽器 UAT 已驗收。約 593 kB bundle warning 與 Node engine warning 保留為非阻擋風險，未擴大本輪 scope。

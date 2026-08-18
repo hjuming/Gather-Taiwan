@@ -3,13 +3,13 @@
 ## Current engineering handoff（2026-08-18）
 
 `apps/join` 目前位於 Wave 0 manual roster closeout。最新 Git fixed point 是
-`codex/gather-mvp@fd5a3d3`；本輪只同步文件，沒有新增 source、migration 或資料操作。
+`codex/gather-mvp@6622f72`；本輪只同步文件，沒有新增 source、migration 或資料操作。
 
 - Local／isolated：synthetic fixture zero-residue；concurrency one-shot `PASS confirmed=1 waitlisted=5`。
 - Remote Supabase：catalog `33`；兩支指定 migration present；function `9/9`；ACL PASS；RLS `8/8` enabled＋forced；aggregate preflight `0`。
-- CI：Draft PR #1／run `32148850377` 的 `verify`、`local-supabase`、Cloudflare Pages check PASS。
+- CI：Draft PR #1／run `32149787655` 的 `verify`、`local-supabase`、Cloudflare Pages check PASS。
 - Staging：`gather-join-staging` version `82b00639-298b-4f73-aa91-d3169c75258a` 100% traffic；workers.dev homepage `200`、未帶 Access assertion 的 `/__dev/session` `403`。
-- Pages：production source `fd5a3d3`，deployment `https://bb3f7583.neo-rechao.pages.dev` 與 `https://gather.wedopr.com` 均 `200`。
+- Pages：production source `6622f72`，deployment `https://2625040c.neo-rechao.pages.dev` 與 `https://gather.wedopr.com` 均 `200`。
 - Fresh：文件同步後尚未完成新一輪 independent Fresh acceptance；Wave 0 仍未關閉，Wave 1 必須維持 blocked。
 
 canonical staging host `staging.join.gather.wedopr.com` 仍無 DNS／custom domain／zone route；這是未驗收子 gate，不等於 workers.dev deployment gate 失敗。不要為收尾自行新增 route／DNS，也不要重跑 concurrency verifier。

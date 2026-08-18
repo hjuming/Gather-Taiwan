@@ -2016,3 +2016,11 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `✅ 已真實驗證`：文件 read-back、`git diff --check`、allowlist diff、最新 CI run `32148850377`、Pages source／deployment／公開 URL read-back。
 - `⚠️ 部分驗證`：Fresh reviewer 尚未對本次文件 sync 後的狀態重新給 verdict；canonical staging host／同源 staging UAT 未驗證。
 - `❌ 未驗證`：任何新的 route／DNS 修正、Wave 1 工作、完整 LINE failure matrix、device UAT。
+
+## 2026-08-18：final handoff metadata read-back
+
+- `[FIXED POINT / read-only]` branch=`codex/gather-mvp`、HEAD=`6622f72`、origin 同步、working tree clean。
+- `[CI / read-only]` Draft PR #1／run `32149787655`：`verify`、`local-supabase`、Cloudflare Pages check 均 PASS；Node 20 deprecation annotations 仍為 warning。
+- `[PRODUCTION / read-only]` Pages project=`gather-taiwan` active deployment source=`6622f72`；deployment=`https://2625040c.neo-rechao.pages.dev`；canonical `https://gather.wedopr.com` 仍 HTTP `200`。
+- Handoff docs、README、Join SSOT／DEVELOPMENT／MAINTENANCE 與 `NEXT-TEAM-KICKOFF.md` 已同步至本 fixed point；未修改 source／migration／test／package／workflow。
+- Wave 0 仍未關閉：文件已具備 current metadata，但 Fresh re-review 尚未完成；Wave 1 維持 `BLOCKED`、未啟動。Canonical staging host 維持 `UNVERIFIED`。

@@ -17,7 +17,7 @@
 
 目前固定點：
 - branch：codex/gather-mvp
-- handoff 文件 sync 前的 current commit：fd5a3d3；若目前 HEAD 已更新，先以 git read-back 為準，不做 reset。
+- current handoff commit：6622f72；若目前 HEAD 已更新，先以 git read-back 為準，不做 reset。
 - Wave 0：尚未關閉；Wave 1：BLOCKED，禁止開始。
 - 只做本 repo 內、可追溯、最小 scope 的工作；保留其他使用者修改。
 
@@ -25,9 +25,9 @@
 
 - ISOLATED LOCAL：synthetic fixture cleanup zero-residue；phase-aware concurrency verifier 已依規則只跑一次，PASS confirmed=1 waitlisted=5；既有 179 tests passed / 1 skipped、typecheck、lint、build PASS。
 - REMOTE READ-BACK：Supabase project anklbpkyesdmsubyfcna 的 catalog=33；20260815060000_manual_roster_capacity_seat_engine_fix.sql 與 20260818121055_event_invitation_targets_force_rls.sql present；function 9/9 conforming；ACL PASS；RLS 8/8 enabled+forced；aggregate preflight=0。
-- CI：Draft PR #1 的最新已知 run 32148850377，verify、local-supabase、Cloudflare Pages check PASS。
+- CI：Draft PR #1 的最新已知 run 32149787655，verify、local-supabase、Cloudflare Pages check PASS。
 - STAGING：gather-join-staging version 82b00639-298b-4f73-aa91-d3169c75258a，100% traffic；https://gather-join-staging.hjuming.workers.dev/ HTTP 200；無 Access assertion 的 /__dev/session 回 403。
-- PRODUCTION READ-BACK：Pages source fd5a3d3；https://bb3f7583.neo-rechao.pages.dev 與 https://gather.wedopr.com HTTP 200。
+- PRODUCTION READ-BACK：Pages source 6622f72；https://2625040c.neo-rechao.pages.dev 與 https://gather.wedopr.com HTTP 200。
 - CANONICAL STAGING HOST：staging.join.gather.wedopr.com 尚無 DNS／custom domain／zone route，只能標 UNVERIFIED，不得誤寫成 PASS。
 
 ## 本輪唯一下一步

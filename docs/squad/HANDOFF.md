@@ -12,13 +12,13 @@
 
 ### 已完成
 
-- Branch：`codex/gather-mvp`；HEAD／origin=`fd5a3d3`；working tree clean；本 handoff 最新文件 sync commit 為 `fd5a3d3`。
+- Branch：`codex/gather-mvp`；HEAD／origin=`6622f72`；working tree clean；本 handoff 最新文件 sync commit 為 `6622f72`。
 - Docker daemon 已恢復；`gather-join-diag-01`、`gather-join-p1` 曾確認 running／healthy。
 - 既有 phase-aware concurrency one-shot：`PASS confirmed=1 waitlisted=5`。
 - 本輪 guest invitation verifier：token、RLS、aggregate、duplicate roster、capacity、rollback zero-residue 全 PASS。
 - `pnpm test`：179 passed、1 skipped；`pnpm typecheck` PASS；`pnpm lint` PASS；`pnpm build` PASS。
 - Remote Supabase read-back：catalog=`33`、`20260815060000`／`20260818121055` present、function=`9/9` conforming、ACL PASS、RLS=`8/8` enabled＋forced、aggregate preflight=`0`；remote test-event zero-residue PASS。
-- Cloudflare Pages read-back：project=`gather-taiwan`、production source=`fd5a3d3`；deployment URL `https://bb3f7583.neo-rechao.pages.dev` 與 canonical `https://gather.wedopr.com` 均 HTTP `200`。
+- Cloudflare Pages read-back：project=`gather-taiwan`、production source=`6622f72`；deployment URL `https://2625040c.neo-rechao.pages.dev` 與 canonical `https://gather.wedopr.com` 均 HTTP `200`。
 - 相關長期台帳與控制紀錄：`docs/squad/LEDGER.md`、`implementation-control-log.md`。
 
 ### 本 session 新增 read-back（2026-08-18）
@@ -46,7 +46,7 @@
 - 本輪 synthetic member fixture 已清理完成，zero-residue read-back PASS。
 - 本輪 concurrency verifier 已依規則只執行一次並 PASS；不得再 retry。
 - RLS forward migration 已套用並 read-back 為 `8/8`；catalog／ACL／aggregate 亦 PASS。
-- CI read-back PASS：PR #1／run `32148850377` 的 `verify`、`local-supabase` 與 Cloudflare Pages check 均 PASS。
+- CI read-back PASS：PR #1／run `32149787655` 的 `verify`、`local-supabase` 與 Cloudflare Pages check 均 PASS。
 - staging deployment／smoke／public URL read-back PASS：target=`gather-join-staging`、version=`82b00639-298b-4f73-aa91-d3169c75258a`、workers.dev homepage=`200`、未帶 Access assertion 的 `/__dev/session`=`403`。canonical custom host 尚無 DNS/custom-domain/zone route，未將其宣稱為已驗收。
 - Pages production read-back 已完成；不等於 Fresh acceptance。
 - remote migration／data 操作、rollback 均未在本次 docs sync 中執行；本次只做文件 sync、commit、push 與 read-back。
@@ -138,9 +138,9 @@
 
 ## 2026-08-18：Fresh closeout re-review preparation
 
-- Current fixed point：branch=`codex/gather-mvp`、HEAD=`364d61b`、origin 同步、working tree clean；本次仍只允許更新本 handoff、`docs/squad/LEDGER.md`、`implementation-control-log.md`。
-- `[CI / read-only]` Draft PR #1／run `32147680323` 的 `verify`、`local-supabase` 與 Cloudflare Pages check 均 PASS。
+- Current fixed point：branch=`codex/gather-mvp`、HEAD=`6622f72`、origin 同步、working tree clean；本次仍只允許更新文件，未修改 source／migration／test／package／workflow。
+- `[CI / read-only]` Draft PR #1／run `32149787655` 的 `verify`、`local-supabase` 與 Cloudflare Pages check 均 PASS。
 - `[STAGING / read-only]` `gather-join-staging` version=`82b00639-298b-4f73-aa91-d3169c75258a` 100% traffic；workers.dev homepage=`200`、未帶 Access assertion 的 `/__dev/session`=`403`。Canonical `staging.join.gather.wedopr.com` 仍無 DNS answer／custom domain／zone route；只將 canonical custom-host 子 gate 標為 `UNVERIFIED`，不把它誤寫成 staging deployment public-URL gate 失敗。
-- `[PRODUCTION / read-only]` Pages project=`gather-taiwan` source=`364d61b`；deployment=`https://82fca586.neo-rechao.pages.dev` 與 canonical=`https://gather.wedopr.com` 均 HTTP `200`。
+- `[PRODUCTION / read-only]` Pages project=`gather-taiwan` source=`6622f72`；deployment=`https://2625040c.neo-rechao.pages.dev` 與 canonical=`https://gather.wedopr.com` 均 HTTP `200`。
 - 獨立 Fresh Reviewer `Russell` 的只讀 verdict=`READY_WITH_BLOCKERS`。最小 blocker 不是 source、DB、CI、staging 或 Pages failure，而是先前文件仍有舊 HEAD／CI／Pages 證據；本次同步後需再交 Fresh 複核，取得明確 `ACCEPTED` 才能關閉 Wave 0。
 - Wave 0：**仍未關閉／Fresh re-review pending**。Wave 1：**blocked，未啟動**。
