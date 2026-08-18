@@ -263,13 +263,15 @@
 
 ## 2026-08-17：Wave 0 續接（環境阻塞）
 
+> **HISTORICAL／SUPERSEDED／DO NOT EXECUTE**：本段只保留當時環境阻塞與重啟流程；其中的 one-shot concurrency 指令已被 current fixed point supersede，不得照做。目前唯一下一步是獨立 Fresh reviewer。
+
 - 目標：沿用前段節奏先處理「未完成／未處理」與「剩餘風險」，將 concurrency runtime 從
   phase-aware phase 回收點重新打開。
 - 當下阻塞：`docker` 指令存在但 daemon socket `~/.docker/run/docker.sock` 缺失，`supabase status` 與 `supabase start` 都無法連線執行。`open -a Docker` 回報找不到應用，表示此環境無可直接啟動 Docker GUI。
 - 釋出結果：
   - 未完成／未處理：Wave 0 仍未關閉、runtime acceptance pending，Wave 1～6 維持 blocked。
   - 剩餘風險：`concurrency` 仍無法進 phase-aware 取 `phase`，`concurrency` fail 類型依舊未分流；同時保留 client bundle 593 kB warning 與既有工具 trace 邊界風險為待補。
-- 下一步只做一次：
+- [HISTORICAL／SUPERSEDED／DO NOT EXECUTE] 下一步只做一次：
   1) 恢復可用 Docker daemon；
   2) 跑 `pnpm start` 啟動 `apps/join` isolated local；
   3) 跑一次 `GATHER_JOIN_TEST_OWNER_USER_ID=[REDACTED] GATHER_JOIN_TEST_DATABASE_URL=[REDACTED] pnpm verify:manual-roster:concurrency`；
@@ -1840,6 +1842,8 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 
 ## 2026-08-17：Docker 恢復後續作／runtime gate 再驗證（未關閉）
 
+> **HISTORICAL／SUPERSEDED／DO NOT EXECUTE**：本段只保留當時 isolated runtime 嘗試；其中的 fixture cleanup／concurrency 重跑流程已完成或被 current fixed point supersede，不得照做。目前唯一下一步是獨立 Fresh reviewer。
+
 ### 已完成
 
 - Docker daemon 已恢復；`gather-join-diag-01`（`127.0.0.1:58332`）與 `gather-join-p1` 均為 running／healthy。
@@ -1856,7 +1860,7 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 ### 安全與邊界
 
 - 測試只使用本地隔離 DB 與 synthetic identities；未回傳、落檔或重用任何 service-role key、密碼或正式 secrets，既有其他 Docker stacks 未操作。
-- Wave 0 維持開啟，Wave 1 維持 blocked；待 execution escalation 恢復後，先 cleanup fixture，再做一次 phase-aware concurrency 與 catalog／ACL／RLS read-back，最後才交 Fresh runtime。
+- [HISTORICAL／SUPERSEDED／DO NOT EXECUTE] Wave 0 維持開啟，Wave 1 維持 blocked；待 execution escalation 恢復後，先 cleanup fixture，再做一次 phase-aware concurrency 與 catalog／ACL／RLS read-back，最後才交 Fresh runtime。此流程已被 current fixed point supersede，不得照做；目前只交獨立 Fresh reviewer。
 
 ## 2026-08-18：最終 handoff 與 Git publish 邊界
 
@@ -2070,4 +2074,10 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 
 - 第五位獨立 fresh-context reviewer `Epicurus` 確認 current workboard、Wave 1／Wave 2 gate 與 evidence tiers 已一致，但指出歷史 HANDOFF prompt 與 control log 仍含可直接複製的 concurrency 重跑指令。
 - 只在 `docs/squad/HANDOFF.md` 與 `implementation-control-log.md` 的歷史段落就地加入 `HISTORICAL／DO NOT EXECUTE` hard-stop，並明示目前不得重跑 one-shot gate，唯一下一步為獨立 Fresh reviewer。
+- 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
+
+## 2026-08-19：Fresh review control-log hard-stop completion
+
+- 第六位獨立 fresh-context reviewer `Banach` 確認 HANDOFF、LEDGER 與 active workboard 的 hard-stop 已通過，但指出 control log 2026-08-17 的環境阻塞／Docker 恢復段落仍保留可操作的 concurrency 重跑流程。
+- 只在上述兩個歷史 control-log 段落就地加入 `HISTORICAL／SUPERSEDED／DO NOT EXECUTE`，並將舊「下一步」改為不可執行的追溯內容；current next step 維持獨立 Fresh reviewer。
 - 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
