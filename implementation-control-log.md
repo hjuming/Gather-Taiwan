@@ -1862,3 +1862,78 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - 本 session 的交付範圍：handoff、runtime 未完成項、續接 prompt、驗證命令與 evidence boundary；不宣稱 Wave 0 closure、Fresh acceptance、remote migration 或 production deploy。
 - Git publish 需只 stage 明確的本次檔案；`gh auth status` 顯示目前 token invalid，因此若 Git remote push 認證失敗，必須在 push 前停止並回報，不得繞過認證。
 - 實際結果：`git push -u origin codex/gather-mvp` 成功，remote branch 已讀回 `e2cdeb9e4dddcd95d30bd3e5cf34ab2d74ce438b`；此為 Git remote publish，不是 production deploy 或 Wave 0 acceptance。
+
+## 2026-08-18：Wave 0 runtime closeout attempt（blocked，isolated local only）
+
+### Fixed point and scope
+
+- 實際 fixed point：branch `codex/gather-mvp`、`HEAD=7a55d9a`；`c483248` 是較早 checkpoint。working tree 初始為 clean；`git -c core.fsmonitor=false` read-back clean，原始 Git fsmonitor query 曾回報 environment error。
+- 僅處理 `/private/tmp/gather-join-runtime` 的 `gather-join-diag-01` local target、DB port `58332` 與其 synthetic fixture；未做 reset、broad cleanup、remote migration、production deploy、rollback 或 push。
+
+### Cleanup result
+
+- 唯讀 cardinality safety check：owner `auth.users/public.users` 各 1，non-owner member fixture 各 1；未輸出或保存 member UUID、email、token 或 key。
+- 透過 local Auth Admin API 的精確 cleanup 呼叫先因 raw quoted key 回 `403`，修正為正確 local env parsing 後回 `504`；自然等待後 zero-residue cardinality 仍為 owner 1、non-owner 1。未改用 managed `auth.users` direct DML，未再 retry。
+- Cleanup gate：**FAIL／未完成**。synthetic member fixture 仍有 residue；不可進入 full isolated runtime acceptance。
+
+### Fresh isolated local read-back
+
+- Migration catalog：`applied_count=32`、`20260815060000` present、latest=`20260815060000`，**PASS（isolated local）**。
+- ACL：token-only invitation RPC 的 anon/authenticated execute、manual roster authenticated execute、PUBLIC 不可 execute，**PASS（isolated local）**。
+- Capacity function envelope definition，**PASS（isolated local）**；aggregate-only conservative preflight=`0`，**PASS（isolated local）**。
+- RLS：8 張 Wave 0 相關表中 7 張同時 enabled＋forced；`public.event_invitation_targets` 為 enabled 但未 forced，**FAIL（isolated local read-back）**。本輪不自行修 migration。
+
+### Gate and evidence boundary
+
+- 因 cleanup zero-residue 未成立，本輪 phase-aware concurrency verifier **NOT_RUN**；沒有新增 concurrency PASS，也沒有 retry。Fresh runtime review **NOT_READY**。
+- Wave 0 維持未關閉；Wave 1 維持 blocked。以上 local/static/isolated evidence 不轉譯為 remote DB、CI、staging 或 production evidence。
+- 未處理 593 kB bundle warning；未擴大 scope。後續須先由授權 session 處理明確 fixture cleanup／zero-residue 與 RLS gate，再決定是否可跑唯一一次 concurrency verifier。
+
+## 2026-08-18：authorized continuation／RLS correction and managed-auth blocker
+
+### RLS correction
+
+- 新增 repo migration：`apps/join/supabase/migrations/20260818121055_event_invitation_targets_force_rls.sql`，內容僅為 `alter table public.event_invitation_targets force row level security`。
+- `supabase db push --local --yes` 受 host port `58332` timeout 阻塞；未連 remote。改由明確的 `supabase_db_gather-join-diag-01` local DB container 內執行同一 migration SQL 並記錄 version，非 production／remote 操作。
+- Read-back：migration catalog `33`、`20260818121055` present、RLS `8/8` enabled＋forced、ACL PASS、capacity envelope PASS、aggregate preflight `0`；以上均為 isolated local。
+
+### Cleanup follow-up
+
+- 先完成唯一 non-owner fixture 的 domain reference read-back：profile=`1`，organizer／event／registration／manual-added／invitation／audit／idempotency／notification／outbox references 全為 `0`。
+- 依 exact allowlist 精確刪除該 local `public.users` profile，成功；未刪其他資料。
+- local Auth Admin DELETE 與 GET 對 residual auth identity 均回 `404`；DB read-back 顯示 owner auth=`1`、non-owner auth=`1`、owner profile=`1`、non-owner profile=`0`。`auth.instances=0`，non-owner `instance_id` unmatched。
+- 這是 managed `auth.users` orphan fixture；本輪不自行改用 direct `auth.users` DML。Cleanup／zero-residue 仍 **FAIL**，concurrency verifier **NOT_RUN**，Fresh runtime **NOT_READY**。
+
+### Next gate
+
+- 需要對「唯一 local orphan auth fixture 是否可採 direct local cleanup」取得明確 action-specific authorization；在此之前不得碰 `auth.users`，也不得跑 concurrency。
+- Wave 0 維持未關閉；Wave 1 維持 blocked；不處理 593 kB bundle warning，不做 remote migration／deploy／push。
+
+## 2026-08-18：authorized orphan cleanup／concurrency one-shot complete
+
+### Exact local cleanup
+
+- 使用者明確授權只在 `/private/tmp/gather-join-runtime` 的 `gather-join-diag-01` isolated local DB，刪除唯一 synthetic orphan `auth.users` row；不得碰其他資料、remote／production、reset 或 broad cleanup。
+- 依既有 cardinality 與 domain-reference safety check，執行一筆 direct local `auth.users` delete；未輸出或保存 UUID、email、token、key。
+- Zero-residue read-back：owner auth/profile=`1/1`；non-owner auth/profile/session=`0/0/0`；domain references=`0`。
+
+### Concurrency and final local read-back
+
+- 只跑一次 `verify-manual-roster-concurrency.mjs`：`PASS confirmed=1 waitlisted=5`；未 retry。
+- Post-verifier independent read-back：race organizers/events/audit=`0/0/0`；catalog=`33`、`20260818121055` present、RLS=`8/8`、ACL PASS、capacity envelope PASS、aggregate preflight=`0`。
+- Static regression：`179 passed / 1 skipped`；Node `20.20.2` engine warning 仍存在，但測試通過。
+
+### Fresh review boundary
+
+- Isolated local runtime gate evidence 已備妥，可交獨立 Fresh reviewer；本 session 不自我宣稱 Fresh acceptance 或 Wave 0 closure。
+- 目前工具沒有可派 fresh-context reviewer 的 subagent 能力，因此 Fresh reviewer status=`READY_TO_REVIEW`，不是 `ACCEPTED`。
+- Wave 0 維持未關閉；Wave 1 維持 blocked；未做 remote migration／CI／production／deploy／rollback／push，593 kB bundle warning 未處理。
+
+## 2026-08-18：independent Fresh runtime review
+
+- User requested an independent external reviewer. Reviewer `Faraday` ran a fresh-context, read-only review of the repo evidence and isolated local DB; no file mutation, DB write, concurrency rerun, migration apply, DELETE, reset, broad cleanup, remote/production action, commit, or push occurred.
+- Verdict：`READY_WITH_BLOCKERS`。
+- `[ISOLATED LOCAL / reviewer read-only]` catalog=`33`、target migration present、RLS=`8/8` enabled＋forced、ACL=`9/9 exact match`、capacity envelope PASS、aggregate preflight=`0`。
+- `[ISOLATED LOCAL / prior recorded evidence—not rerun]` concurrency=`PASS confirmed=1 waitlisted=5`；本案 one-shot boundary preserved。Zero-residue 亦為既有 isolated local evidence，非本次 fresh 行為測試。
+- Fresh conclusion：isolated local runtime gate `ACCEPTED`，但 Wave 0 overall `NOT_ACCEPTED for closure`；remote DB／CI／staging／production 未驗收，migration 尚未 commit；Wave 1 維持 `BLOCKED`。
+- Required follow-up：owner 另行 exact-allowlist commit 必要檔案，取得 remote／CI／staging／production read-back 後，再重新評估 Wave 0 closure。Local／isolated evidence 不得宣稱為 release-ready。

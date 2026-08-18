@@ -16,6 +16,14 @@
 - 已完成剩餘風險拆解第一步：只執行一次 phase-aware concurrency diagnostic，並抓到 `manual roster concurrency verifier: PASS confirmed=1 waitlisted=5`；同一會話已做 zero-residue 查核，僅餘下可追蹤的 synthetic organizer 殘留已手動清除。
 - 2026-08-17 續作：guest invitation verifier 在 `gather-join-diag-01` 回讀完整 PASS（token／RLS／aggregate／duplicate roster／capacity／rollback zero-residue）；本輪另建立一次性 member fixture 供 capacity／guest gate 使用，但因 execution escalation 額度耗盡，尚未能執行 fixture cleanup 與本輪 concurrency 重跑，故不得把本輪標為 full isolated runtime acceptance。
 - 2026-08-17 build：`pnpm build` PASS（Node `20.20.2`，package engine 要求 `>=22`）；client bundle `593.15 kB` 仍觸發 Vite `>500 kB` warning，未在本輪擴大 scope 修正。
+- 2026-08-18 session read-back：實際 branch `codex/gather-mvp`、`HEAD=7a55d9a`（`c483248` 為較早 checkpoint）；isolated DB `127.0.0.1:58332` 可連線。依 cardinality check 確認 owner 加唯一一個 non-owner member fixture，透過 local Auth Admin cleanup 嘗試後回 `504`，自然釋放後仍為 `owner=1 / non-owner=1`；未直接對 `auth.users` DML，未 retry cleanup。
+- 2026-08-18 isolated local read-back：catalog `applied_count=32`、target `20260815060000` present、latest 同為 `20260815060000`；ACL 目標矩陣 PASS、capacity envelope definition PASS、aggregate-only preflight `0`。RLS read-back 為 `7/8`，缺口是 `public.event_invitation_targets` 未 `FORCE ROW LEVEL SECURITY`；不得把本輪標為 full runtime acceptance。
+- 2026-08-18 gate：因 cleanup zero-residue 未成立，依 fail-closed 邊界未執行本輪 concurrency verifier，未交 Fresh runtime review；Wave 0 維持未關閉，Wave 1 維持 blocked。上述皆為 isolated local evidence，不代表 remote DB／CI／staging／production。
+- 2026-08-18 authorized continuation：新增 forward-only migration `20260818121055_event_invitation_targets_force_rls.sql`；已套用至 `gather-join-diag-01` local DB container，catalog=`33`、RLS=`8/8`、ACL PASS、aggregate preflight=`0`。host port 58332 的 CLI mapping 仍 timeout，未做 remote apply。
+- 2026-08-18 cleanup follow-up：唯一 non-owner profile 已在 domain reference 全為 `0` 後精確清除；Auth Admin GET／DELETE 均回 `404`，`auth.users` 仍有唯一 non-owner orphan row（`instance_id` 無匹配）。依 managed-auth 邊界未執行 direct `auth.users` DML；zero-residue 仍 FAIL，concurrency／Fresh 仍未開始。
+- 2026-08-18 authorized local cleanup：取得 action-specific authorization 後，僅刪除上述唯一 orphan `auth.users` row；post-cleanup read-back 為 owner auth/profile=`1/1`、non-owner auth/profile/session=`0/0/0`、domain references=`0`。
+- 2026-08-18 concurrency gate：只執行一次 phase-aware verifier，結果 `PASS confirmed=1 waitlisted=5`；post-verifier race organizers/events/audit=`0/0/0`。
+- 2026-08-18 runtime gate：catalog=`33`、migration `20260818121055` present、RLS=`8/8`、ACL PASS、capacity envelope PASS、aggregate preflight=`0`。isolated local runtime evidence 已備妥交獨立 Fresh reviewer；Wave 0 尚未因本 session 自我審查而關閉，Wave 1 維持 blocked。
 
 ## Wave 0 workboard
 
@@ -187,3 +195,12 @@
 2. 保留 Fallback3 partial runtime 與 cleanup 證據；safe diagnostic 已 Fresh LOCAL-code accepted。已補一次 phase-aware concurrency one-shot 並 PASS，並清除剩餘 synthetic 殘留。接著需完成 full isolated runtime acceptance（capacity/guest/concurrency + catalog/ACL/RLS）後再交 Fresh runtime。Wave 0 未關閉，Wave 1 不開。
 3. Wave 0 關閉前不得開始 Wave 1；解除後仍只依 app discovery allowlist 施工，並將 STATIC／LOCAL／CI／STAGING／PRODUCTION／DEVICE／NOT_RUN 分開記錄。
 4. Wave 2 只處理三個線上報名者 RPC 缺口；命中 CHARTER 六類 hard stop 即停，rollback 以後續 corrective migration 或既有 Worker version 回退處理，未執行不得寫 PASS。
+
+## 2026-08-18：independent Fresh runtime review
+
+- Reviewer：獨立 Fresh reviewer `Faraday`，只讀審查；未修改檔案、未寫入 DB、未重跑 concurrency verifier、未做 migration apply／DELETE／reset／cleanup／remote／production／commit／push。
+- Verdict：`READY_WITH_BLOCKERS`。
+- Isolated local runtime gate：`ACCEPTED`。Read-only read-back：catalog=`33`、target migration present、RLS=`8/8` enabled＋forced、ACL=`9/9 exact match`、capacity envelope PASS、aggregate preflight=`0`。
+- Concurrency 僅採用既有 evidence（`PASS confirmed=1 waitlisted=5`），未重跑；zero-residue 亦維持既有 isolated local evidence，不升格為本次 fresh 行為測試。
+- Overall：Wave 0 `NOT_ACCEPTED for closure`；remote DB／CI／staging／production 未驗收，migration 尚未 commit；Wave 1 維持 `BLOCKED`。
+- Fresh follow-up：owner 需另行 exact-allowlist commit 必要檔案，並取得 remote／CI／staging／production read-back 後，才可重新評估 Wave 0 closure。
