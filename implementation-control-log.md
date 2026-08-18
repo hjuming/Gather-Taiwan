@@ -865,7 +865,9 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
   仍需使用者明確確認後才執行。
 - 一旦部署完成，才能用真實 LINE 帳號跑一次端對端登入驗收。
 
-# 2026-08-06：設定 Cloudflare Worker secrets
+# 歷史快照（2026-08-06）：設定 Cloudflare Worker secrets／deploy checklist
+
+> **HISTORICAL／SUPERSEDED／DO NOT EXECUTE**：本段只記錄已完成的 secrets／placeholder／deploy 前後狀態；其中的 `wrangler secret put`、`wrangler deploy` 與舊待處理清單不得複製執行。現行 Cloudflare／Pages 狀態以最新 read-back 文件為準。
 
 ## 完成項目
 
@@ -909,7 +911,9 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - 部署完成後才能對真實 LINE 帳號做端對端登入測試。
 - Staging 頻道的對應 secrets／vars 尚未設定（staging 網域架構未定案）。
 
-# 2026-08-07：join app 正式部署至 gather.wedopr.com/app/*
+# 歷史快照（2026-08-07）：join app 正式部署至 gather.wedopr.com/app/*
+
+> **HISTORICAL／SUPERSEDED／DO NOT EXECUTE**：本段是既有部署與 bug 修正紀錄，不是 current deploy checklist；不得依本段重新執行 `wrangler deploy`、cache purge 或其他外部操作。
 
 ## 使用者已明確授權的部署決策
 
@@ -1836,9 +1840,11 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 
 ### Boundary and restart concept
 
+> **HISTORICAL／SUPERSEDED／DO NOT EXECUTE**：本段 safepoint restart 流程只供追溯；其中的 Docker／DB 恢復後 concurrency diagnostic 已被 current fixed point supersede，不得照做。目前唯一下一步是獨立 Fresh reviewer。
+
 - `669f42d` 只是一個 local WIP safepoint，不是 release、DB runtime acceptance 或 Wave 0 closure；Wave 1 不得開。
 - External blockers 保持：isolated runtime 不穩、GitHub auth invalid、remote DB credential unavailable；未執行 remote migration、deploy 或 push。
-- 重啟時先讀回 branch／HEAD／dirty baseline；Docker／db-start 穩定後只跑一次 phase-aware concurrency diagnostic，若取得 phase 再做 root-cause 判定，之後交 Fresh runtime 驗收。
+- [HISTORICAL／SUPERSEDED／DO NOT EXECUTE] 重啟時先讀回 branch／HEAD／dirty baseline；Docker／db-start 穩定後只跑一次 phase-aware concurrency diagnostic，若取得 phase 再做 root-cause 判定，之後交 Fresh runtime 驗收。此流程已被 current fixed point supersede，不得照做；目前只交獨立 Fresh reviewer。
 
 ## 2026-08-17：Docker 恢復後續作／runtime gate 再驗證（未關閉）
 
@@ -2080,4 +2086,10 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 
 - 第六位獨立 fresh-context reviewer `Banach` 確認 HANDOFF、LEDGER 與 active workboard 的 hard-stop 已通過，但指出 control log 2026-08-17 的環境阻塞／Docker 恢復段落仍保留可操作的 concurrency 重跑流程。
 - 只在上述兩個歷史 control-log 段落就地加入 `HISTORICAL／SUPERSEDED／DO NOT EXECUTE`，並將舊「下一步」改為不可執行的追溯內容；current next step 維持獨立 Fresh reviewer。
+- 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
+
+## 2026-08-19：Fresh review legacy deploy and safepoint hard-stop
+
+- 第七位獨立 fresh-context reviewer `Copernicus` 確認 concurrency hard-stop 已補齊，但指出 control log 的舊 safepoint restart 段與 2026-08-06／08-07 Cloudflare secrets／deploy checklist 尚未就地封存。
+- 只在 `implementation-control-log.md` 將上述歷史段落標為 `HISTORICAL／SUPERSEDED／DO NOT EXECUTE`，並明示不得重跑 concurrency、`wrangler secret put`、`wrangler deploy`、cache purge 或其他外部操作。
 - 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
