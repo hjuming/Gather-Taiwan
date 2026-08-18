@@ -1977,3 +1977,12 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[READ-ONLY]` `gather-join-staging` script subdomain binding：enabled；deployment version=`82b00639-298b-4f73-aa91-d3169c75258a` traffic=`100%`。
 - `[READ-ONLY]` deployment propagation 後 `https://gather-join-staging.hjuming.workers.dev/` 回 HTTP `200`，title=`來聚一場｜報名系統`；未帶 Access assertion 的 `/__dev/session` 回 HTTP `403`。
 - 結論：staging deployment public URL gate PASS；canonical custom host route 未配置，保留為未驗收風險，不做 route／DNS 修正。
+
+## 2026-08-18：Fresh closeout re-review preparation
+
+- `[FIXED POINT / read-only]` branch=`codex/gather-mvp`、HEAD=`364d61b`、origin 同步、working tree clean；本次 docs-only sync 未修改 migration、source、test、package 或 workflow。
+- `[CI / read-only]` Draft PR #1／run `32147680323`：`verify` PASS、`local-supabase` PASS、Cloudflare Pages check PASS；Node 20 deprecation annotations 不影響結果。
+- `[STAGING / read-only]` target=`gather-join-staging`、version=`82b00639-298b-4f73-aa91-d3169c75258a`、traffic=`100%`；workers.dev homepage=`200`、未帶 Access assertion 的 `/__dev/session`=`403`。Canonical `staging.join.gather.wedopr.com` 仍無 DNS answer／Workers custom domain／zone route，故 canonical custom-host 子 gate 維持 `UNVERIFIED`，不宣稱為 PASS，也不視為 workers.dev deployment gate 失敗。
+- `[PRODUCTION / read-only]` Pages project=`gather-taiwan` source=`364d61b`；deployment=`https://82fca586.neo-rechao.pages.dev` 與 canonical=`https://gather.wedopr.com` 均 HTTP `200`。
+- 獨立 Fresh Reviewer `Russell` 完成只讀複核，verdict=`READY_WITH_BLOCKERS`；最小 blocker 是先前三份 closeout 文件未同步 current HEAD／CI／Pages evidence。本段完成同步後，仍須重新交獨立 Fresh reviewer，只有明確 `ACCEPTED` 才可將 Wave 0 標記 CLOSED。
+- Wave 0 維持未關閉；Wave 1 維持 `BLOCKED`、未啟動。約 593 kB bundle warning 與 Node engine warning 保留為非阻擋剩餘風險，未擴大處理。

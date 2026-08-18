@@ -134,3 +134,12 @@
 - Wave 0：**未關閉／Fresh pending**。
 - Wave 1：**blocked，未啟動**。
 - 下一步：docs-only commit／push 後重新讀回 CI／Pages，再交獨立 Fresh reviewer。
+
+## 2026-08-18：Fresh closeout re-review preparation
+
+- Current fixed point：branch=`codex/gather-mvp`、HEAD=`364d61b`、origin 同步、working tree clean；本次仍只允許更新本 handoff、`docs/squad/LEDGER.md`、`implementation-control-log.md`。
+- `[CI / read-only]` Draft PR #1／run `32147680323` 的 `verify`、`local-supabase` 與 Cloudflare Pages check 均 PASS。
+- `[STAGING / read-only]` `gather-join-staging` version=`82b00639-298b-4f73-aa91-d3169c75258a` 100% traffic；workers.dev homepage=`200`、未帶 Access assertion 的 `/__dev/session`=`403`。Canonical `staging.join.gather.wedopr.com` 仍無 DNS answer／custom domain／zone route；只將 canonical custom-host 子 gate 標為 `UNVERIFIED`，不把它誤寫成 staging deployment public-URL gate 失敗。
+- `[PRODUCTION / read-only]` Pages project=`gather-taiwan` source=`364d61b`；deployment=`https://82fca586.neo-rechao.pages.dev` 與 canonical=`https://gather.wedopr.com` 均 HTTP `200`。
+- 獨立 Fresh Reviewer `Russell` 的只讀 verdict=`READY_WITH_BLOCKERS`。最小 blocker 不是 source、DB、CI、staging 或 Pages failure，而是先前文件仍有舊 HEAD／CI／Pages 證據；本次同步後需再交 Fresh 複核，取得明確 `ACCEPTED` 才能關閉 Wave 0。
+- Wave 0：**仍未關閉／Fresh re-review pending**。Wave 1：**blocked，未啟動**。

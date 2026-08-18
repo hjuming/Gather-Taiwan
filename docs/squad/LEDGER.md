@@ -214,3 +214,12 @@
 - Delete result：events=`1`、registrations=`7`、event_invitation_targets=`9`、audit_logs=`82`；其餘 allowlisted child rows=`0`。
 - Independent zero-residue read-back：over-limit event=`0`、orphan registrations／answers／invitation targets／fields／invitees／blocklist／password grants／audit logs／notifications／outbox／idempotency 全為 `0`；auth.users=`4`、public.users=`3` unchanged。
 - 目前尚未套用缺少的 `20260815060000_manual_roster_capacity_seat_engine_fix.sql`，也尚未 deploy；下一 gate 是取得該 migration 的明確授權後，重新完成 remote catalog／function／ACL／RLS／aggregate read-back。
+
+## 2026-08-18：Fresh closeout re-review preparation
+
+- Current fixed point：branch=`codex/gather-mvp`、HEAD=`364d61b`、origin 同步、working tree clean。
+- `[CI / read-only]` Draft PR #1／run `32147680323`：`verify`、`local-supabase` 與 Cloudflare Pages check 均 PASS；Node 20 deprecation annotations 不影響結果。
+- `[STAGING / read-only]` `gather-join-staging` version=`82b00639-298b-4f73-aa91-d3169c75258a`、100% traffic；workers.dev homepage=`200`、未帶 Access assertion 的 `/__dev/session`=`403`。Canonical `staging.join.gather.wedopr.com` 仍無 DNS answer／custom domain／zone route，僅保留為 custom-host 子 gate 的 `UNVERIFIED`，不阻擋 workers.dev deployment gate。
+- `[PRODUCTION / read-only]` Pages project=`gather-taiwan` source=`364d61b`；deployment=`https://82fca586.neo-rechao.pages.dev` 與 canonical=`https://gather.wedopr.com` 均 HTTP `200`。
+- 獨立 Fresh Reviewer `Russell` 已完成只讀複核，verdict=`READY_WITH_BLOCKERS`；最小 blocker 是三份 closeout 文件尚需同步至上述 current evidence，完成後再交 Fresh 複核。
+- Wave 0 維持未關閉；Wave 1 維持 `BLOCKED`、未啟動。593 kB bundle warning 與 Node engine warning 不在本輪 scope。
