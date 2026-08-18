@@ -204,3 +204,11 @@
 - Concurrency 僅採用既有 evidence（`PASS confirmed=1 waitlisted=5`），未重跑；zero-residue 亦維持既有 isolated local evidence，不升格為本次 fresh 行為測試。
 - Overall：Wave 0 `NOT_ACCEPTED for closure`；remote DB／CI／staging／production 未驗收，migration 尚未 commit；Wave 1 維持 `BLOCKED`。
 - Fresh follow-up：owner 需另行 exact-allowlist commit 必要檔案，並取得 remote／CI／staging／production read-back 後，才可重新評估 Wave 0 closure。
+
+## 2026-08-18：authorized remote test-event cleanup
+
+- Remote aggregate preflight 先確認唯一 over-limit event=`1`；只讀 foreign-key／cardinality read-back：registrations=`7`、event_invitation_targets=`9`、audit_logs=`82`，其他明確 domain child rows=`0`；auth.users=`4`、public.users=`3`。
+- 依使用者 exact authorization，僅刪除該唯一測試 event、其 registrations、event_invitation_targets 與明確關聯 domain child rows；未碰 auth.users、public.users、其他 events、reset、rollback 或 broad cleanup。
+- Delete result：events=`1`、registrations=`7`、event_invitation_targets=`9`、audit_logs=`82`；其餘 allowlisted child rows=`0`。
+- Independent zero-residue read-back：over-limit event=`0`、orphan registrations／answers／invitation targets／fields／invitees／blocklist／password grants／audit logs／notifications／outbox／idempotency 全為 `0`；auth.users=`4`、public.users=`3` unchanged。
+- 目前尚未套用缺少的 `20260815060000_manual_roster_capacity_seat_engine_fix.sql`，也尚未 deploy；下一 gate 是取得該 migration 的明確授權後，重新完成 remote catalog／function／ACL／RLS／aggregate read-back。

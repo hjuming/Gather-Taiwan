@@ -108,3 +108,10 @@
 - Concurrency 僅引用既有 one-shot PASS（`confirmed=1 waitlisted=5`）；zero-residue 僅引用既有 isolated local read-back，沒有升格為 fresh 行為測試。
 - Wave 0 overall：`NOT_ACCEPTED for closure`。Wave 1：維持 `BLOCKED`。
 - Fresh follow-up：exact-allowlist commit 與 remote／CI／staging／production read-back 尚未完成；Node engine mismatch 與約 593 kB bundle warning 仍為剩餘風險。
+
+### Remote test-event cleanup 結果（2026-08-18）
+
+- 唯讀 preflight 確認唯一 over-limit event=`1`；關聯 registrations=`7`、event_invitation_targets=`9`、audit_logs=`82`，其餘明確 child rows=`0`；auth.users=`4`、public.users=`3`。
+- 依 exact authorization 完成單一提交 transaction：刪除該 event 與明確 domain child rows；未刪 auth.users、public.users、其他 events，未做 reset／rollback／broad cleanup。
+- zero-residue read-back：over-limit=`0`、所有授權範圍 orphan child counts=`0`；protected auth／public user counts 維持 `4／3`。
+- 20260815060000 尚未套用，Cloudflare deploy 尚未執行；下一步需先取得該 migration 的明確授權並重新做 remote read-back。

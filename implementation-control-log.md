@@ -1937,3 +1937,10 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[ISOLATED LOCAL / prior recorded evidence—not rerun]` concurrency=`PASS confirmed=1 waitlisted=5`；本案 one-shot boundary preserved。Zero-residue 亦為既有 isolated local evidence，非本次 fresh 行為測試。
 - Fresh conclusion：isolated local runtime gate `ACCEPTED`，但 Wave 0 overall `NOT_ACCEPTED for closure`；remote DB／CI／staging／production 未驗收，migration 尚未 commit；Wave 1 維持 `BLOCKED`。
 - Required follow-up：owner 另行 exact-allowlist commit 必要檔案，取得 remote／CI／staging／production read-back 後，再重新評估 Wave 0 closure。Local／isolated evidence 不得宣稱為 release-ready。
+
+## 2026-08-18：authorized remote test-event cleanup
+
+- `[REMOTE / read-only preflight]` 唯一 over-limit event=`1`；registrations=`7`、event_invitation_targets=`9`、audit_logs=`82`；其他明確 domain child rows=`0`；auth.users=`4`、public.users=`3`。
+- `[REMOTE / authorized destructive scope]` 單一 transaction 只刪除該 event 與其明確關聯 domain child rows；delete result：events=`1`、registrations=`7`、event_invitation_targets=`9`、audit_logs=`82`，其餘 allowlisted child rows=`0`。未碰 auth.users／public.users／其他 events，未做 reset／rollback／broad cleanup。
+- `[REMOTE / independent zero-residue read-back]` over-limit event=`0`；orphan registrations／registration_answers／event_invitation_targets／event_fields／event_invitees／event_blocklist／event_password_grants／audit_logs／notifications／outbox_events／idempotency_requests 全為 `0`；auth.users=`4`、public.users=`3` unchanged。
+- Gate：缺少的 `20260815060000_manual_roster_capacity_seat_engine_fix.sql` 尚未套用；`gather-taiwan` deploy 尚未執行。需另取得該 migration 明確授權後，才可重新完成 remote catalog／function／ACL／RLS／aggregate read-back。
