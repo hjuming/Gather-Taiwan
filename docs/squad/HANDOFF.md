@@ -12,7 +12,7 @@
 
 ### 已完成
 
-- Branch：`codex/gather-mvp`；目前 HEAD：`c483248`；相對 `origin/codex/gather-mvp` 原先 ahead 2。
+- Branch：`codex/gather-mvp`；目前 HEAD：`e2cdeb9`；已與 `origin/codex/gather-mvp` 同步。
 - Docker daemon 已恢復；`gather-join-diag-01`、`gather-join-p1` 曾確認 running／healthy。
 - 既有 phase-aware concurrency one-shot：`PASS confirmed=1 waitlisted=5`。
 - 本輪 guest invitation verifier：token、RLS、aggregate、duplicate roster、capacity、rollback zero-residue 全 PASS。

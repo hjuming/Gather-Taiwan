@@ -1861,3 +1861,4 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - 新增 `docs/squad/HANDOFF.md` 作為短期 session 交接文件，引用 LEDGER／control log，不取代長期台帳。
 - 本 session 的交付範圍：handoff、runtime 未完成項、續接 prompt、驗證命令與 evidence boundary；不宣稱 Wave 0 closure、Fresh acceptance、remote migration 或 production deploy。
 - Git publish 需只 stage 明確的本次檔案；`gh auth status` 顯示目前 token invalid，因此若 Git remote push 認證失敗，必須在 push 前停止並回報，不得繞過認證。
+- 實際結果：`git push -u origin codex/gather-mvp` 成功，remote branch 已讀回 `e2cdeb9e4dddcd95d30bd3e5cf34ab2d74ce438b`；此為 Git remote publish，不是 production deploy 或 Wave 0 acceptance。
