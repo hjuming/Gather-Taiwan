@@ -108,6 +108,10 @@
 - Correction allowlist：只讓 private invitation reader 的容量 facts 讀取 capacity envelope，並同步最小 verifier assertion；名單呈現與公開／私密政策不改。
 - Evidence boundary：Forge-DB 維持 `in-progress`；DB runtime／remote migration／CI／production 仍為 `NOT_RUN`，GitHub 仍為 `BLOCKED`。
 
+## 歷史快照（2026-08-17 以前）：W0 Fresh decisions 與 isolated runtime attempts
+
+> 本節以下內容是早期 Fresh6／Fresh7 與 isolated runtime 嘗試的歷史紀錄；其中的 `NOT_RUN`、`BLOCKED`、`pending`、舊 runtime 順序與 hard-stop 描述不得覆寫本檔 current fixed point，也不得誘導接手者重跑已完成的 one-shot gate。現行 evidence 以本檔頂部 current fixed point、2026-08-18 closeout read-back 與最新獨立 Fresh review 為準。
+
 ### W0 Fresh6 decision：REJECT／verifier evidence
 
 - P1-1 capacity actor fixture：capacity verifier 以 random UUID 誤標為 staff，實際只證明 non-member；須改用 explicit member ID，並將案例正名為 non-organizer。

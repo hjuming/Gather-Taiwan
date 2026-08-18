@@ -2045,3 +2045,9 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - 只更新 `docs/squad/LEDGER.md`：將 blocker final sync、local safepoint、decision record 與 restart guide 明確標為歷史快照，並註明不得覆寫 current fixed point 或直接照做。
 - 未修改 source／test／package／migration／workflow；未執行資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup。
 - 修正後必須再次交獨立 Fresh reviewer；在取得明確 `ACCEPTED` 前，Wave 0 維持未關閉，Wave 1 維持 `BLOCKED`。
+
+## 2026-08-19：Fresh review blocker correction follow-up
+
+- 第二位獨立 fresh-context reviewer `Ampere` 確認前述修正已涵蓋舊 safepoint、decision record 與 restart guide，但指出 LEDGER 更早的 Fresh6／Fresh7／isolated-runtime attempt 區段仍可能被讀成 current `NOT_RUN`／`BLOCKED`。
+- 只在 `docs/squad/LEDGER.md` 新增歷史快照邊界，明示該段不得覆寫 current fixed point，也不得誘導重跑已完成的一次性 gate。
+- 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
