@@ -1,5 +1,14 @@
 # 來聚一場：維護注意事項
 
+## Wave 0 handoff boundary（2026-08-18）
+
+- Current Git fixed point：`codex/gather-mvp@fd5a3d3`；本輪文件 sync 不涉及 runtime source、migration 或資料寫入。
+- Remote Supabase read-back：catalog `33`、指定 migrations present、function `9/9`、ACL PASS、RLS `8/8` enabled＋forced、aggregate `0`。
+- Staging read-back：`gather-join-staging` version `82b00639-298b-4f73-aa91-d3169c75258a`；workers.dev homepage `200`；未帶 Access assertion 的 protected route `403`。
+- Pages read-back：source `fd5a3d3`；deployment `https://bb3f7583.neo-rechao.pages.dev` 與 canonical `https://gather.wedopr.com` 均 `200`。
+- `staging.join.gather.wedopr.com` 尚無 DNS／custom domain／zone route；canonical staging host 維持 `UNVERIFIED`，不得自行補 route／DNS。
+- Wave 0 尚待文件 sync 後的 independent Fresh re-review；Wave 1 維持 blocked。不要重跑 concurrency、不要新增資料庫、不要套用未授權 migration 或做 broad cleanup。
+
 ## 密鑰與帳號
 
 - LINE channel secret、Supabase DB password、service role key 都不得進 Git、DOM 快照、

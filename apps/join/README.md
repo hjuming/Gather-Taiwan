@@ -1,5 +1,21 @@
 # Gather Join App
 
+## Current engineering handoff（2026-08-18）
+
+`apps/join` 目前位於 Wave 0 manual roster closeout。最新 Git fixed point 是
+`codex/gather-mvp@fd5a3d3`；本輪只同步文件，沒有新增 source、migration 或資料操作。
+
+- Local／isolated：synthetic fixture zero-residue；concurrency one-shot `PASS confirmed=1 waitlisted=5`。
+- Remote Supabase：catalog `33`；兩支指定 migration present；function `9/9`；ACL PASS；RLS `8/8` enabled＋forced；aggregate preflight `0`。
+- CI：Draft PR #1／run `32148850377` 的 `verify`、`local-supabase`、Cloudflare Pages check PASS。
+- Staging：`gather-join-staging` version `82b00639-298b-4f73-aa91-d3169c75258a` 100% traffic；workers.dev homepage `200`、未帶 Access assertion 的 `/__dev/session` `403`。
+- Pages：production source `fd5a3d3`，deployment `https://bb3f7583.neo-rechao.pages.dev` 與 `https://gather.wedopr.com` 均 `200`。
+- Fresh：文件同步後尚未完成新一輪 independent Fresh acceptance；Wave 0 仍未關閉，Wave 1 必須維持 blocked。
+
+canonical staging host `staging.join.gather.wedopr.com` 仍無 DNS／custom domain／zone route；這是未驗收子 gate，不等於 workers.dev deployment gate 失敗。不要為收尾自行新增 route／DNS，也不要重跑 concurrency verifier。
+
+下一團隊的可貼上啟動提示詞與完整接手順序見 [`../docs/squad/NEXT-TEAM-KICKOFF.md`](../docs/squad/NEXT-TEAM-KICKOFF.md)。
+
 `apps/join` 是同網域路徑掛載在 `gather.wedopr.com/app/*` 的 Cloudflare Worker（2026-08-06
 起改為此架構，之前是獨立子網域 `join.gather.wedopr.com`；見
 `implementation-control-log.md` 2026-08-06 段），使用 React/Vite、
@@ -9,7 +25,7 @@
 的 session 與未來 cookie 天然共用，不需處理跨子網域問題。Vite `base` 固定為
 `/app/`（見 `vite.config.ts`），React Router `basename` 讀 `import.meta.env.BASE_URL`。
 
-## 當前狀態（2026-08-15）
+## 歷史狀態基線（2026-08-15）
 
 - P1-01～P1-09/13 已有分批歷史 evidence；其中 P1-04 有正式雲端 9/9 證據，
   P1-06/P1-08 的 canonical hardening A/B、核心 sequential／concurrency 與 direct UPDATE

@@ -1,5 +1,26 @@
 # 來聚一場：開發手冊
 
+## Wave 0 closeout handoff（2026-08-18）
+
+目前固定點：`codex/gather-mvp@fd5a3d3`，working tree clean。這次 handoff 只整理文件，
+不代表 Wave 0 已關閉；Wave 1 仍 blocked。
+
+### 已驗證 evidence
+
+- `LOCAL / isolated`：fixture cleanup zero-residue；phase-aware concurrency one-shot `PASS confirmed=1 waitlisted=5`；既有 regression `179 passed / 1 skipped`，typecheck／lint／build PASS。
+- `REMOTE / read-back`：catalog `33`；`20260815060000_manual_roster_capacity_seat_engine_fix.sql` 與 `20260818121055_event_invitation_targets_force_rls.sql` present；function `9/9` conforming；ACL PASS；RLS `8/8` enabled＋forced；aggregate `0`。
+- `CI / read-only`：PR #1／run `32148850377` 的 `verify`、`local-supabase`、Cloudflare Pages check 均 PASS。
+- `STAGING / read-only`：`gather-join-staging` version `82b00639-298b-4f73-aa91-d3169c75258a`；100% traffic；workers.dev homepage `200`；無 Access assertion 的 `/__dev/session` `403`。
+- `PRODUCTION / read-only`：Pages source `fd5a3d3`；`https://bb3f7583.neo-rechao.pages.dev` 與 `https://gather.wedopr.com` 均 `200`。
+
+### 尚未驗收與禁止事項
+
+- 文件同步後的 independent Fresh review 尚未完成；只有 Fresh 明確 `ACCEPTED` 才可將 Wave 0 標記 CLOSED。
+- `staging.join.gather.wedopr.com` 尚無 DNS／custom domain／zone route，canonical staging host／同源瀏覽器 UAT 必須標 `UNVERIFIED`。
+- 不重跑 concurrency verifier；不新增 remote migration；不做 reset／rollback／broad cleanup；不修改 593 kB bundle warning；不輸出 secrets、token、密碼或個資。
+
+完整狀態、證據連結與下一步見 `../../docs/squad/NEXT-TEAM-KICKOFF.md`、`../../docs/squad/LEDGER.md` 與 `../../implementation-control-log.md`。
+
 ## 工作區
 
 - 開發根目錄：`apps/join`

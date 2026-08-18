@@ -1,6 +1,19 @@
 # 來聚一場：產品與技術 SSOT
 
-最後更新：2026-08-15
+最後更新：2026-08-18
+
+## Wave 0 closeout snapshot
+
+本 SSOT 的產品決策與技術契約仍有效；以下是交接時的 current evidence snapshot，不取代
+`docs/squad/LEDGER.md` 的長期台帳或 `implementation-control-log.md` 的逐次控制紀錄。
+
+- Fixed point：`codex/gather-mvp@fd5a3d3`，working tree clean。
+- Wave 0：manual roster runtime／remote／CI／staging／Pages evidence 已具備，Fresh re-review pending；未關閉。
+- Wave 1：blocked，未啟動。
+- Staging custom host：`staging.join.gather.wedopr.com` 尚無 DNS／custom domain／zone route；workers.dev public URL gate 已 read-back PASS，但 canonical host／同源 UAT 不可宣稱 PASS。
+- Pages current read-back：source `fd5a3d3`；`https://bb3f7583.neo-rechao.pages.dev` 與 `https://gather.wedopr.com` HTTP `200`。
+
+本 snapshot 不含任何密碼、service-role key、token 或個資；敏感設定只可由受控環境變數與 owner-operated console 讀取。
 
 ## 產品目標
 

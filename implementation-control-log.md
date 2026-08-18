@@ -272,7 +272,7 @@
 - 下一步只做一次：
   1) 恢復可用 Docker daemon；
   2) 跑 `pnpm start` 啟動 `apps/join` isolated local；
-  3) 跑一次 `GATHER_JOIN_TEST_OWNER_USER_ID=<dedicated_local_owner_uuid> GATHER_JOIN_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:58322/postgres pnpm verify:manual-roster:concurrency`；
+  3) 跑一次 `GATHER_JOIN_TEST_OWNER_USER_ID=[REDACTED] GATHER_JOIN_TEST_DATABASE_URL=[REDACTED] pnpm verify:manual-roster:concurrency`；
   4) 若有失敗，先讀取一行 JSON 診斷 `phase/pg_code/pg_class`，再做 root-cause；
   5) 再交 Fresh runtime 接受。
   每輪只可 one-shot，不重複 retry。
@@ -312,8 +312,8 @@
 ## 2026-08-17（續）：隔離環境已恢復並補 one-shot PASS
 
 - 現場狀態：`docker` 已恢復，`gather-join-diag-01` 及 `gather-join-p1` 皆為 running；診斷 DB `127.0.0.1:58332` 可用。
-- 執行結果：使用 `GATHER_JOIN_TEST_OWNER_USER_ID=a9a0637a-8420-4fd6-b473-2813325528b0` 與
-  `GATHER_JOIN_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:58332/postgres`，以
+- 執行結果：使用 `GATHER_JOIN_TEST_OWNER_USER_ID=[REDACTED]` 與
+  `GATHER_JOIN_TEST_DATABASE_URL=[REDACTED]`，以
   `node apps/join/scripts/verify-manual-roster-concurrency.mjs` 跑出
   `manual roster concurrency verifier: PASS confirmed=1 waitlisted=5`（one-shot）。
 - 清理/殘留：同一階段補做 zero-residue 查核；`public.organizers` 先前遺留 `manual-race-org-*` 已補清，並已以 `psql` 查核 `organizer_race_left=0`、`outbox_left=0`、`regs_left=0`。
@@ -1986,3 +1986,33 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[PRODUCTION / read-only]` Pages project=`gather-taiwan` source=`364d61b`；deployment=`https://82fca586.neo-rechao.pages.dev` 與 canonical=`https://gather.wedopr.com` 均 HTTP `200`。
 - 獨立 Fresh Reviewer `Russell` 完成只讀複核，verdict=`READY_WITH_BLOCKERS`；最小 blocker 是先前三份 closeout 文件未同步 current HEAD／CI／Pages evidence。本段完成同步後，仍須重新交獨立 Fresh reviewer，只有明確 `ACCEPTED` 才可將 Wave 0 標記 CLOSED。
 - Wave 0 維持未關閉；Wave 1 維持 `BLOCKED`、未啟動。約 593 kB bundle warning 與 Node engine warning 保留為非阻擋剩餘風險，未擴大處理。
+
+## 2026-08-18：下一工程團隊交接文件包同步
+
+### Task / scope
+
+- 目標：整理 Wave 0 manual roster 的目前進度、成果、證據層級、未完成項與下一工程團隊啟動方式。
+- 只修改文件：root `README.md`、`apps/join/README.md`、`apps/join/docs/DEVELOPMENT.md`、`apps/join/docs/SSOT.md`、`apps/join/docs/MAINTENANCE.md`、`docs/squad/HANDOFF.md`、`docs/squad/LEDGER.md`、本 control log，以及新增 `docs/squad/NEXT-TEAM-KICKOFF.md`。
+- Non-goals：不修改 source／test／package／migration／workflow；不新增資料庫；不執行 migration、DELETE、reset、rollback、route／DNS 變更或 deploy。
+
+### Current evidence sync
+
+- Fixed point：`codex/gather-mvp@fd5a3d3`、origin 同步、working tree clean（施工前）；文件 sync 後需以最新 commit 與 `git status -sb` 為準。
+- `[LOCAL / isolated]` fixture zero-residue；phase-aware concurrency one-shot `PASS confirmed=1 waitlisted=5`；既有 regression `179 passed / 1 skipped`、typecheck／lint／build PASS。
+- `[REMOTE / read-only]` catalog=`33`；兩支指定 migration present；function=`9/9` conforming；ACL PASS；RLS=`8/8` enabled＋forced；aggregate=`0`。
+- `[CI / read-only]` PR #1／run `32148850377` 的 `verify`、`local-supabase`、Cloudflare Pages check 均 PASS；Node 20 deprecation annotations 為 warning，不改 scope。
+- `[STAGING / read-only]` `gather-join-staging` version=`82b00639-298b-4f73-aa91-d3169c75258a` 100% traffic；workers.dev homepage=`200`；未帶 Access assertion 的 `/__dev/session`=`403`。Canonical custom host 維持 `UNVERIFIED`。
+- `[PRODUCTION / read-only]` Pages source=`fd5a3d3`；deployment=`https://bb3f7583.neo-rechao.pages.dev` 與 `https://gather.wedopr.com` 均 `200`。
+
+### Decisions and handoff gate
+
+- 建立獨立 `NEXT-TEAM-KICKOFF.md` 作為下一團隊的 canonical 開工提示詞；handoff 保留歷史 prompt 但明確指向新檔案。
+- Wave 0 仍未關閉：文件 sync 後尚待 independent Fresh re-review；只有 Fresh 明確 `ACCEPTED` 才可更新為 CLOSED。
+- Wave 1 維持 `BLOCKED`、未啟動。Canonical staging host／同源瀏覽器 UAT 不得寫成 PASS；不為了收尾新增 route／DNS。
+- 本次文件更新不含 secrets、token、DB 密碼、service-role key 或個資。
+
+### Verification labels
+
+- `✅ 已真實驗證`：文件 read-back、`git diff --check`、allowlist diff、最新 CI run `32148850377`、Pages source／deployment／公開 URL read-back。
+- `⚠️ 部分驗證`：Fresh reviewer 尚未對本次文件 sync 後的狀態重新給 verdict；canonical staging host／同源 staging UAT 未驗證。
+- `❌ 未驗證`：任何新的 route／DNS 修正、Wave 1 工作、完整 LINE failure matrix、device UAT。

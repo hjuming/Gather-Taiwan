@@ -2,7 +2,7 @@
 
 日期：2026-08-18
 來源：Codex／`codex/gather-mvp`
-交接性質：Wave 0 closeout evidence sync；CI／staging 已完成，Fresh final acceptance 仍未完成，不代表 Wave 0 closure。
+交接性質：Wave 0 closeout evidence sync；CI／staging／Pages 已完成，文件同步後的 Fresh re-review 仍未完成，不代表 Wave 0 closure。
 
 ## 下一個 session 的目標
 
@@ -12,13 +12,13 @@
 
 ### 已完成
 
-- Branch：`codex/gather-mvp`；HEAD／origin=`a21ce2b`；working tree clean；handoff 首版 commit 為 `e2cdeb9`，後續 metadata sync 以 `git log` 為準。
+- Branch：`codex/gather-mvp`；HEAD／origin=`fd5a3d3`；working tree clean；本 handoff 最新文件 sync commit 為 `fd5a3d3`。
 - Docker daemon 已恢復；`gather-join-diag-01`、`gather-join-p1` 曾確認 running／healthy。
 - 既有 phase-aware concurrency one-shot：`PASS confirmed=1 waitlisted=5`。
 - 本輪 guest invitation verifier：token、RLS、aggregate、duplicate roster、capacity、rollback zero-residue 全 PASS。
 - `pnpm test`：179 passed、1 skipped；`pnpm typecheck` PASS；`pnpm lint` PASS；`pnpm build` PASS。
 - Remote Supabase read-back：catalog=`33`、`20260815060000`／`20260818121055` present、function=`9/9` conforming、ACL PASS、RLS=`8/8` enabled＋forced、aggregate preflight=`0`；remote test-event zero-residue PASS。
-- Cloudflare Pages read-back：project=`gather-taiwan`、production source=`a21ce2b`；deployment URL `https://1ba56fa0.neo-rechao.pages.dev` 與 canonical `https://gather.wedopr.com` 均 HTTP `200`。
+- Cloudflare Pages read-back：project=`gather-taiwan`、production source=`fd5a3d3`；deployment URL `https://bb3f7583.neo-rechao.pages.dev` 與 canonical `https://gather.wedopr.com` 均 HTTP `200`。
 - 相關長期台帳與控制紀錄：`docs/squad/LEDGER.md`、`implementation-control-log.md`。
 
 ### 本 session 新增 read-back（2026-08-18）
@@ -46,10 +46,10 @@
 - 本輪 synthetic member fixture 已清理完成，zero-residue read-back PASS。
 - 本輪 concurrency verifier 已依規則只執行一次並 PASS；不得再 retry。
 - RLS forward migration 已套用並 read-back 為 `8/8`；catalog／ACL／aggregate 亦 PASS。
-- CI read-back PASS：PR #1／run `32146604033` 的 `verify` 與 `local-supabase` 均 PASS。
+- CI read-back PASS：PR #1／run `32148850377` 的 `verify`、`local-supabase` 與 Cloudflare Pages check 均 PASS。
 - staging deployment／smoke／public URL read-back PASS：target=`gather-join-staging`、version=`82b00639-298b-4f73-aa91-d3169c75258a`、workers.dev homepage=`200`、未帶 Access assertion 的 `/__dev/session`=`403`。canonical custom host 尚無 DNS/custom-domain/zone route，未將其宣稱為已驗收。
-- Pages production read-back 已完成；不等於 CI／staging／Fresh acceptance。
-- remote migration／data 操作、rollback 均未在本次 docs sync 中執行。
+- Pages production read-back 已完成；不等於 Fresh acceptance。
+- remote migration／data 操作、rollback 均未在本次 docs sync 中執行；本次只做文件 sync、commit、push 與 read-back。
 
 ## 重要決策與邊界
 
@@ -63,6 +63,7 @@
 - [LEDGER](./LEDGER.md)：Wave 0 長期台帳、驗收邊界、下一步。
 - [implementation-control-log](../../implementation-control-log.md)：決策、硬停止、runtime 與安全證據。
 - 變更預覽：`git diff origin/codex/gather-mvp...HEAD` 與目前 working-tree diff。
+- 下一工程團隊啟動包：[`NEXT-TEAM-KICKOFF.md`](./NEXT-TEAM-KICKOFF.md)。
 
 ## 建議 Skills
 
@@ -71,7 +72,7 @@
 - `wedo-review`：Fresh runtime handoff 前做獨立 review，不由施工者自我宣稱接受。
 - `github:yeet`：需要完整 GitHub publish／draft PR 時使用；先修復 `gh auth`。
 
-## 續接 prompt（可直接貼給下一個 session）
+## 續接 prompt（歷史版本；目前請優先使用 `NEXT-TEAM-KICKOFF.md`）
 
 ```text
 你接手的是 /Users/hjuming/網站專案/聚場台灣 的 Wave 0 manual roster 收尾。
