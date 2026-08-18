@@ -2093,3 +2093,25 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - 第七位獨立 fresh-context reviewer `Copernicus` 確認 concurrency hard-stop 已補齊，但指出 control log 的舊 safepoint restart 段與 2026-08-06／08-07 Cloudflare secrets／deploy checklist 尚未就地封存。
 - 只在 `implementation-control-log.md` 將上述歷史段落標為 `HISTORICAL／SUPERSEDED／DO NOT EXECUTE`，並明示不得重跑 concurrency、`wrangler secret put`、`wrangler deploy`、cache purge 或其他外部操作。
 - 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
+
+## 2026-08-19：current fixed point／Supabase MCP permission audit
+
+### Scope and fixed point
+
+- 使用者明確確認以目前乾淨 `codex/gather-mvp@83a38e8` 作為 fixed point；本輪 read-back：working tree clean、local HEAD 與 tracking ref 相同。
+- 只允許更新 `docs/squad/LEDGER.md`、`docs/squad/HANDOFF.md`、`implementation-control-log.md`；未修改 source／migration／test／package／workflow。
+- 不執行 remote migration、SQL write、DELETE、reset、rollback、broad cleanup、Cloudflare route／DNS 變更或 deploy。
+
+### Verification and evidence boundary
+
+- `[GITHUB / read-only]` Draft PR #1 head=`83a38e8`；Gather Join Gates run `32184957402` conclusion=`success`。
+- `[STAGING / read-only]` `gather-join-staging.hjuming.workers.dev/` HTTP=`200`；依 `apps/join/scripts/smoke-staging.mjs` 的 POST contract，無 Access assertion 的 `/__dev/session` HTTP=`403`。GET 直接探測回 `405 Method not allowed`，屬 method mismatch，不列為 protected-route failure。Canonical `staging.join.gather.wedopr.com` 維持 `UNVERIFIED`。
+- `[PAGES / read-only]` Cloudflare Pages bot 回報 current source=`83a38e8` deploy successful；deployment preview 與 canonical URL 本輪 HTTP=`200`。這是 Pages／公開 URL read-back，不等於 runtime source release 或 Wave 0 acceptance。
+- `[SUPABASE MCP / read-only]` 已把 Supabase app permission 改為 `ask_before_writes`，保留所有寫入需確認；`supabase_list_migrations` 與 read-only `supabase_execute_sql` 仍回 `MCP -32600 You do not have permission`。未繞過 connector，未執行任何 remote SQL／migration／data operation；前次 remote catalog／function／ACL／RLS／aggregate 記錄不升格為本輪 fresh read-back。
+- `[LOCAL / isolated / prior evidence]` fixture zero-residue、phase-aware concurrency one-shot `PASS confirmed=1 waitlisted=5`、guest verifier PASS、179 tests passed＋1 skipped、typecheck／lint／build PASS 均為既有 evidence；本輪不重跑 concurrency verifier。
+
+### Gate decision
+
+- Wave 0：**未關閉／Fresh re-review pending**。Remote MCP read-only access 仍是外部 connector blocker；取得可讀權限並完成 catalog／function／ACL／RLS／aggregate read-back後，才交獨立 Fresh reviewer。
+- Wave 1：**BLOCKED，未啟動**。
+- 不處理約 593 kB bundle warning；不輸出或保存 secrets、tokens、DB 密碼或個資。

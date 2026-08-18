@@ -2,18 +2,18 @@
 
 ## Current fixed point
 
-- 日期：2026-08-18
+- 日期：2026-08-19
 - 初始 branch：`codex/gather-mvp`
-- 初始 HEAD：`22091b6`
-- 目前 handoff evidence base：branch=`codex/gather-mvp`、commit=`69dab0c`；current HEAD／origin／working tree 由接手團隊重新 read-back。
+- 初始 HEAD：`83a38e8`
+- 目前 handoff evidence base：branch=`codex/gather-mvp`、commit=`83a38e8`；本輪 read-back 確認 working tree clean，local HEAD 與 tracking ref 相同。
 - 目前 Wave：**Wave 0｜manual roster P0（Fresh re-review pending）**
 - Atlas fixed point：**done／acceptance pending**；LOCAL Git clean、local refs `50 ahead / 0 behind`；Node `24.15`、pnpm `10.33.2`。
 - Atlas production read-back：**PASS（PRODUCTION）**；Worker version `e0fcc0c2-c834-480b-b9d3-424783e20b19`、route `gather.wedopr.com/app/*`、production assets／headers read-back PASS。
-- GitHub／CI：**PASS（PR #1／run 32150304903）**；staging deployment／public read-back：**PASS（workers.dev 200／protected route 403）**。Remote DB migration／runtime：**PASS（REMOTE read-back）**；catalog=`33`、`20260815060000`／`20260818121055` present、function=`9/9` conforming、ACL PASS、RLS=`8/8` enabled＋forced、aggregate preflight=`0`。
+- GitHub／CI：**PASS（PR #1／run 32184957402，current HEAD）**；staging deployment／public read-back：**PASS（workers.dev homepage 200／POST protected route 403）**。Remote DB：**prior read-back PASS，current MCP re-read BLOCKED**；既有記錄為 catalog=`33`、兩支 migration present、function=`9/9` conforming、ACL PASS、RLS=`8/8` enabled＋forced、aggregate=`0`，本輪未升格為新的 remote evidence。
 - Wave 0 safe diagnostic：**ACCEPTED（Fresh LOCAL-code）**。Fallback3 DB runtime 的 concurrency 已完成 phase-aware 根因修正，並已補完 phase-aware one-shot 驗證：以 `gather-join-diag-01` isolated local DB、受控環境變數中的 dedicated owner 跑 `apps/join/scripts/verify-manual-roster-concurrency.mjs`，本輪 `PASS confirmed=1 waitlisted=5`。連線字串與 owner identifier 不落台帳。Wave 0 未關閉，Wave 1 不得開。
-- Local WIP safepoint 已建立：`669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`（`wip(join): checkpoint wave 0 capacity hardening`）；exact 9-file allowlist，commit 當下 post-commit clean，未 push／tag／PR。明確不是 release，Wave 0 未關閉。
+- `[HISTORICAL SNAPSHOT]` Local WIP safepoint 已建立：`669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`（`wip(join): checkpoint wave 0 capacity hardening`）；不得覆寫 current fixed point。
 - Git 規則：只 stage 明確檔案，禁止 `git add -A`；本狀態檔不代表已 commit、push、deploy 或 Pilot ready。
-- 2026-08-17 現場狀態：Docker daemon 已回復。`gather-join-diag-01` 與 `gather-join-p1` 均為 running，且 DB 可連線（`127.0.0.1:58332` 可讀到 `select now()`）。
+- `[HISTORICAL SNAPSHOT]` 2026-08-17 現場狀態：Docker daemon 已回復。`gather-join-diag-01` 與 `gather-join-p1` 曾為 running；不得以此段誘導重跑。
 - 已完成剩餘風險拆解第一步：只執行一次 phase-aware concurrency diagnostic，並抓到 `manual roster concurrency verifier: PASS confirmed=1 waitlisted=5`；同一會話已做 zero-residue 查核，僅餘下可追蹤的 synthetic organizer 殘留已手動清除。
 - 2026-08-17 續作：guest invitation verifier 在 `gather-join-diag-01` 回讀完整 PASS（token／RLS／aggregate／duplicate roster／capacity／rollback zero-residue）；本輪另建立一次性 member fixture 供 capacity／guest gate 使用，但因 execution escalation 額度耗盡，尚未能執行 fixture cleanup 與本輪 concurrency 重跑，故不得把本輪標為 full isolated runtime acceptance。
 - 2026-08-17 build：`pnpm build` PASS（Node `20.20.2`，package engine 要求 `>=22`）；client bundle `593.15 kB` 仍觸發 Vite `>500 kB` warning，未在本輪擴大 scope 修正。
@@ -27,6 +27,15 @@
 - 2026-08-18 runtime gate：catalog=`33`、migration `20260818121055` present、RLS=`8/8`、ACL PASS、capacity envelope PASS、aggregate preflight=`0`。isolated local runtime evidence 已備妥交獨立 Fresh reviewer；Wave 0 尚未因本 session 自我審查而關閉，Wave 1 維持 blocked。
 - 2026-08-18 remote／Pages closeout read-back：remote catalog=`33`、兩支指定 migration present、function=`9/9` conforming、ACL PASS、RLS=`8/8` enabled＋forced、aggregate=`0`；Cloudflare Pages `gather-taiwan` production source=`69dab0c`，deployment=`https://f4febb0d.neo-rechao.pages.dev` 與 `https://gather.wedopr.com` 均 HTTP `200`。此為 docs-only auto deployment，不等於 runtime source release 或 Fresh acceptance。
 - 2026-08-18 CI／staging route read-back：PR #1 run `32150304903` 的 `verify`、`local-supabase`、Cloudflare Pages check 均 PASS；`gather-join-staging` version=`82b00639-298b-4f73-aa91-d3169c75258a` 100% traffic，workers.dev homepage=`200`、未帶 Access assertion 的 `/__dev/session`=`403`。Canonical `staging.join.gather.wedopr.com` 仍無 DNS/custom-domain/zone route，故不宣稱該 custom host 已驗收。
+
+## 2026-08-19：current fixed-point and read-only evidence sync
+
+- `[FIXED POINT / LOCAL read-only]` branch=`codex/gather-mvp`、HEAD=`83a38e8212c52afa8ed4ff294c305071453bbae8`、working tree clean；本輪未 reset、未修改 source／migration／test／package／workflow。
+- `[GITHUB / read-only]` Draft PR #1 head=`83a38e8`；Gather Join Gates run `32184957402` conclusion=`success`。
+- `[STAGING / read-only]` `gather-join-staging.hjuming.workers.dev/`=`200`；依 `smoke-staging.mjs` 的 POST contract，無 Access assertion 的 `/__dev/session`=`403`。GET 直接探測回 `405 Method not allowed`，不列為 route failure。Canonical `staging.join.gather.wedopr.com` 仍 `UNVERIFIED`。
+- `[PAGES / read-only]` Cloudflare bot 回報 current source=`83a38e8` deploy successful；deployment preview 與 canonical 本輪 HTTP 均=`200`。這是 Pages／公開 URL read-back，不等於 runtime source release 或 Wave 0 acceptance。
+- `[SUPABASE MCP / read-only]` 已將 Supabase app permission 設為 `ask_before_writes`，保留寫入需確認；`list_migrations` 與唯讀 `execute_sql` 仍回 `MCP -32600 You do not have permission`。因此本輪未執行任何 remote SQL／migration／data operation，remote catalog／function／ACL／RLS／aggregate 只能引用前次已標註的 remote read-back，不能宣稱本輪重驗證。
+- Wave 0：**未關閉／Fresh re-review pending**。Wave 1：**BLOCKED，未啟動**。下一步只有在 Supabase MCP read-only connector 真正可用後補 remote read-back，並交獨立 Fresh reviewer；不得重跑 one-shot concurrency verifier。
 
 ## Wave 0 workboard
 
