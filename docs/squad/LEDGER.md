@@ -147,7 +147,9 @@
 - Orion 裁決：保留 fixed-field diagnostic 作為定位線索；禁止輸出 message、stack、query、params、address、port、DSN 或 IDs。
 - 在修正後，DB diagnostic 還未走到 remote/full run。`DB diagnostic 仍 pending`，runtime overall 不合格，直到 full runtime acceptance 完成為止。
 
-### Wave 0 blocker final sync／safepoint readiness
+### 歷史快照（2026-08-17）：Wave 0 blocker final sync／safepoint readiness
+
+> 本節是 2026-08-17 當時的歷史狀態，不是目前 restart 指令或現況判定。現行 evidence 以本檔 `Current fixed point`、2026-08-18 closeout read-back 與最新獨立 Fresh review 為準。
 
 - Safe diagnostic 已由 Fresh **ACCEPTED（LOCAL-code）**；這只驗收固定欄位 instrumentation，不是 DB runtime acceptance。
 - Fallback3 DB runtime partial PASS：32 migrations（latest `20260815060000`）、catalog、ACL、RLS、aggregate preflight=`0`、guest 與 capacity verifier；concurrency verifier 在 fixture 與 cleanup 修正後已於 `gather-join-diag-01` 跑出 one-shot PASS（`confirmed=1 waitlisted=5`）。
@@ -158,7 +160,9 @@
 - 下一步條件：完成 full isolated runtime acceptance（capacity/guest/concurrency + catalog/ACL/RLS）後再做 Fresh runtime handoff；remote/CI 仍 pending。
 - 目前本機 dirty WIP 僅可標為 safepoint candidate；明確不是 release、DB acceptance、remote apply 或 deployment readiness。
 
-### Local WIP safepoint established
+### 歷史快照：Local WIP safepoint established
+
+> 本節記錄 `669f42d` 建立時的歷史 safepoint；不代表目前 HEAD、目前工作樹或目前 external blocker。接手時必須重新 read-back current branch／HEAD／origin／working tree。
 
 - Commit：`669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`；message：`wip(join): checkpoint wave 0 capacity hardening`。
 - Exact 9-file allowlist：`apps/join/package.json`、`apps/join/scripts/migration-contract.test.ts`、`apps/join/scripts/verify-guest-invitations.mjs`、`apps/join/scripts/verify-manual-roster-capacity.mjs`、`apps/join/scripts/verify-manual-roster-concurrency.mjs`、`apps/join/supabase/migrations/20260815060000_manual_roster_capacity_seat_engine_fix.sql`、`docs/squad/CHARTER.md`、`docs/squad/LEDGER.md`、`implementation-control-log.md`。
@@ -177,7 +181,9 @@
 | Wave 5｜event_fields／發現／名單隱私 | pending | event_fields UI、公開發現政策、roster privacy、role UAT |
 | Wave 6｜Pilot Gate | pending | staging／production、rollback、device／role UAT、Fresh release readiness |
 
-## Decision record
+## Historical decision record
+
+> 以下為歷史決策摘錄，保留作為追溯資料；其中的 `blocked`、`pending`、舊 safepoint 與舊 restart 條件不得覆寫本檔最上方的 current fixed point。現行狀態以 current fixed point 與最新 closeout sections 為準。
 
 - 採 T1 orchestrator-workers 與目標模式；自動授權、六類 MING hard stop、Evidence tier 以 `CHARTER.md` 為準。
 - Wave 0 app 不改：manual roster 既有前端 wrapper／RPC 契約可供 DB discovery 對照；`event_fields` 明確排除本 Wave。
@@ -192,7 +198,9 @@
 - Migration-list false alarm 已解除：`Local` 是 filesystem、`Remote` 才是 applied；catalog `MISSING` 證明 `20260815060000` 未套用，但正式 remote apply 前仍須 ledger＋function definitions read-back。
 - Worker／Pages 既有 deploy／rollback、合格 forward-only migration、allowlist commit／push／PR，以及 CI＋Fresh 後 merge 已獲授權，不需重問；仍須留下 evidence。
 
-## Restart guide
+## Historical restart guide（不得直接照做）
+
+> 本段是舊 runtime 阻塞期的操作指南，僅供追溯，不是本輪的下一步。不得依本段重新執行已完成的 one-shot concurrency gate、cleanup 或 full isolated runtime；目前只等待／執行交接文件指定的獨立 Fresh re-review。
 
 1. 先讀本檔、`docs/squad/CHARTER.md` 與本段 control log；確認 branch=`codex/gather-mvp`、local safepoint HEAD=`669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`、目前 dirty baseline、Worker／DB live state，不假設 commit 當下 clean 仍為真。
 2. 保留 Fallback3 partial runtime 與 cleanup 證據；safe diagnostic 已 Fresh LOCAL-code accepted。已補一次 phase-aware concurrency one-shot 並 PASS，並清除剩餘 synthetic 殘留。接著需完成 full isolated runtime acceptance（capacity/guest/concurrency + catalog/ACL/RLS）後再交 Fresh runtime。Wave 0 未關閉，Wave 1 不開。

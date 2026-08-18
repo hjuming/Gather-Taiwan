@@ -2032,3 +2032,16 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[PRODUCTION / read-only]` Pages active deployment source=`69dab0c`、deployment=`https://f4febb0d.neo-rechao.pages.dev`；canonical `https://gather.wedopr.com` HTTP `200`。這是 docs-only handoff auto deployment，不代表 runtime source release、Fresh acceptance 或 Wave 0 closure。
 - `README.md`、`apps/join` README／SSOT／DEVELOPMENT／MAINTENANCE、squad HANDOFF／LEDGER 與 `NEXT-TEAM-KICKOFF.md` 均已同步 current evidence；未修改 source／migration／test／package／workflow。
 - Wave 0 仍未關閉；Fresh re-review pending；Wave 1 維持 `BLOCKED`、未啟動；canonical staging host 維持 `UNVERIFIED`。
+
+## 2026-08-19：Fresh review blocker correction
+
+### Fresh review result
+
+- 獨立 fresh-context reviewer `Raman` 以只讀方式檢查 current branch、文件、既有 evidence tiers、CI、staging 與 Pages read-back；未修改檔案、未操作 DB、未執行 migration／deploy／push、未重跑 concurrency verifier。
+- Verdict：`NOT_ACCEPTED`。程式、isolated local、remote read-back、CI、staging workers.dev 與 Pages evidence 均未被判定為失敗；唯一最小 blocker 是 `docs/squad/LEDGER.md` 的歷史 decision／restart 段落未明確標示為歷史，可能被誤讀為目前仍需完成 full isolated runtime、GitHub auth 或 remote DB blocker。
+
+### Exact correction
+
+- 只更新 `docs/squad/LEDGER.md`：將 blocker final sync、local safepoint、decision record 與 restart guide 明確標為歷史快照，並註明不得覆寫 current fixed point 或直接照做。
+- 未修改 source／test／package／migration／workflow；未執行資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup。
+- 修正後必須再次交獨立 Fresh reviewer；在取得明確 `ACCEPTED` 前，Wave 0 維持未關閉，Wave 1 維持 `BLOCKED`。
