@@ -5,11 +5,11 @@
 - 日期：2026-08-18
 - 初始 branch：`codex/gather-mvp`
 - 初始 HEAD：`22091b6`
-- 目前 fixed point：branch=`codex/gather-mvp`、HEAD／origin=`6622f72`、working tree clean。
+- 目前 handoff evidence base：branch=`codex/gather-mvp`、commit=`69dab0c`；current HEAD／origin／working tree 由接手團隊重新 read-back。
 - 目前 Wave：**Wave 0｜manual roster P0（Fresh re-review pending）**
 - Atlas fixed point：**done／acceptance pending**；LOCAL Git clean、local refs `50 ahead / 0 behind`；Node `24.15`、pnpm `10.33.2`。
 - Atlas production read-back：**PASS（PRODUCTION）**；Worker version `e0fcc0c2-c834-480b-b9d3-424783e20b19`、route `gather.wedopr.com/app/*`、production assets／headers read-back PASS。
-- GitHub／CI：**PASS（PR #1／run 32149787655）**；staging deployment／public read-back：**PASS（workers.dev 200／protected route 403）**。Remote DB migration／runtime：**PASS（REMOTE read-back）**；catalog=`33`、`20260815060000`／`20260818121055` present、function=`9/9` conforming、ACL PASS、RLS=`8/8` enabled＋forced、aggregate preflight=`0`。
+- GitHub／CI：**PASS（PR #1／run 32150304903）**；staging deployment／public read-back：**PASS（workers.dev 200／protected route 403）**。Remote DB migration／runtime：**PASS（REMOTE read-back）**；catalog=`33`、`20260815060000`／`20260818121055` present、function=`9/9` conforming、ACL PASS、RLS=`8/8` enabled＋forced、aggregate preflight=`0`。
 - Wave 0 safe diagnostic：**ACCEPTED（Fresh LOCAL-code）**。Fallback3 DB runtime 的 concurrency 已完成 phase-aware 根因修正，並已補完 phase-aware one-shot 驗證：以 `gather-join-diag-01` isolated local DB、受控環境變數中的 dedicated owner 跑 `apps/join/scripts/verify-manual-roster-concurrency.mjs`，本輪 `PASS confirmed=1 waitlisted=5`。連線字串與 owner identifier 不落台帳。Wave 0 未關閉，Wave 1 不得開。
 - Local WIP safepoint 已建立：`669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`（`wip(join): checkpoint wave 0 capacity hardening`）；exact 9-file allowlist，commit 當下 post-commit clean，未 push／tag／PR。明確不是 release，Wave 0 未關閉。
 - Git 規則：只 stage 明確檔案，禁止 `git add -A`；本狀態檔不代表已 commit、push、deploy 或 Pilot ready。
@@ -25,8 +25,8 @@
 - 2026-08-18 authorized local cleanup：取得 action-specific authorization 後，僅刪除上述唯一 orphan `auth.users` row；post-cleanup read-back 為 owner auth/profile=`1/1`、non-owner auth/profile/session=`0/0/0`、domain references=`0`。
 - 2026-08-18 concurrency gate：只執行一次 phase-aware verifier，結果 `PASS confirmed=1 waitlisted=5`；post-verifier race organizers/events/audit=`0/0/0`。
 - 2026-08-18 runtime gate：catalog=`33`、migration `20260818121055` present、RLS=`8/8`、ACL PASS、capacity envelope PASS、aggregate preflight=`0`。isolated local runtime evidence 已備妥交獨立 Fresh reviewer；Wave 0 尚未因本 session 自我審查而關閉，Wave 1 維持 blocked。
-- 2026-08-18 remote／Pages closeout read-back：remote catalog=`33`、兩支指定 migration present、function=`9/9` conforming、ACL PASS、RLS=`8/8` enabled＋forced、aggregate=`0`；Cloudflare Pages `gather-taiwan` production source=`6622f72`，deployment=`https://2625040c.neo-rechao.pages.dev` 與 `https://gather.wedopr.com` 均 HTTP `200`。以上不等於 Fresh acceptance。
-- 2026-08-18 CI／staging route read-back：PR #1 run `32149787655` 的 `verify`、`local-supabase`、Cloudflare Pages check 均 PASS；`gather-join-staging` version=`82b00639-298b-4f73-aa91-d3169c75258a` 100% traffic，workers.dev homepage=`200`、未帶 Access assertion 的 `/__dev/session`=`403`。Canonical `staging.join.gather.wedopr.com` 仍無 DNS/custom-domain/zone route，故不宣稱該 custom host 已驗收。
+- 2026-08-18 remote／Pages closeout read-back：remote catalog=`33`、兩支指定 migration present、function=`9/9` conforming、ACL PASS、RLS=`8/8` enabled＋forced、aggregate=`0`；Cloudflare Pages `gather-taiwan` production source=`69dab0c`，deployment=`https://f4febb0d.neo-rechao.pages.dev` 與 `https://gather.wedopr.com` 均 HTTP `200`。此為 docs-only auto deployment，不等於 runtime source release 或 Fresh acceptance。
+- 2026-08-18 CI／staging route read-back：PR #1 run `32150304903` 的 `verify`、`local-supabase`、Cloudflare Pages check 均 PASS；`gather-join-staging` version=`82b00639-298b-4f73-aa91-d3169c75258a` 100% traffic，workers.dev homepage=`200`、未帶 Access assertion 的 `/__dev/session`=`403`。Canonical `staging.join.gather.wedopr.com` 仍無 DNS/custom-domain/zone route，故不宣稱該 custom host 已驗收。
 
 ## Wave 0 workboard
 
@@ -218,9 +218,9 @@
 
 ## 2026-08-18：Fresh closeout re-review preparation
 
-- Current fixed point：branch=`codex/gather-mvp`、HEAD=`6622f72`、origin 同步、working tree clean。
-- `[CI / read-only]` Draft PR #1／run `32149787655`：`verify`、`local-supabase` 與 Cloudflare Pages check 均 PASS；Node 20 deprecation annotations 不影響結果。
+- Current handoff evidence base：branch=`codex/gather-mvp`、commit=`69dab0c`；接手時重新 read-back current HEAD／origin／working tree。
+- `[CI / read-only]` Draft PR #1／run `32150304903`：`verify`、`local-supabase` 與 Cloudflare Pages check 均 PASS；Node 20 deprecation annotations 不影響結果。
 - `[STAGING / read-only]` `gather-join-staging` version=`82b00639-298b-4f73-aa91-d3169c75258a`、100% traffic；workers.dev homepage=`200`、未帶 Access assertion 的 `/__dev/session`=`403`。Canonical `staging.join.gather.wedopr.com` 仍無 DNS answer／custom domain／zone route，僅保留為 custom-host 子 gate 的 `UNVERIFIED`，不阻擋 workers.dev deployment gate。
-- `[PRODUCTION / read-only]` Pages project=`gather-taiwan` source=`6622f72`；deployment=`https://2625040c.neo-rechao.pages.dev` 與 canonical=`https://gather.wedopr.com` 均 HTTP `200`。
+- `[PRODUCTION / read-only]` Pages project=`gather-taiwan` source=`69dab0c`；deployment=`https://f4febb0d.neo-rechao.pages.dev` 與 canonical=`https://gather.wedopr.com` 均 HTTP `200`；docs-only auto deployment，不代表 runtime source release、Fresh acceptance 或 Wave 0 closure。
 - 獨立 Fresh Reviewer `Russell` 已完成只讀複核，verdict=`READY_WITH_BLOCKERS`；最小 blocker 是三份 closeout 文件尚需同步至上述 current evidence，完成後再交 Fresh 複核。
 - Wave 0 維持未關閉；Wave 1 維持 `BLOCKED`、未啟動。593 kB bundle warning 與 Node engine warning 不在本輪 scope。

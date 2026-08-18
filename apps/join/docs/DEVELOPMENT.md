@@ -2,16 +2,16 @@
 
 ## Wave 0 closeout handoff（2026-08-18）
 
-目前固定點：`codex/gather-mvp@6622f72`，working tree clean。這次 handoff 只整理文件，
+本次 handoff evidence base：`codex/gather-mvp@69dab0c`；接手時先重新 read-back branch／HEAD／working tree。這次 handoff 只整理文件，
 不代表 Wave 0 已關閉；Wave 1 仍 blocked。
 
 ### 已驗證 evidence
 
 - `LOCAL / isolated`：fixture cleanup zero-residue；phase-aware concurrency one-shot `PASS confirmed=1 waitlisted=5`；既有 regression `179 passed / 1 skipped`，typecheck／lint／build PASS。
 - `REMOTE / read-back`：catalog `33`；`20260815060000_manual_roster_capacity_seat_engine_fix.sql` 與 `20260818121055_event_invitation_targets_force_rls.sql` present；function `9/9` conforming；ACL PASS；RLS `8/8` enabled＋forced；aggregate `0`。
-- `CI / read-only`：PR #1／run `32149787655` 的 `verify`、`local-supabase`、Cloudflare Pages check 均 PASS。
+- `CI / read-only`：PR #1／run `32150304903` 的 `verify`、`local-supabase`、Cloudflare Pages check 均 PASS。
 - `STAGING / read-only`：`gather-join-staging` version `82b00639-298b-4f73-aa91-d3169c75258a`；100% traffic；workers.dev homepage `200`；無 Access assertion 的 `/__dev/session` `403`。
-- `PRODUCTION / read-only`：Pages source `6622f72`；`https://2625040c.neo-rechao.pages.dev` 與 `https://gather.wedopr.com` 均 `200`。
+- `PRODUCTION / read-only`：Pages source `69dab0c`；`https://f4febb0d.neo-rechao.pages.dev` 與 `https://gather.wedopr.com` 均 `200`；此為 docs-only auto deployment，不代表 runtime source release。
 
 ### 尚未驗收與禁止事項
 

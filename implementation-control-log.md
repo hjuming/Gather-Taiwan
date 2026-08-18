@@ -2024,3 +2024,11 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[PRODUCTION / read-only]` Pages project=`gather-taiwan` active deployment source=`6622f72`；deployment=`https://2625040c.neo-rechao.pages.dev`；canonical `https://gather.wedopr.com` 仍 HTTP `200`。
 - Handoff docs、README、Join SSOT／DEVELOPMENT／MAINTENANCE 與 `NEXT-TEAM-KICKOFF.md` 已同步至本 fixed point；未修改 source／migration／test／package／workflow。
 - Wave 0 仍未關閉：文件已具備 current metadata，但 Fresh re-review 尚未完成；Wave 1 維持 `BLOCKED`、未啟動。Canonical staging host 維持 `UNVERIFIED`。
+
+## 2026-08-18：handoff package final current read-back
+
+- `[FIXED POINT / read-only]` branch=`codex/gather-mvp`、HEAD/origin=`69dab0c`、working tree clean。
+- `[CI / read-only]` Draft PR #1／run `32150304903`：`verify`、`local-supabase`、Cloudflare Pages check 均 PASS；Node 20 deprecation annotations 仍為 warning。
+- `[PRODUCTION / read-only]` Pages active deployment source=`69dab0c`、deployment=`https://f4febb0d.neo-rechao.pages.dev`；canonical `https://gather.wedopr.com` HTTP `200`。這是 docs-only handoff auto deployment，不代表 runtime source release、Fresh acceptance 或 Wave 0 closure。
+- `README.md`、`apps/join` README／SSOT／DEVELOPMENT／MAINTENANCE、squad HANDOFF／LEDGER 與 `NEXT-TEAM-KICKOFF.md` 均已同步 current evidence；未修改 source／migration／test／package／workflow。
+- Wave 0 仍未關閉；Fresh re-review pending；Wave 1 維持 `BLOCKED`、未啟動；canonical staging host 維持 `UNVERIFIED`。
