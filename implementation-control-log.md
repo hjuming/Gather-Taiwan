@@ -1805,6 +1805,8 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 
 ## 2026-08-15：Wave 0 blocker final sync／local WIP safepoint candidate
 
+> **HISTORICAL／DO NOT EXECUTE**：本段只保留 2026-08-15 的追溯證據。其「下一步執行一次 concurrency diagnostic」與舊 external blockers 已被 current fixed point supersede，不得照做；目前只交獨立 Fresh reviewer，不重跑 one-shot gate。
+
 ### Acceptance and runtime evidence
 
 - Safe diagnostic 已由 Fresh **ACCEPTED（LOCAL-code）**；此 acceptance 只涵蓋 fixed-field instrumentation，不是 DB runtime acceptance。
@@ -1816,7 +1818,7 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 
 - External blockers：isolated runtime 不穩定；GitHub auth invalid；remote DB credential unavailable。
 - Wave 0 未關閉，Wave 1 不得開；本輪沒有 remote migration、deploy 或 push。
-- 下一步僅在 Docker／db-start 穩定後執行一次 concurrency diagnostic；若取得 phase，再判 root cause，之後交 Fresh runtime 驗收。
+- [HISTORICAL／DO NOT EXECUTE] 下一步僅在 Docker／db-start 穩定後執行一次 concurrency diagnostic；此步驟已被 current fixed point supersede，不得照做；目前只交獨立 Fresh reviewer。
 
 ### Safepoint boundary
 
@@ -2062,4 +2064,10 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 
 - 第四位獨立 fresh-context reviewer `Popper` 確認 active workboard 已收斂，但指出 Fresh1–Fresh5 仍未納入歷史邊界、Wave 2 在 workboard 間狀態矛盾，且 HANDOFF current closeout gate 仍把已完成的 docs-only commit／push 當成下一步。
 - 只更新 `docs/squad/LEDGER.md` 與 `docs/squad/HANDOFF.md`：補 Fresh1–Fresh5 historical snapshot、將 Wave 2 統一為 blocked，並把 current next step 統一為獨立 Fresh reviewer。
+- 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
+
+## 2026-08-19：Fresh review historical-command hard stop
+
+- 第五位獨立 fresh-context reviewer `Epicurus` 確認 current workboard、Wave 1／Wave 2 gate 與 evidence tiers 已一致，但指出歷史 HANDOFF prompt 與 control log 仍含可直接複製的 concurrency 重跑指令。
+- 只在 `docs/squad/HANDOFF.md` 與 `implementation-control-log.md` 的歷史段落就地加入 `HISTORICAL／DO NOT EXECUTE` hard-stop，並明示目前不得重跑 one-shot gate，唯一下一步為獨立 Fresh reviewer。
 - 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。

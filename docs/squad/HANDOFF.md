@@ -74,6 +74,8 @@
 
 ## 續接 prompt（歷史版本；目前請優先使用 `NEXT-TEAM-KICKOFF.md`）
 
+> **HISTORICAL／DO NOT EXECUTE**：以下 prompt 僅供追溯，內含已被 current fixed point supersede 的重跑條件與舊 blocker。不得直接複製執行；目前唯一下一步是交獨立 Fresh reviewer，且不得重跑 one-shot concurrency verifier。
+
 ```text
 你接手的是 /Users/hjuming/網站專案/聚場台灣 的 Wave 0 manual roster 收尾。
 
@@ -89,7 +91,7 @@
 先處理未完成：
 - synthetic fixture cleanup、zero-residue、concurrency 與 local catalog／ACL／RLS／aggregate gates 已完成。
 - 下一步只交獨立 Fresh reviewer；未取得 Fresh acceptance 前不關閉 Wave 0，不開 Wave 1。
-- cleanup zero-residue 成立後，才可只跑一次 concurrency verifier；若失敗，保留 phase/pg_code/pg_class 的安全診斷，不 retry。
+- [HISTORICAL／DO NOT EXECUTE] cleanup zero-residue 成立後，才可只跑一次 concurrency verifier；此條件已被 current kickoff supersede，不得重跑；若失敗，保留 phase/pg_code/pg_class 的安全診斷，不 retry。
 - catalog／ACL／aggregate／RLS 與 concurrency evidence 已有 isolated local read-back；Fresh reviewer 尚待獨立 context 執行，不得將本 session 結果自我宣稱為 Fresh acceptance。
 
 不得做：
