@@ -1944,3 +1944,29 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[REMOTE / authorized destructive scope]` 單一 transaction 只刪除該 event 與其明確關聯 domain child rows；delete result：events=`1`、registrations=`7`、event_invitation_targets=`9`、audit_logs=`82`，其餘 allowlisted child rows=`0`。未碰 auth.users／public.users／其他 events，未做 reset／rollback／broad cleanup。
 - `[REMOTE / independent zero-residue read-back]` over-limit event=`0`；orphan registrations／registration_answers／event_invitation_targets／event_fields／event_invitees／event_blocklist／event_password_grants／audit_logs／notifications／outbox_events／idempotency_requests 全為 `0`；auth.users=`4`、public.users=`3` unchanged。
 - Gate：缺少的 `20260815060000_manual_roster_capacity_seat_engine_fix.sql` 尚未套用；`gather-taiwan` deploy 尚未執行。需另取得該 migration 明確授權後，才可重新完成 remote catalog／function／ACL／RLS／aggregate read-back。
+
+## 2026-08-18：Wave 0 closeout evidence sync／CI-staging-Fresh pending
+
+### Fixed point and allowlist
+
+- Current fixed point：branch=`codex/gather-mvp`、HEAD=`a21ce2b`、origin 同步、working tree clean；本次只允許更新 `docs/squad/LEDGER.md`、`docs/squad/HANDOFF.md`、`implementation-control-log.md`。
+- 不修改 migration、source、test、package、workflow；不執行 remote migration、DELETE、reset、rollback、broad cleanup 或 concurrency retry。
+
+### Current external read-back
+
+- `[REMOTE / read-only]` Supabase migration catalog=`33`；`20260815060000_manual_roster_capacity_seat_engine_fix.sql` 與 `20260818121055_event_invitation_targets_force_rls.sql` 均 present。
+- `[REMOTE / read-only]` expected function definitions=`9/9` conforming（SECURITY DEFINER＋search_path）；ACL matrix PASS；8 張 Wave 0 RLS tables=`8/8` enabled＋forced；aggregate preflight=`0`。
+- `[REMOTE / prior authorized operation]` 唯一 over-limit test event 與明確 domain child rows 已清除；zero-residue read-back PASS；auth.users=`4`、public.users=`3` unchanged。
+- `[PRODUCTION / read-only]` Cloudflare Pages `gather-taiwan` production source=`a21ce2b`；deployment URL `https://1ba56fa0.neo-rechao.pages.dev` 與 canonical `https://gather.wedopr.com` 均 HTTP `200`，title read-back 正確。
+
+### Remaining gates
+
+- `[NOT_RUN]` GitHub CI read-back 尚未完成；不得用本機 tests/build 代替 CI。
+- `[NOT_RUN]` staging deployment／smoke／公開 URL read-back 尚未完成。既有 repo 設定唯一指定 staging target=`gather-join-staging`（`apps/join/wrangler.staging.jsonc`）；若實際 target、credentials 或 route 無法唯一確認，立即停止。
+- Independent Fresh reviewer 既有 verdict=`READY_WITH_BLOCKERS`；必須在 CI／staging evidence 補齊後重新交 reviewer。
+- Wave 0 維持未關閉；Wave 1 維持 blocked。只有 Fresh reviewer 明確 `ACCEPTED`，才可更新為 Wave 0 CLOSED。
+
+### Evidence boundary
+
+- isolated local、remote、production、CI、staging、Fresh 各自標註，不互相替代。
+- 不處理約 593 kB bundle warning；不輸出或保存 secrets、tokens、密碼、個資。

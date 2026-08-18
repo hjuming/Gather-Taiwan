@@ -2,13 +2,13 @@
 
 ## Current fixed point
 
-- 日期：2026-08-17
+- 日期：2026-08-18
 - 初始 branch：`codex/gather-mvp`
 - 初始 HEAD：`22091b6`
-- 目前 Wave：**Wave 0｜manual roster P0**
+- 目前 Wave：**Wave 0｜manual roster P0（收尾／Fresh pending）**
 - Atlas fixed point：**done／acceptance pending**；LOCAL Git clean、local refs `50 ahead / 0 behind`；Node `24.15`、pnpm `10.33.2`。
 - Atlas production read-back：**PASS（PRODUCTION）**；Worker version `e0fcc0c2-c834-480b-b9d3-424783e20b19`、route `gather.wedopr.com/app/*`、production assets／headers read-back PASS。
-- GitHub：**BLOCKED**（auth invalid）。Remote DB migration／runtime：**NOT_RUN**（credential unavailable）；唯讀 catalog 僅確認 `20260815060000` 為 `MISSING`，不等於 remote DB PASS。
+- GitHub／CI：**read-back pending**。Remote DB migration／runtime：**PASS（REMOTE read-back）**；catalog=`33`、`20260815060000`／`20260818121055` present、function=`9/9` conforming、ACL PASS、RLS=`8/8` enabled＋forced、aggregate preflight=`0`。
 - Wave 0 safe diagnostic：**ACCEPTED（Fresh LOCAL-code）**。Fallback3 DB runtime 的 concurrency 已完成 phase-aware 根因修正，並已補完 phase-aware one-shot 驗證：以 `gather-join-diag-01` DB `postgresql://postgres:postgres@127.0.0.1:58332/postgres`、owner `a9a0637a-8420-4fd6-b473-2813325528b0` 跑 `apps/join/scripts/verify-manual-roster-concurrency.mjs`，本輪 `PASS confirmed=1 waitlisted=5`。Wave 0 未關閉，Wave 1 不得開。
 - Local WIP safepoint 已建立：`669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`（`wip(join): checkpoint wave 0 capacity hardening`）；exact 9-file allowlist，commit 當下 post-commit clean，未 push／tag／PR。明確不是 release，Wave 0 未關閉。
 - Git 規則：只 stage 明確檔案，禁止 `git add -A`；本狀態檔不代表已 commit、push、deploy 或 Pilot ready。
@@ -24,17 +24,18 @@
 - 2026-08-18 authorized local cleanup：取得 action-specific authorization 後，僅刪除上述唯一 orphan `auth.users` row；post-cleanup read-back 為 owner auth/profile=`1/1`、non-owner auth/profile/session=`0/0/0`、domain references=`0`。
 - 2026-08-18 concurrency gate：只執行一次 phase-aware verifier，結果 `PASS confirmed=1 waitlisted=5`；post-verifier race organizers/events/audit=`0/0/0`。
 - 2026-08-18 runtime gate：catalog=`33`、migration `20260818121055` present、RLS=`8/8`、ACL PASS、capacity envelope PASS、aggregate preflight=`0`。isolated local runtime evidence 已備妥交獨立 Fresh reviewer；Wave 0 尚未因本 session 自我審查而關閉，Wave 1 維持 blocked。
+- 2026-08-18 remote／Pages closeout read-back：remote catalog=`33`、兩支指定 migration present、function=`9/9` conforming、ACL PASS、RLS=`8/8` enabled＋forced、aggregate=`0`；Cloudflare Pages `gather-taiwan` production source=`a21ce2b`，deployment URL 與 `https://gather.wedopr.com` 均 HTTP `200`。以上不等於 CI／staging／Fresh acceptance。
 
 ## Wave 0 workboard
 
 | 工單 | 狀態 | 產物／證據路徑摘要 | 驗收狀態 | 下一步 |
 |---|---|---|---|---|
-| W0-ATLAS fixed point | done | branch／HEAD、LOCAL Git、Node／pnpm、Worker route／version／assets read-back | acceptance=pending | Fresh read-back；補 GitHub／remote DB evidence |
-| W0-DB discovery | done | `apps/join/supabase/migrations/`、`apps/join/scripts/verify-p1-11-manual-roster.sql`、RLS／RPC 契約 | acceptance=pending；remote DB=NOT_RUN | 三個線上報名者 RPC 缺口進 Wave 2；只依 allowlist 施工 |
-| W0-APP discovery | done | `apps/join/src/components/RosterManager.tsx`、`src/lib/api.ts`、`worker/index.ts`、`scripts/smoke.mjs`、`scripts/smoke-staging.mjs`、`.github/workflows/join-gates.yml` | acceptance=pending；證據為 app discovery 回報路徑摘要 | Wave 1 Release baseline |
-| W0-ECHO | needs-correction → done | `docs/squad/CHARTER.md`、`docs/squad/LEDGER.md`、本段 control log | acceptance=pending | Fresh Reviewer read-back |
+| W0-ATLAS fixed point | done | branch／HEAD、LOCAL Git、Node／pnpm、Worker／Pages route／deployment read-back | acceptance=pending | CI／staging read-back；Fresh re-review |
+| W0-DB discovery | done | `apps/join/supabase/migrations/`、`apps/join/scripts/verify-p1-11-manual-roster.sql`、RLS／RPC 契約 | acceptance=pending；remote DB=PASS | 三個線上報名者 RPC 缺口進 Wave 2；只依 allowlist 施工 |
+| W0-APP discovery | done | `apps/join/src/components/RosterManager.tsx`、`src/lib/api.ts`、`worker/index.ts`、`scripts/smoke.mjs`、`scripts/smoke-staging.mjs`、`.github/workflows/join-gates.yml` | acceptance=pending；CI／staging read-back pending | Wave 1 Release baseline |
+| W0-ECHO | needs-correction → done | `docs/squad/CHARTER.md`、`docs/squad/LEDGER.md`、本段 control log | docs sync in progress | Fresh Reviewer read-back |
 | W0-Forge-DB correction round 3 | needs-correction | `20260815060000_manual_roster_capacity_seat_engine_fix.sql`、manual-roster capacity／concurrency verifiers、package gate wiring；不得擴大至 event_fields | REJECT（Fresh3） | 停止疊加局部 patch，依 Orion 架構裁決替換 |
-| W0-Forge-DB architecture replacement | in-progress | safe diagnostic Fresh LOCAL-code accepted；既有 phase-aware concurrency one-shot PASS；本輪 guest verifier PASS | runtime overall 未達 full acceptance；fixture cleanup、本輪 concurrency 重跑與 catalog/ACL/RLS fresh read-back 未完成 | 先解除 execution escalation blocker，再完成 full isolated runtime 後交 Fresh runtime |
+| W0-Forge-DB architecture replacement | done／Fresh pending | isolated local cleanup／one-shot concurrency／catalog／ACL／RLS／aggregate gates；remote read-back | isolated local＋remote PASS；Fresh overall pending | CI／staging read-back 後交 Fresh runtime |
 | W0-ATLAS single-DB fallback | done | Fallback3 isolated DB route 與 cleanup evidence；existing stack unchanged | acceptance=pending | 由 Fresh 診斷 runtime failure |
 | W0-FRESH2 | needs-correction | REJECT：P0=0、P1=3、P2=2 | REJECT | 已由 Fresh3 重驗；見 W0-FRESH3 |
 | W0-FRESH3 | needs-correction | REJECT：P0=0、P1=2 | REJECT | 已由 Fresh4 重驗；見 W0-FRESH4 |
@@ -42,7 +43,7 @@
 | W0-FRESH5 | needs-correction | REJECT：P1 reader consistency | REJECT | 已由 Fresh6 重驗；見 W0-FRESH6 |
 | W0-FRESH6 | needs-correction | REJECT：P1×2 | REJECT | 已由 Fresh7 重驗；見 W0-FRESH7 |
 | W0-FRESH7 | done | Node 24：`51/51`、`173 passed / 1 skipped`、`14/14`、build PASS | ACCEPTED（STATIC／LOCAL-code，P0=0、P1=0） | Fallback3 partial runtime；runtime diagnosis blocked；Wave 0 尚未關閉 |
-| W0-FRESH runtime diagnosis | in-progress | Fallback3 partial runtime＋phase-aware bootstrap 已修正；既有 concurrency one-shot PASS，guest verifier 本輪 PASS | runtime acceptance=pending；fixture 未清理 | 解除 execution escalation blocker 後補 full isolated runtime，再交 Fresh runtime |
+| W0-FRESH runtime diagnosis | in-progress | isolated local runtime accepted；remote／Pages read-back completed | Fresh overall `READY_WITH_BLOCKERS`，需 CI／staging read-back後重審 | 完成 CI／staging，再交獨立 Fresh Reviewer |
 | W0-Forge-DB instrumentation | done | safe fixed-field diagnostic；只保留定位所需 `phase`／`code` | ACCEPTED（Fresh LOCAL-code） | DB diagnostic `pending`；不得視為 DB acceptance |
 | W0-GIT safepoint | done | local commit `669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`；exact 9-file allowlist | post-commit clean；非 release／DB acceptance | 未 push／tag／PR；等 external blockers 解除 |
 

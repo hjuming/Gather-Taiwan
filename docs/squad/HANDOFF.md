@@ -2,26 +2,28 @@
 
 日期：2026-08-18
 來源：Codex／`codex/gather-mvp`
-交接性質：本 session 的工程交棒摘要，不代表 release、production acceptance 或 Wave 0 closure。
+交接性質：Wave 0 closeout evidence sync；CI／staging／Fresh final acceptance 仍未完成，不代表 Wave 0 closure。
 
 ## 下一個 session 的目標
 
-在不擴大 Wave 0 scope 的前提下，完成本地 isolated runtime 的收尾：清除本輪 synthetic member fixture、重新取得一次 concurrency 與 catalog／ACL／RLS read-back，然後交 Fresh runtime review。只有所有證據層級分開成立後，才可評估 Wave 0 closure；Wave 1 目前不得開始。
+在不擴大 Wave 0 scope 的前提下，完成 docs-only sync、CI read-back、唯一 staging target `gather-join-staging` 的既有流程 read-back，然後交獨立 Fresh reviewer。只有 Fresh 明確 `ACCEPTED` 才可關閉 Wave 0；Wave 1 目前不得開始。
 
 ## 目前狀態
 
 ### 已完成
 
-- Branch：`codex/gather-mvp`；已與 `origin/codex/gather-mvp` 同步；handoff 首版 commit 為 `e2cdeb9`，後續 metadata sync 以 `git log` 為準。
+- Branch：`codex/gather-mvp`；HEAD／origin=`a21ce2b`；working tree clean；handoff 首版 commit 為 `e2cdeb9`，後續 metadata sync 以 `git log` 為準。
 - Docker daemon 已恢復；`gather-join-diag-01`、`gather-join-p1` 曾確認 running／healthy。
 - 既有 phase-aware concurrency one-shot：`PASS confirmed=1 waitlisted=5`。
 - 本輪 guest invitation verifier：token、RLS、aggregate、duplicate roster、capacity、rollback zero-residue 全 PASS。
 - `pnpm test`：179 passed、1 skipped；`pnpm typecheck` PASS；`pnpm lint` PASS；`pnpm build` PASS。
+- Remote Supabase read-back：catalog=`33`、`20260815060000`／`20260818121055` present、function=`9/9` conforming、ACL PASS、RLS=`8/8` enabled＋forced、aggregate preflight=`0`；remote test-event zero-residue PASS。
+- Cloudflare Pages read-back：project=`gather-taiwan`、production source=`a21ce2b`；deployment URL `https://1ba56fa0.neo-rechao.pages.dev` 與 canonical `https://gather.wedopr.com` 均 HTTP `200`。
 - 相關長期台帳與控制紀錄：`docs/squad/LEDGER.md`、`implementation-control-log.md`。
 
 ### 本 session 新增 read-back（2026-08-18）
 
-- 實際 HEAD 為 `7a55d9a`；`c483248` 是較早 checkpoint。isolated DB `127.0.0.1:58332` 可連線。
+- 歷史 fixed point 實際 HEAD 為 `7a55d9a`；`c483248` 是較早 checkpoint。current final tracked HEAD 為 `a21ce2b`。
 - 唯一 non-owner synthetic member fixture 的 Auth Admin cleanup 先回 `504`，後續 GET／DELETE 回 `404`；profile 已清除但 managed auth orphan 仍在，cleanup／zero-residue **FAIL／未完成**。未直接對 `auth.users` DML。
 - isolated local catalog `33` migrations、target `20260818121055`、ACL、capacity envelope、aggregate preflight `0`、RLS `8/8` **PASS**；`7/8` 是修正前 evidence。
 - 因 cleanup 未成立，本輪 concurrency verifier **NOT_RUN**、Fresh runtime **NOT_READY**；不得以本段 evidence 關閉 Wave 0。
@@ -37,15 +39,17 @@
 - 使用者已明確授權後，僅刪除唯一 synthetic orphan `auth.users` row；zero-residue read-back：owner auth/profile=`1/1`、non-owner auth/profile/session=`0/0/0`、domain references=`0`。
 - 唯一一次 phase-aware concurrency verifier：`PASS confirmed=1 waitlisted=5`；race organizers/events/audit=`0/0/0`。
 - Final isolated local read-back：catalog=`33`、RLS=`8/8`、ACL PASS、capacity envelope PASS、aggregate preflight=`0`。
-- Fresh runtime review 已 **READY_TO_REVIEW**；本 session 不自我宣稱 Fresh acceptance，Wave 0 仍未關閉。
+- Fresh runtime review 已完成一輪，verdict=`READY_WITH_BLOCKERS`；需在 CI／staging evidence 補齊後重新交獨立 Fresh review。本 session 不自我宣稱 Fresh acceptance，Wave 0 仍未關閉。
 
 ### 進行中／未完成
 
 - 本輪 synthetic member fixture 已清理完成，zero-residue read-back PASS。
 - 本輪 concurrency verifier 已依規則只執行一次並 PASS；不得再 retry。
 - RLS forward migration 已套用並 read-back 為 `8/8`；catalog／ACL／aggregate 亦 PASS。
-- Fresh runtime、remote DB、CI、production、deploy、rollback 均未驗收或未執行。
-- GitHub CLI token 目前失效；是否能以 Git credential 直接 push 需在 push 前重新確認。
+- CI read-back 尚未完成。
+- staging deployment／smoke／公開 URL read-back 尚未完成；唯一 target 由 `apps/join/wrangler.staging.jsonc` 指定為 `gather-join-staging`，不得猜測其他 target。
+- Pages production read-back 已完成；不等於 CI／staging／Fresh acceptance。
+- remote migration／data 操作、rollback 均未在本次 docs sync 中執行。
 
 ## 重要決策與邊界
 
@@ -115,3 +119,18 @@
 - 依 exact authorization 完成單一提交 transaction：刪除該 event 與明確 domain child rows；未刪 auth.users、public.users、其他 events，未做 reset／rollback／broad cleanup。
 - zero-residue read-back：over-limit=`0`、所有授權範圍 orphan child counts=`0`；protected auth／public user counts 維持 `4／3`。
 - 20260815060000 尚未套用，Cloudflare deploy 尚未執行；下一步需先取得該 migration 的明確授權並重新做 remote read-back。
+
+## 2026-08-18：remote／Pages closeout read-back sync
+
+- Fixed point：branch=`codex/gather-mvp`、HEAD=`a21ce2b`、origin 同步、working tree clean。
+- `[REMOTE / read-only]` Supabase catalog=`33`；`20260815060000`／`20260818121055` present；expected functions=`9/9` conforming；ACL PASS；RLS=`8/8` enabled＋forced；aggregate preflight=`0`。
+- `[REMOTE / prior authorized operation]` 唯一 over-limit test event 及明確 domain child rows 已清除；zero-residue read-back PASS；未碰 auth.users、public.users、其他 events。
+- `[PRODUCTION / read-only]` Cloudflare Pages project=`gather-taiwan`，source=`a21ce2b`，deployment=`https://1ba56fa0.neo-rechao.pages.dev`；canonical=`https://gather.wedopr.com`；兩者 HTTP `200`。
+- `[NOT_RUN]` GitHub CI read-back、staging deployment／smoke／公開 URL read-back 尚未完成；staging target 唯一由 `apps/join/wrangler.staging.jsonc` 指定為 `gather-join-staging`。
+- 歷史段落中的「尚未套用 migration／尚未 deploy」是當時狀態；本段為 current read-back，不得混用 evidence tier。
+
+## Current closeout gate
+
+- Wave 0：**未關閉／Fresh pending**。
+- Wave 1：**blocked，未啟動**。
+- 下一步：docs-only commit／push 後讀回 CI，執行既有 staging 流程並 read-back，再交獨立 Fresh reviewer。
