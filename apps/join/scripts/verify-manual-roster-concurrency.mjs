@@ -261,9 +261,9 @@ async function cleanup() {
   await sql`delete from public.event_invitation_targets where event_id = ${crossSourceEventId}`;
   await sql`delete from public.registrations where event_id = ${eventId} or event_id = ${crossSourceEventId}`;
   await sql`delete from public.events where id = ${eventId} or id = ${crossSourceEventId}`;
+  await sql`delete from public.organizers where id = ${organizerId}`;
   await sql`delete from public.organizer_members where organizer_id = ${organizerId}`;
   await sql`delete from public.audit_logs where organizer_id = ${organizerId}`;
-  await sql`delete from public.organizers where id = ${organizerId}`;
 }
 
 async function assertZeroResidue() {
@@ -375,45 +375,51 @@ try {
 
   await runConcurrencyPhase("fixture_setup", async () => {
   await cleanup();
-  await sql`
-    insert into public.organizers (id, slug, display_name, created_by_user_id)
-    values (${organizerId}, ${organizerSlug}, 'Manual Race Org', ${ownerId})
-  `;
-  await sql`
-    insert into public.organizer_members (organizer_id, user_id, role)
-    values (${organizerId}, ${ownerId}, 'owner')
-  `;
-  await sql`
-    insert into public.events (
-      id, organizer_id, created_by_user_id, slug, title, status, visibility,
-      confirmation_mode, timezone, starts_at, ends_at, capacity
-    ) values (
-      ${eventId}, ${organizerId}, ${ownerId}, ${eventSlug}, 'Manual Race Event',
-      'published', 'public', 'instant', 'Asia/Taipei',
-      statement_timestamp() + interval '5 days',
-      statement_timestamp() + interval '5 days 2 hours',
-      ${CAPACITY}
-    )
-  `;
-  await sql`
-    insert into public.events (
-      id, organizer_id, created_by_user_id, slug, title, status, visibility,
-      confirmation_mode, timezone, starts_at, ends_at, capacity, invite_only
-    ) values (
-      ${crossSourceEventId}, ${organizerId}, ${ownerId}, ${crossSourceEventSlug},
-      'Same-seat manual/invite concurrency', 'published', 'private', 'instant',
-      'Asia/Taipei', statement_timestamp() + interval '5 days',
-      statement_timestamp() + interval '5 days 2 hours', 1, true
-    )
-  `;
-  [{ target_id: crossSourceTargetId }] = await asOwner((tx) => tx`
-    select public.organizer_add_event_invitation_target(
-      ${crossSourceEventId}, 'Cross-source Invitee'
-    ) as target_id
-  `);
-  [{ token: crossSourceToken }] = await asOwner((tx) => tx`
-    select public.organizer_issue_event_invitation_token(${crossSourceTargetId}) as token
-  `);
+  await sql.begin(async (tx) => {
+    await tx`
+      insert into public.organizers (id, slug, display_name, created_by_user_id)
+      values (${organizerId}, ${organizerSlug}, 'Manual Race Org', ${ownerId})
+    `;
+    await tx`
+      insert into public.organizer_members (organizer_id, user_id, role)
+      values (${organizerId}, ${ownerId}, 'owner')
+    `;
+    await tx`
+      insert into public.events (
+        id, organizer_id, created_by_user_id, slug, title, status, visibility,
+        confirmation_mode, timezone, starts_at, ends_at, capacity
+      ) values (
+        ${eventId}, ${organizerId}, ${ownerId}, ${eventSlug}, 'Manual Race Event',
+        'published', 'public', 'instant', 'Asia/Taipei',
+        statement_timestamp() + interval '5 days',
+        statement_timestamp() + interval '5 days 2 hours',
+        ${CAPACITY}
+      )
+    `;
+    await tx`
+      insert into public.events (
+        id, organizer_id, created_by_user_id, slug, title, status, visibility,
+        confirmation_mode, timezone, starts_at, ends_at, capacity, invite_only
+      ) values (
+        ${crossSourceEventId}, ${organizerId}, ${ownerId}, ${crossSourceEventSlug},
+        'Same-seat manual/invite concurrency', 'published', 'private', 'instant',
+        'Asia/Taipei', statement_timestamp() + interval '5 days',
+        statement_timestamp() + interval '5 days 2 hours', 1, true
+      )
+    `;
+    await tx.unsafe(`set local role authenticated`);
+    await tx`
+      select set_config('request.jwt.claims', ${JSON.stringify({ role: "authenticated", sub: ownerId })}, true)
+    `;
+    [{ target_id: crossSourceTargetId }] = await tx`
+      select public.organizer_add_event_invitation_target(
+        ${crossSourceEventId}, 'Cross-source Invitee'
+      ) as target_id
+    `;
+    [{ token: crossSourceToken }] = await tx`
+      select public.organizer_issue_event_invitation_token(${crossSourceTargetId}) as token
+    `;
+  });
   });
 
   await runConcurrencyPhase("manual_race", async () => {

@@ -258,6 +258,24 @@
 
 - 本段只完成 P1-02 schema 與 default-deny surface，不提前宣稱 P1-03 dev JWT、P1-04
   RLS policies、P1-06/P1-08 冪等 replay／席次引擎完成。
+
+---
+
+## 2026-08-17：Wave 0 續接（環境阻塞）
+
+- 目標：沿用前段節奏先處理「未完成／未處理」與「剩餘風險」，將 concurrency runtime 從
+  phase-aware phase 回收點重新打開。
+- 當下阻塞：`docker` 指令存在但 daemon socket `~/.docker/run/docker.sock` 缺失，`supabase status` 與 `supabase start` 都無法連線執行。`open -a Docker` 回報找不到應用，表示此環境無可直接啟動 Docker GUI。
+- 釋出結果：
+  - 未完成／未處理：Wave 0 仍未關閉、runtime acceptance pending，Wave 1～6 維持 blocked。
+  - 剩餘風險：`concurrency` 仍無法進 phase-aware 取 `phase`，`concurrency` fail 類型依舊未分流；同時保留 client bundle 593 kB warning 與既有工具 trace 邊界風險為待補。
+- 下一步只做一次：
+  1) 恢復可用 Docker daemon；
+  2) 跑 `pnpm start` 啟動 `apps/join` isolated local；
+  3) 跑一次 `GATHER_JOIN_TEST_OWNER_USER_ID=<dedicated_local_owner_uuid> GATHER_JOIN_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:58322/postgres pnpm verify:manual-roster:concurrency`；
+  4) 若有失敗，先讀取一行 JSON 診斷 `phase/pg_code/pg_class`，再做 root-cause；
+  5) 再交 Fresh runtime 接受。
+  每輪只可 one-shot，不重複 retry。
 - 時間採 `timestamptz` 絕對時間＋IANA timezone；報名最晚於開始關閉，開始後安全關鍵
   設定不可變，文案修正仍允許。
 - Master Backlog 優先於 construction contract：check-in 延至 P3-01；正式預設活動等
@@ -290,6 +308,20 @@
 - GitHub Actions：branch push 不會觸發現行 workflow；PR 尚未建立時為 `NOT_RUN`。
 - 本機 Supabase：Docker daemon 未啟動；local reset 未執行。雲端 dedicated project
   transaction read-back 已通過，但不冒充 local CI。
+
+## 2026-08-17（續）：隔離環境已恢復並補 one-shot PASS
+
+- 現場狀態：`docker` 已恢復，`gather-join-diag-01` 及 `gather-join-p1` 皆為 running；診斷 DB `127.0.0.1:58332` 可用。
+- 執行結果：使用 `GATHER_JOIN_TEST_OWNER_USER_ID=a9a0637a-8420-4fd6-b473-2813325528b0` 與
+  `GATHER_JOIN_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:58332/postgres`，以
+  `node apps/join/scripts/verify-manual-roster-concurrency.mjs` 跑出
+  `manual roster concurrency verifier: PASS confirmed=1 waitlisted=5`（one-shot）。
+- 清理/殘留：同一階段補做 zero-residue 查核；`public.organizers` 先前遺留 `manual-race-org-*` 已補清，並已以 `psql` 查核 `organizer_race_left=0`、`outbox_left=0`、`regs_left=0`。
+- 未完成／未處理：仍未完成 `full isolated runtime acceptance`（capacity、guest、catalog、ACL、RLS 的單次整合）；
+  remote DB migration 與 runtime read-back 仍 `NOT_RUN`；GitHub 動態 pipeline 仍 `BLOCKED`（auth invalid）。
+- 剩餘風險：未同步證據的 `client bundle 593kB warning`、線上 `Docker`/工具 trace 邊界，及未完成的
+  remote 套用前提（migration ledger、function definitions 仍需正式 read-back）。
+- 附註：本段僅更新剩餘風險與未完成項；原 WIP safepoint、Wave 0 工程主軸未變更。
 
 # 2026-08-05：文件化交接與 icon/測試環境收斂
 
@@ -1803,3 +1835,29 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `669f42d` 只是一個 local WIP safepoint，不是 release、DB runtime acceptance 或 Wave 0 closure；Wave 1 不得開。
 - External blockers 保持：isolated runtime 不穩、GitHub auth invalid、remote DB credential unavailable；未執行 remote migration、deploy 或 push。
 - 重啟時先讀回 branch／HEAD／dirty baseline；Docker／db-start 穩定後只跑一次 phase-aware concurrency diagnostic，若取得 phase 再做 root-cause 判定，之後交 Fresh runtime 驗收。
+
+## 2026-08-17：Docker 恢復後續作／runtime gate 再驗證（未關閉）
+
+### 已完成
+
+- Docker daemon 已恢復；`gather-join-diag-01`（`127.0.0.1:58332`）與 `gather-join-p1` 均為 running／healthy。
+- 既有 phase-aware concurrency one-shot 證據保留：`manual roster concurrency verifier: PASS confirmed=1 waitlisted=5`；本輪不以相同測試重跑結果覆寫該證據。
+- 本輪 guest verifier 完整 PASS：token、RLS、aggregate count、duplicate roster、capacity contract，以及 rollback zero-residue 均通過。
+- `apps/join` `pnpm build` PASS；產物讀回 client bundle `593.15 kB`，Vite `>500 kB` warning 仍存在。
+
+### 未完成／硬停止原因
+
+- 本輪為 capacity／guest gate 建立的一次性 member fixture 尚未刪除；cleanup 與本輪 concurrency 重跑需要本地 DB escalation，但執行環境回覆 usage limit，依規則停止，不改用繞路執行。
+- 因 fixture 尚未清除，不能宣稱本輪 full isolated runtime acceptance，也不能交 Fresh runtime acceptance；catalog／ACL／RLS 的既有證據仍是前輪 read-back，未在本輪重新宣稱為新證據。
+- Remote DB migration／runtime、CI、production、deploy、rollback、commit、push 均未執行；GitHub auth 仍 `BLOCKED`。
+
+### 安全與邊界
+
+- 測試只使用本地隔離 DB 與 synthetic identities；未回傳、落檔或重用任何 service-role key、密碼或正式 secrets，既有其他 Docker stacks 未操作。
+- Wave 0 維持開啟，Wave 1 維持 blocked；待 execution escalation 恢復後，先 cleanup fixture，再做一次 phase-aware concurrency 與 catalog／ACL／RLS read-back，最後才交 Fresh runtime。
+
+## 2026-08-18：最終 handoff 與 Git publish 邊界
+
+- 新增 `docs/squad/HANDOFF.md` 作為短期 session 交接文件，引用 LEDGER／control log，不取代長期台帳。
+- 本 session 的交付範圍：handoff、runtime 未完成項、續接 prompt、驗證命令與 evidence boundary；不宣稱 Wave 0 closure、Fresh acceptance、remote migration 或 production deploy。
+- Git publish 需只 stage 明確的本次檔案；`gh auth status` 顯示目前 token invalid，因此若 Git remote push 認證失敗，必須在 push 前停止並回報，不得繞過認證。

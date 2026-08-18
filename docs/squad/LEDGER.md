@@ -2,16 +2,20 @@
 
 ## Current fixed point
 
-- 日期：2026-08-15
+- 日期：2026-08-17
 - 初始 branch：`codex/gather-mvp`
 - 初始 HEAD：`22091b6`
 - 目前 Wave：**Wave 0｜manual roster P0**
 - Atlas fixed point：**done／acceptance pending**；LOCAL Git clean、local refs `50 ahead / 0 behind`；Node `24.15`、pnpm `10.33.2`。
 - Atlas production read-back：**PASS（PRODUCTION）**；Worker version `e0fcc0c2-c834-480b-b9d3-424783e20b19`、route `gather.wedopr.com/app/*`、production assets／headers read-back PASS。
 - GitHub：**BLOCKED**（auth invalid）。Remote DB migration／runtime：**NOT_RUN**（credential unavailable）；唯讀 catalog 僅確認 `20260815060000` 為 `MISSING`，不等於 remote DB PASS。
-- Wave 0 safe diagnostic：**ACCEPTED（Fresh LOCAL-code）**。Fallback3 DB runtime 僅 partial PASS、concurrency `FAIL`；後續 phase-aware one-shot 在 bootstrap 失敗，所有 fixed fields=`null`／`NOT_RUN`。Wave 0 未關閉，Wave 1 不得開。
+- Wave 0 safe diagnostic：**ACCEPTED（Fresh LOCAL-code）**。Fallback3 DB runtime 的 concurrency 已完成 phase-aware 根因修正，並已補完 phase-aware one-shot 驗證：以 `gather-join-diag-01` DB `postgresql://postgres:postgres@127.0.0.1:58332/postgres`、owner `a9a0637a-8420-4fd6-b473-2813325528b0` 跑 `apps/join/scripts/verify-manual-roster-concurrency.mjs`，本輪 `PASS confirmed=1 waitlisted=5`。Wave 0 未關閉，Wave 1 不得開。
 - Local WIP safepoint 已建立：`669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`（`wip(join): checkpoint wave 0 capacity hardening`）；exact 9-file allowlist，commit 當下 post-commit clean，未 push／tag／PR。明確不是 release，Wave 0 未關閉。
 - Git 規則：只 stage 明確檔案，禁止 `git add -A`；本狀態檔不代表已 commit、push、deploy 或 Pilot ready。
+- 2026-08-17 現場狀態：Docker daemon 已回復。`gather-join-diag-01` 與 `gather-join-p1` 均為 running，且 DB 可連線（`127.0.0.1:58332` 可讀到 `select now()`）。
+- 已完成剩餘風險拆解第一步：只執行一次 phase-aware concurrency diagnostic，並抓到 `manual roster concurrency verifier: PASS confirmed=1 waitlisted=5`；同一會話已做 zero-residue 查核，僅餘下可追蹤的 synthetic organizer 殘留已手動清除。
+- 2026-08-17 續作：guest invitation verifier 在 `gather-join-diag-01` 回讀完整 PASS（token／RLS／aggregate／duplicate roster／capacity／rollback zero-residue）；本輪另建立一次性 member fixture 供 capacity／guest gate 使用，但因 execution escalation 額度耗盡，尚未能執行 fixture cleanup 與本輪 concurrency 重跑，故不得把本輪標為 full isolated runtime acceptance。
+- 2026-08-17 build：`pnpm build` PASS（Node `20.20.2`，package engine 要求 `>=22`）；client bundle `593.15 kB` 仍觸發 Vite `>500 kB` warning，未在本輪擴大 scope 修正。
 
 ## Wave 0 workboard
 
@@ -22,7 +26,7 @@
 | W0-APP discovery | done | `apps/join/src/components/RosterManager.tsx`、`src/lib/api.ts`、`worker/index.ts`、`scripts/smoke.mjs`、`scripts/smoke-staging.mjs`、`.github/workflows/join-gates.yml` | acceptance=pending；證據為 app discovery 回報路徑摘要 | Wave 1 Release baseline |
 | W0-ECHO | needs-correction → done | `docs/squad/CHARTER.md`、`docs/squad/LEDGER.md`、本段 control log | acceptance=pending | Fresh Reviewer read-back |
 | W0-Forge-DB correction round 3 | needs-correction | `20260815060000_manual_roster_capacity_seat_engine_fix.sql`、manual-roster capacity／concurrency verifiers、package gate wiring；不得擴大至 event_fields | REJECT（Fresh3） | 停止疊加局部 patch，依 Orion 架構裁決替換 |
-| W0-Forge-DB architecture replacement | blocked | safe diagnostic Fresh LOCAL-code accepted；Fallback3 isolated DB runtime 部分 gates PASS | runtime overall 不合格：concurrency verifier `FAIL` | 等 isolated runtime 穩定後單次 diagnostic |
+| W0-Forge-DB architecture replacement | in-progress | safe diagnostic Fresh LOCAL-code accepted；既有 phase-aware concurrency one-shot PASS；本輪 guest verifier PASS | runtime overall 未達 full acceptance；fixture cleanup、本輪 concurrency 重跑與 catalog/ACL/RLS fresh read-back 未完成 | 先解除 execution escalation blocker，再完成 full isolated runtime 後交 Fresh runtime |
 | W0-ATLAS single-DB fallback | done | Fallback3 isolated DB route 與 cleanup evidence；existing stack unchanged | acceptance=pending | 由 Fresh 診斷 runtime failure |
 | W0-FRESH2 | needs-correction | REJECT：P0=0、P1=3、P2=2 | REJECT | 已由 Fresh3 重驗；見 W0-FRESH3 |
 | W0-FRESH3 | needs-correction | REJECT：P0=0、P1=2 | REJECT | 已由 Fresh4 重驗；見 W0-FRESH4 |
@@ -30,7 +34,7 @@
 | W0-FRESH5 | needs-correction | REJECT：P1 reader consistency | REJECT | 已由 Fresh6 重驗；見 W0-FRESH6 |
 | W0-FRESH6 | needs-correction | REJECT：P1×2 | REJECT | 已由 Fresh7 重驗；見 W0-FRESH7 |
 | W0-FRESH7 | done | Node 24：`51/51`、`173 passed / 1 skipped`、`14/14`、build PASS | ACCEPTED（STATIC／LOCAL-code，P0=0、P1=0） | Fallback3 partial runtime；runtime diagnosis blocked；Wave 0 尚未關閉 |
-| W0-FRESH runtime diagnosis | blocked | Fallback3 partial runtime＋phase-aware bootstrap failure；不含 secrets／IDs | runtime acceptance=pending | 等 Docker／db-start 穩定；單次 diagnostic 後再 Fresh runtime |
+| W0-FRESH runtime diagnosis | in-progress | Fallback3 partial runtime＋phase-aware bootstrap 已修正；既有 concurrency one-shot PASS，guest verifier 本輪 PASS | runtime acceptance=pending；fixture 未清理 | 解除 execution escalation blocker 後補 full isolated runtime，再交 Fresh runtime |
 | W0-Forge-DB instrumentation | done | safe fixed-field diagnostic；只保留定位所需 `phase`／`code` | ACCEPTED（Fresh LOCAL-code） | DB diagnostic `pending`；不得視為 DB acceptance |
 | W0-GIT safepoint | done | local commit `669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`；exact 9-file allowlist | post-commit clean；非 release／DB acceptance | 未 push／tag／PR；等 external blockers 解除 |
 
@@ -121,26 +125,26 @@
 
 - PASS：isolated DB 啟動；32 migrations 套至 latest `20260815060000`；migration catalog、SECURITY DEFINER／`search_path`／reader、ACL、5 項 RLS 與 aggregate-only preflight=`0` 均通過。
 - PASS：GoTrue health；透過允許的管理介面建立 2 個 synthetic identities，profiles read-back 通過；guest 與 capacity verifiers 通過，rollback residue=`0`。
-- FAIL：concurrency verifier 回報 sanitized `database_connection`；本次為 one-shot，依邊界不 retry。故 runtime overall **不合格**、Fresh not ready，Fresh diagnosis `in-progress`。
+- 當次紀錄：concurrency verifier 曾回報 sanitized `database_connection`；該輪為 one-shot，依邊界未 retry，故 runtime overall 當時 **不合格**、Fresh not ready。後續 phase-aware one-shot 修正證據已補齊（見下）。
 - Cleanup：synthetic identities=`0`、Wave0 resources=`0`、temporary target 已刪除、existing stack unchanged；本段不記錄 secrets 或 IDs。
 - Evidence boundary：此為 isolated DB 部分 runtime 證據，不是 remote DB、CI 或 production PASS；Wave 0 仍未關閉。
 
 ### Concurrency root-cause diagnosis
 
-- Sanitized `database_connection` 不足以唯一判因；H1 為 connection slots，H2 為 business `53300`／class `53` collision，兩者目前都只是待 DB diagnostic 區分的假說。
-- 已確定的 observable bug：concurrency verifier 的 error rewrap 丟失原始 `phase`／`code`，使 infrastructure 與 business failure 無法安全區分。
-- Orion 裁決：先做 safe fixed-field diagnostic，只補定位所需固定欄位；禁止輸出 message、stack、query、params、address、port、DSN 或 IDs。
-- 在 diagnostic 證據回來前，禁止先改 retry、pool 或 SQLSTATE 語意。Forge-DB instrumentation 後續已完成並獲 Fresh LOCAL-code acceptance；DB diagnostic 仍 `pending`，runtime overall 不合格。
+- 歷史上 `sanitized database_connection` 無法唯一判因；現已確認原 blocker 與 phase-aware 失敗為 fixture setup/cleanup 競態（`23514`）與順序，修正後已再跑過 one-shot PASS，未再出現該類失敗。
+- 已確認可追蹤 bug：concurrency verifier 的 error rewrap 丟失原始 `phase`／`code`，使 infrastructure 與 business failure 無法安全區分。此欄位保留已完成並固化於 verifier，後續 remote/分環境可直接對照。
+- Orion 裁決：保留 fixed-field diagnostic 作為定位線索；禁止輸出 message、stack、query、params、address、port、DSN 或 IDs。
+- 在修正後，DB diagnostic 還未走到 remote/full run。`DB diagnostic 仍 pending`，runtime overall 不合格，直到 full runtime acceptance 完成為止。
 
 ### Wave 0 blocker final sync／safepoint readiness
 
 - Safe diagnostic 已由 Fresh **ACCEPTED（LOCAL-code）**；這只驗收固定欄位 instrumentation，不是 DB runtime acceptance。
-- Fallback3 DB runtime partial PASS：32 migrations（latest `20260815060000`）、catalog、ACL、RLS、aggregate preflight=`0`、guest 與 capacity verifier；concurrency verifier `FAIL`，故 runtime overall 不合格。
-- 後續 phase-aware one-shot 在 bootstrap 階段失敗，所有 safe diagnostic fixed fields=`null`／`NOT_RUN`，未取得可供 root-cause 判定的 phase。
+- Fallback3 DB runtime partial PASS：32 migrations（latest `20260815060000`）、catalog、ACL、RLS、aggregate preflight=`0`、guest 與 capacity verifier；concurrency verifier 在 fixture 與 cleanup 修正後已於 `gather-join-diag-01` 跑出 one-shot PASS（`confirmed=1 waitlisted=5`）。
+- 本次 one-shot synthetic fixture 已核對 zero-residue；先前 `manual-race-org-*` 殘留已補清，現況無剩餘。
 - Cleanup read-back：Wave0 resources=`0`、temporary target deleted、existing stack unchanged。
-- External blockers：isolated runtime 不穩定；GitHub auth invalid；remote DB credential unavailable。
+- External blockers：isolated runtime 已可運行；GitHub auth invalid；remote DB credential unavailable；尚未完成 remote migration read-back。
 - Gate：Wave 0 未關閉，Wave 1 不得開；未執行 remote migration、deploy 或 push。
-- 下一步條件：Docker／db-start 穩定後只跑一次 concurrency diagnostic；若取得 phase，再做 root-cause 判定，之後交 Fresh runtime 驗收。
+- 下一步條件：完成 full isolated runtime acceptance（capacity/guest/concurrency + catalog/ACL/RLS）後再做 Fresh runtime handoff；remote/CI 仍 pending。
 - 目前本機 dirty WIP 僅可標為 safepoint candidate；明確不是 release、DB acceptance、remote apply 或 deployment readiness。
 
 ### Local WIP safepoint established
@@ -169,9 +173,9 @@
 - manual row `user_id is null` 沒有可通知 recipient；不造 outbox、不新增假通知收件人。
 - `dist/gather_join_staging` 污染 smoke 的根因候選與 Wave 1 最小 allowlist 已定位，尚未施工或宣稱通過。
 - Wave 0 Fresh7 已 `ACCEPTED（STATIC／LOCAL-code，P0=0、P1=0）`；Node 24 gates 為 `51/51`、`173 passed / 1 skipped`、`14/14`、build PASS。
-- 此 acceptance 不含 DB runtime、CI、remote DB 或 production；Fallback3 雖取得部分 isolated DB runtime PASS，但 concurrency verifier `FAIL`，後續 bootstrap 亦失敗，runtime diagnosis `blocked`。
-- Concurrency 的 sanitized `database_connection` 不足以判定 H1 connection slots 或 H2 business `53300`／class `53` collision；先以固定 `phase`／`code` diagnostic 修補 observable rewrap 缺口，不先改 retry／pool／SQLSTATE。
-- Safe diagnostic 已獲 Fresh LOCAL-code acceptance；phase-aware one-shot bootstrap failure 令所有 fixed fields 為 `null`／`NOT_RUN`，因此 DB root cause 與 runtime acceptance 仍 pending。
+- 此 acceptance 不含 DB runtime、CI、remote DB 或 production；Fallback3 雖為 partial runtime，現在 concurrency 已補完並在 `gather-join-diag-01` one-shot PASS，DB runtime acceptance 尚待 full isolated pass。
+- Concurrency 的 sanitized `database_connection` 已由 fixture/setup 修正證實不再阻塞；fixed-field `phase`／`code` 仍保留供 remote/其它環境對照。
+- Safe diagnostic 已獲 Fresh LOCAL-code acceptance；one-shot concurrency fixed fields 已有 phase 可追溯，DB root cause 與 runtime acceptance 仍 pending。
 - Local WIP safepoint `669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0` 已建立且 commit 當下 post-commit clean；它不是 release／DB acceptance。Isolated runtime、GitHub auth 與 remote DB credential blockers 解除前，Wave 1 不開，也不做 remote migration／deploy／push。
 - Explicit linkage 依 MING 原計畫留到 Wave 3，且不得只靠 `display_name`；Wave 0 以保守高估優先避免 oversell。
 - Migration-list false alarm 已解除：`Local` 是 filesystem、`Remote` 才是 applied；catalog `MISSING` 證明 `20260815060000` 未套用，但正式 remote apply 前仍須 ledger＋function definitions read-back。
@@ -180,6 +184,6 @@
 ## Restart guide
 
 1. 先讀本檔、`docs/squad/CHARTER.md` 與本段 control log；確認 branch=`codex/gather-mvp`、local safepoint HEAD=`669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`、目前 dirty baseline、Worker／DB live state，不假設 commit 當下 clean 仍為真。
-2. 保留 Fallback3 partial runtime 與 cleanup 證據；safe diagnostic 已 Fresh LOCAL-code accepted，但 phase-aware one-shot bootstrap failed、fixed fields=`null`／`NOT_RUN`。等待 Docker／db-start 穩定後單次 concurrency diagnostic；取得 phase 才判 root cause，再交 Fresh runtime。Wave 0 未關閉，Wave 1 不開。
+2. 保留 Fallback3 partial runtime 與 cleanup 證據；safe diagnostic 已 Fresh LOCAL-code accepted。已補一次 phase-aware concurrency one-shot 並 PASS，並清除剩餘 synthetic 殘留。接著需完成 full isolated runtime acceptance（capacity/guest/concurrency + catalog/ACL/RLS）後再交 Fresh runtime。Wave 0 未關閉，Wave 1 不開。
 3. Wave 0 關閉前不得開始 Wave 1；解除後仍只依 app discovery allowlist 施工，並將 STATIC／LOCAL／CI／STAGING／PRODUCTION／DEVICE／NOT_RUN 分開記錄。
 4. Wave 2 只處理三個線上報名者 RPC 缺口；命中 CHARTER 六類 hard stop 即停，rollback 以後續 corrective migration 或既有 Worker version 回退處理，未執行不得寫 PASS。
