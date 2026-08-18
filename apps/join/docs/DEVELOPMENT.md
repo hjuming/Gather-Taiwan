@@ -1,5 +1,26 @@
 # 來聚一場：開發手冊
 
+## Wave 0 closeout handoff（2026-08-18）
+
+本次 handoff evidence base：`codex/gather-mvp@69dab0c`；接手時先重新 read-back branch／HEAD／working tree。這次 handoff 只整理文件，
+不代表 Wave 0 已關閉；Wave 1 仍 blocked。
+
+### 已驗證 evidence
+
+- `LOCAL / isolated`：fixture cleanup zero-residue；phase-aware concurrency one-shot `PASS confirmed=1 waitlisted=5`；既有 regression `179 passed / 1 skipped`，typecheck／lint／build PASS。
+- `REMOTE / read-back`：catalog `33`；`20260815060000_manual_roster_capacity_seat_engine_fix.sql` 與 `20260818121055_event_invitation_targets_force_rls.sql` present；function `9/9` conforming；ACL PASS；RLS `8/8` enabled＋forced；aggregate `0`。
+- `CI / read-only`：PR #1／run `32150304903` 的 `verify`、`local-supabase`、Cloudflare Pages check 均 PASS。
+- `STAGING / read-only`：`gather-join-staging` version `82b00639-298b-4f73-aa91-d3169c75258a`；100% traffic；workers.dev homepage `200`；無 Access assertion 的 `/__dev/session` `403`。
+- `PRODUCTION / read-only`：Pages source `69dab0c`；`https://f4febb0d.neo-rechao.pages.dev` 與 `https://gather.wedopr.com` 均 `200`；此為 docs-only auto deployment，不代表 runtime source release。
+
+### 尚未驗收與禁止事項
+
+- 文件同步後的 independent Fresh review 尚未完成；只有 Fresh 明確 `ACCEPTED` 才可將 Wave 0 標記 CLOSED。
+- `staging.join.gather.wedopr.com` 尚無 DNS／custom domain／zone route，canonical staging host／同源瀏覽器 UAT 必須標 `UNVERIFIED`。
+- 不重跑 concurrency verifier；不新增 remote migration；不做 reset／rollback／broad cleanup；不修改 593 kB bundle warning；不輸出 secrets、token、密碼或個資。
+
+完整狀態、證據連結與下一步見 `../../docs/squad/NEXT-TEAM-KICKOFF.md`、`../../docs/squad/LEDGER.md` 與 `../../implementation-control-log.md`。
+
 ## 工作區
 
 - 開發根目錄：`apps/join`
@@ -62,10 +83,19 @@ migration 或 concurrency PASS。
 `P1-03`（dev-only auth harness）已完成正式驗收，證據見
 `docs/evidence/p1-03-green.md`；尚未接線真實 Cloudflare Access，未部署。
 
-1) 先做 `P1-04`（domain policies）
-2) 同步補 `P1-06 / P1-08`（席次引擎與冪等）
-3) 完成 `T-01b`（LINE callback 與 E2E）
-4) 補齊 staging/production 部署與真實 Cloudflare Access 接線
+`P1-04` domain policies 已完成正式雲端 9/9 驗證；LINE 正常授權 production
+E2E 亦已 PASS。後續不得再把這兩項列為待施工。
+
+1) canonical hardening A 已套用並完成遠端 ledger/read-back；容量 `SUM(seats)`、attending
+   邀請者計入容量、strict FIFO 與 pool release-before-promote 已覆蓋。8 搶 3、41 搶 40
+   真實並發與 token／RLS rollback verifier 均 PASS。
+2) 多席 strict-FIFO、兩池 deadline merge 與 capacity RPC 冪等的 rollback-only verifier 已 PASS。
+   B migration 已套用並完成 direct UPDATE revoke、容量 RPC ACL 與正式 Worker／前端 read-back；
+   `authenticated` 及前端已不能直接更新 `capacity`、`invite_reserved_seats`、`invite_pool_deadline`、
+   `invite_pool_released_at`。P1-06/P1-08 仍以既有核心席次／併發證據作 conditional closure，
+   不把未完成的完整 failure matrix 或 event_fields UI 放大為已完成。
+3) 完成 LINE 拒絕授權、無 email、incognito、過期 `state`/`nonce` 與第二個獨立帳號 E2E
+4) 補齊真實 Cloudflare Access 接線與獨立 staging 驗收
 
 ## 2026-08-10 Supabase 恢復後的 LINE callback 交接
 
@@ -93,8 +123,8 @@ incognito、過期 state/nonce、第二帳號等失敗矩陣仍是待辦。
 5. 容量與報名狀態只能經單一席次引擎 RPC 改動，App role 不可直寫。
 6. 已套用 migration 永不回改；修正必須新增 forward-only migration。P1-02 的 owner
    transfer 修正即保留為獨立 ledger 版本，避免本地檔與雲端 checksum 漂移。
-7. P1-02 domain tables 尚無 policy 是刻意的 fail-closed Gate；只有 P1-04 驗收後才可
-   grant 最小權限。不得為了 UI 開發先給 base-table DML。
+7. P1-04 已對 domain tables 建立最小 policy／欄位 grant 與 scoped RPC；base-table
+   direct DML 與尚未開放的流程仍維持 fail-closed。不得為了 UI 開發額外放寬。
 8. LINE callback 的 server-only 存取另以 `20260810010000_p2_02_line_service_role_grants.sql`
    維持最小欄位 grant；不得把這些權限複製給 `anon`／`authenticated`，也不得把
    `service_role` key 放進前端。若以 Dashboard SQL 緊急套用，必須在控制紀錄標註

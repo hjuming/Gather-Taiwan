@@ -11,6 +11,8 @@
 // needing a custom-OIDC-provider dashboard configuration (not available on
 // every Supabase plan) while still never handling a user's password.
 
+import { normalizeInternalRedirect } from "../shared/auth-redirect";
+
 export interface LineAuthEnv {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
@@ -44,7 +46,7 @@ function readCookie(request: Request, name: string): string | null {
 
 export async function handleLineAuthStart(request: Request, env: LineAuthEnv): Promise<Response> {
   const url = new URL(request.url);
-  const redirectTo = url.searchParams.get("redirect") ?? "/";
+  const redirectTo = normalizeInternalRedirect(url.searchParams.get("redirect"));
 
   const state = randomToken();
   const nonce = randomToken();
@@ -272,7 +274,14 @@ export async function handleLineAuthCallback(request: Request, env: LineAuthEnv)
     return failure("state_mismatch");
   }
   const [storedNonce, redirectToRaw] = nonceCookie.split("|");
-  const redirectTo = redirectToRaw ? decodeURIComponent(redirectToRaw) : "/";
+  let redirectTo = "/";
+  if (redirectToRaw) {
+    try {
+      redirectTo = normalizeInternalRedirect(decodeURIComponent(redirectToRaw));
+    } catch {
+      redirectTo = "/";
+    }
+  }
 
   let claims: LineVerifyResponse;
   try {
@@ -303,10 +312,13 @@ export async function handleLineAuthCallback(request: Request, env: LineAuthEnv)
         if (!(error instanceof SupabaseAdminError) || error.status !== 422) throw error;
         const fallbackEmail = syntheticLineEmail(lineUserId);
         const existingFallback = await findAuthUserByEmail(fallbackEmail, env);
-        authUser = existingFallback ?? (await createAuthUser(fallbackEmail, true, env));
+        authUser = existingFallback ?? (await createAuthUser(fallbackEmail, false, env));
       }
       userId = authUser.id;
-      await upsertPublicUserRow(userId, lineUserId, claims.name, claims.email, hasRealEmail, env);
+      const authEmailMatchesClaim = Boolean(
+        claims.email && authUser.email.trim().toLowerCase() === claims.email.trim().toLowerCase(),
+      );
+      await upsertPublicUserRow(userId, lineUserId, claims.name, claims.email, authEmailMatchesClaim, env);
     } else {
       authUser = await getAuthUserById(userId, env);
     }

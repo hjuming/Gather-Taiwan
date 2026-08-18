@@ -13,7 +13,10 @@ export default function SiteFooter() {
         <nav aria-label="頁尾導覽">
           <a href="/">聚場台灣首頁</a>
           <a href="/gatherings/">聚場地圖</a>
+          <a href="/app/me/registrations">我的報名</a>
           <a href="/contact/">聯絡我們</a>
+          <a href="/privacy/">隱私權政策</a>
+          <a href="/terms/">服務條款</a>
         </nav>
       </div>
     </footer>

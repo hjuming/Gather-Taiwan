@@ -1,5 +1,17 @@
 import { supabase } from "./supabase";
-import type { EventFieldRow, EventRow, RegistrationRow, RegistrationStatus } from "./types";
+import type {
+  EventFieldRow,
+  EventInvitationTargetRow,
+  EventRow,
+  RegistrationRow,
+  RegistrationStatus,
+  EventFeeMode,
+} from "./types";
+import type {
+  GuestInvitationEvent,
+  GuestInvitationRosterResponse,
+} from "./guest-invitations";
+import { removeEventCover } from "./event-covers";
 
 // events.password_hash is deliberately never granted to any role (P1-04) —
 // a bare `select("*")` translates to a real `SELECT *` and Postgres refuses
@@ -9,9 +21,17 @@ const EVENT_COLUMNS =
   "id, organizer_id, created_by_user_id, slug, title, summary, description, " +
   "status, visibility, confirmation_mode, timezone, starts_at, ends_at, " +
   "registration_opens_at, registration_closes_at, location_name, location_address, " +
-  "capacity, fee_amount, fee_currency, payment_instructions, roster_visibility, " +
+  "capacity, fee_amount, fee_mode, fee_currency, payment_instructions, roster_visibility, " +
   "roster_show_capacity, invite_only, min_age, invite_reserved_seats, " +
-  "invite_pool_deadline, invite_pool_released_at, created_at, updated_at";
+  "invite_pool_deadline, invite_pool_released_at, gathering_type, cover_image_url, " +
+  "created_at, updated_at";
+
+export interface PublicEventSummary {
+  organizerDisplayName: string | null;
+  registrationCount: number | null;
+  capacity: number | null;
+  showCapacity: boolean;
+}
 
 function randomIdempotencyKey(): string {
   return crypto.randomUUID();
@@ -42,6 +62,104 @@ export async function getEventBySlug(slug: string): Promise<EventRow | null> {
   const { data, error } = await supabase.from("events").select(EVENT_COLUMNS).eq("slug", slug).maybeSingle();
   if (error) throw error;
   return (data as unknown as EventRow | null) ?? null;
+}
+
+export async function getPublicEventSummary(slug: string): Promise<PublicEventSummary | null> {
+  const response = await fetch(`/app/api/event-summary?slug=${encodeURIComponent(slug)}`, {
+    headers: { Accept: "application/json" },
+  });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error("活動摘要暫時讀不到");
+  return (await response.json()) as PublicEventSummary;
+}
+
+export async function getGuestInvitationEvent(
+  slug: string,
+  inviteeToken: string | null = null,
+): Promise<GuestInvitationEvent | null> {
+  const { data, error } = await supabase.rpc("get_event_invitation_by_slug", {
+    p_slug: slug,
+    p_guest_key: inviteeToken,
+  });
+  if (error) throw error;
+  return (data as GuestInvitationEvent | null) ?? null;
+}
+
+export async function respondToGuestInvitation(
+  slug: string,
+  inviteeToken: string,
+  response: GuestInvitationRosterResponse,
+): Promise<{
+  id: string;
+  guest_response: GuestInvitationRosterResponse;
+  guest_display_name: string;
+  attending_count: number;
+  capacity: number | null;
+}> {
+  const { data, error } = await supabase.rpc("respond_to_event_invitation", {
+    p_slug: slug,
+    p_invitee_token: inviteeToken,
+    p_response: response,
+  });
+  if (error) throw error;
+  const result = data as {
+    id: string;
+    response: GuestInvitationRosterResponse;
+    display_name: string;
+    attending_count: number;
+    capacity: number | null;
+  };
+  return {
+    id: result.id,
+    guest_response: result.response,
+    guest_display_name: result.display_name,
+    attending_count: result.attending_count,
+    capacity: result.capacity,
+  };
+}
+
+export async function getEventInvitationTargets(eventId: string): Promise<EventInvitationTargetRow[]> {
+  const { data, error } = await supabase
+    .from("event_invitation_targets")
+    .select("id, event_id, display_name, response, responded_at, created_by_user_id, created_at, updated_at, revoked_at")
+    .eq("event_id", eventId)
+    .is("revoked_at", null)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return (data as EventInvitationTargetRow[]) ?? [];
+}
+
+export async function organizerAddEventInvitationTarget(eventId: string, displayName: string): Promise<string> {
+  const { data, error } = await supabase.rpc("organizer_add_event_invitation_target", {
+    p_event_id: eventId,
+    p_display_name: displayName,
+  });
+  if (error) throw error;
+  return data as string;
+}
+
+export async function organizerRemoveEventInvitationTarget(targetId: string): Promise<void> {
+  const { error } = await supabase.rpc("organizer_remove_event_invitation_target", {
+    p_target_id: targetId,
+  });
+  if (error) throw error;
+}
+
+/** Plaintext is returned exactly once by the database; callers must not persist it. */
+export async function organizerIssueEventInvitationToken(targetId: string): Promise<string> {
+  const { data, error } = await supabase.rpc("organizer_issue_event_invitation_token", {
+    p_target_id: targetId,
+  });
+  if (error) throw error;
+  return data as string;
+}
+
+export async function organizerEditEventInvitationTarget(targetId: string, displayName: string): Promise<void> {
+  const { error } = await supabase.rpc("organizer_edit_event_invitation_target", {
+    p_target_id: targetId,
+    p_display_name: displayName,
+  });
+  if (error) throw error;
 }
 
 export async function getEventFields(eventId: string): Promise<EventFieldRow[]> {
@@ -201,9 +319,12 @@ export interface CreateEventInput {
   locationAddress: string;
   capacity: number | null;
   feeAmount: number;
+  feeMode: EventFeeMode;
   paymentInstructions: string;
   minAge: number | null;
   inviteOnly: boolean;
+  gatheringType: string;
+  coverImageUrl: string | null;
 }
 
 export async function createEvent(input: CreateEventInput): Promise<EventRow> {
@@ -229,10 +350,142 @@ export async function createEvent(input: CreateEventInput): Promise<EventRow> {
       location_address: input.locationAddress || null,
       capacity: input.capacity,
       fee_amount: input.feeAmount,
+      fee_mode: input.feeMode,
       payment_instructions: input.paymentInstructions || null,
       min_age: input.minAge,
       invite_only: input.inviteOnly,
+      gathering_type: input.gatheringType,
+      cover_image_url: input.coverImageUrl,
     })
+    .select(EVENT_COLUMNS)
+    .single();
+
+  if (error) throw error;
+  return data as unknown as EventRow;
+}
+
+export interface UpdateEventInput {
+  title: string;
+  summary: string;
+  description: string;
+  visibility: "public" | "unlisted" | "private";
+  confirmationMode: "instant" | "organizer_confirmed";
+  startsAt: string;
+  endsAt: string;
+  locationName: string;
+  locationAddress: string;
+  capacity: number | null;
+  inviteReservedSeats: number | null;
+  invitePoolDeadline: string | null;
+  feeAmount: number;
+  feeMode: EventFeeMode;
+  paymentInstructions: string;
+  minAge: number | null;
+  gatheringType: string;
+  coverImageUrl: string | null;
+}
+
+export interface UpdateEventCapacitySettingsInput {
+  capacity: number | null;
+  inviteReservedSeats: number | null;
+  invitePoolDeadline: string | null;
+}
+
+class EventUpdatePartialCommitError extends Error {
+  constructor(cause: unknown) {
+    super("活動基本資料已儲存，但容量設定未更新。請修正後再次儲存。", { cause });
+    this.name = "EventUpdatePartialCommitError";
+  }
+}
+
+/** 新封面已可能被基本資料引用時，不能因後續容量 RPC 失敗而刪除。 */
+export function canSafelyRemoveNewEventCoverAfterUpdateFailure(error: unknown): boolean {
+  return !(error instanceof EventUpdatePartialCommitError);
+}
+
+interface UpdateEventCapacitySettingsResult {
+  event_id: string;
+  capacity: number | null;
+  invite_reserved_seats: number | null;
+  invite_pool_deadline: string | null;
+  invite_pool_released_at: string | null;
+  registration_seats: number;
+  attending_invitee_count: number;
+  total_occupied_seats: number;
+}
+
+/**
+ * 容量與邀請池欄位只能透過原子 RPC 更新；RPC 僅回傳容量摘要，故成功後
+ * 以 events 的明確白名單 read-back，避免將未授權欄位帶回前端。
+ */
+export async function updateEventCapacitySettings(
+  eventId: string,
+  input: UpdateEventCapacitySettingsInput,
+): Promise<EventRow> {
+  const { data, error } = await supabase.rpc("update_event_capacity_settings", {
+    p_event_id: eventId,
+    p_idempotency_key: randomIdempotencyKey(),
+    p_capacity: input.capacity,
+    p_invite_reserved_seats: input.inviteReservedSeats,
+    p_invite_pool_deadline: input.invitePoolDeadline,
+  });
+  if (error) throw error;
+
+  const result = data as UpdateEventCapacitySettingsResult | null;
+  if (!result || result.event_id !== eventId) {
+    throw new Error("容量設定已送出，但伺服器回傳資料不完整，請重新整理後確認。");
+  }
+
+  const { data: event, error: eventError } = await supabase
+    .from("events")
+    .select(EVENT_COLUMNS)
+    .eq("id", eventId)
+    .single();
+  if (eventError) throw eventError;
+  return event as unknown as EventRow;
+}
+
+/**
+ * 更新既有聚會。欄位權限由資料庫的 events_update_admin policy 與 column grant 把關，
+ * 這裡只送出主辦人可以改的欄位；slug 與 organizer 刻意不開放修改，避免既有分享連結失效。
+ */
+export async function updateEvent(eventId: string, input: UpdateEventInput): Promise<EventRow> {
+  const { error } = await supabase
+    .from("events")
+    .update({
+      title: input.title,
+      summary: input.summary || null,
+      description: input.description || null,
+      visibility: input.visibility,
+      confirmation_mode: input.confirmationMode,
+      starts_at: input.startsAt,
+      ends_at: input.endsAt,
+      location_name: input.locationName || null,
+      location_address: input.locationAddress || null,
+      fee_amount: input.feeAmount,
+      fee_mode: input.feeMode,
+      payment_instructions: input.paymentInstructions || null,
+      min_age: input.minAge,
+      gathering_type: input.gatheringType,
+      cover_image_url: input.coverImageUrl,
+    })
+    .eq("id", eventId);
+
+  if (error) throw error;
+  try {
+    return await updateEventCapacitySettings(eventId, input);
+  } catch (capacityError) {
+    // 兩次 HTTP mutation 無法提供跨請求 rollback；以明確錯誤讓 UI 保留新封面，
+    // 並告知使用者基本資料已儲存、容量設定尚未完成。
+    throw new EventUpdatePartialCommitError(capacityError);
+  }
+}
+
+export async function updateEventCover(eventId: string, coverImageUrl: string | null): Promise<EventRow> {
+  const { data, error } = await supabase
+    .from("events")
+    .update({ cover_image_url: coverImageUrl })
+    .eq("id", eventId)
     .select(EVENT_COLUMNS)
     .single();
 
@@ -243,6 +496,40 @@ export async function createEvent(input: CreateEventInput): Promise<EventRow> {
 export async function cancelEvent(eventId: string): Promise<void> {
   const { error } = await supabase.rpc("cancel_event", { p_event_id: eventId });
   if (error) throw error;
+}
+
+export interface DuplicatedEventReference {
+  id: string;
+  slug: string;
+}
+
+export async function duplicateEvent(
+  eventId: string,
+  startsAt: string,
+  endsAt: string,
+): Promise<DuplicatedEventReference> {
+  const { data, error } = await supabase.rpc("duplicate_event", {
+    p_event_id: eventId,
+    p_starts_at: startsAt,
+    p_ends_at: endsAt,
+  });
+  if (error) throw error;
+  if (!data || typeof data.id !== "string" || typeof data.slug !== "string") {
+    throw new Error("新聚會建立成功，但回傳資料不完整，請到「我發起的聚會」確認。");
+  }
+  return { id: data.id, slug: data.slug };
+}
+
+/**
+ * Storage 代表圖必須在活動資料刪除前清理，因為 Storage delete policy 會
+ * 透過仍存在的 event_id 驗證主辦權；兩步任一失敗都不假裝已完成。
+ */
+export async function deleteEventPermanently(eventId: string, coverImageUrl: string | null): Promise<void> {
+  if (coverImageUrl) await removeEventCover(coverImageUrl);
+  const { error } = await supabase.rpc("delete_event_permanently", { p_event_id: eventId });
+  if (error) {
+    throw new Error(`活動資料刪除失敗；若代表圖已清理，請再次執行永久刪除：${error.message}`);
+  }
 }
 
 export async function createOrganizer(slug: string, displayName: string): Promise<string> {

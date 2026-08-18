@@ -27,7 +27,9 @@ export function getTaipeiDateTimeParts(value = new Date()): DateTimeParts {
 export function getDefaultEventDateTime(now = new Date()): { startsAt: DateTimeParts; endsAt: DateTimeParts } {
   const today = getTaipeiDateTimeParts(now);
   const currentMinutes = Number(today.time.slice(0, 2)) * 60 + Number(today.time.slice(3));
-  const date = currentMinutes >= 21 * 60 + 30 ? addTaipeiDays(today.date, 1) : today.date;
+  // 預設開始時間是 18:30；過了開始時間就往明天移，避免新建表單一打開
+  // 就帶出已經過去的活動。資料庫 trigger 仍會在最後一道防線擋住繞過前端的寫入。
+  const date = currentMinutes >= 18 * 60 + 30 ? addTaipeiDays(today.date, 1) : today.date;
   return {
     startsAt: { date, time: "18:30" },
     endsAt: { date, time: "21:30" },
@@ -40,12 +42,45 @@ export function addTaipeiDays(date: string, days: number): string {
   return value.toISOString().slice(0, 10);
 }
 
+/** 兩個 YYYY-MM-DD 之間相差幾天（後者減前者）。輸入不合法時回 0，呼叫端就不會誤移日期。 */
+export function daysBetween(from: string, to: string): number {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to)) return 0;
+  const parse = (value: string) => {
+    const [year, month, day] = value.split("-").map(Number);
+    return Date.UTC(year, month - 1, day);
+  };
+  return Math.round((parse(to) - parse(from)) / 86_400_000);
+}
+
 export function dateTimePartsToTaipeiIso(parts: DateTimeParts): string {
   return new Date(`${parts.date}T${parts.time}:00+08:00`).toISOString();
 }
 
 export function dateTimePartsToTimestamp(parts: DateTimeParts): number {
   return Date.parse(`${parts.date}T${parts.time}:00+08:00`);
+}
+
+export function isFutureDateTime(parts: DateTimeParts, now = new Date()): boolean {
+  const timestamp = dateTimePartsToTimestamp(parts);
+  return Number.isFinite(timestamp) && timestamp > now.getTime();
+}
+
+export function getTaipeiWeekdayLabel(value: string | Date): string {
+  const label = new Intl.DateTimeFormat("zh-TW", {
+    weekday: "short",
+    timeZone: TAIPEI_TIME_ZONE,
+  }).format(typeof value === "string" ? new Date(value) : value);
+  return label.replace(/^(?:星期|週)/, "");
+}
+
+export function formatTaipeiDateTimeRange(startsAt: string, endsAt: string): string {
+  const start = getTaipeiDateTimeParts(new Date(startsAt));
+  const end = getTaipeiDateTimeParts(new Date(endsAt));
+  const startLabel = `${start.date}（${getTaipeiWeekdayLabel(startsAt)}）${start.time}`;
+  const endLabel = start.date === end.date
+    ? end.time
+    : `${end.date}（${getTaipeiWeekdayLabel(endsAt)}）${end.time}`;
+  return `${startLabel}–${endLabel}`;
 }
 
 export function isValidTime(value: string): boolean {

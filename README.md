@@ -18,19 +18,38 @@
 
 ## Registration Application
 
-「來聚一場」報名系統於 [`apps/join`](./apps/join/README.md) 獨立開發，未來以
-`join.gather.wedopr.com` 作為獨立 deploy root，不覆寫本靜態文化主站。實作的
+「來聚一場」報名系統於 [`apps/join`](./apps/join/README.md) 獨立開發，現以
+`https://gather.wedopr.com/app/*` 的 Cloudflare Workers Route 與本靜態文化主站共存。實作的
 產品真實來源與維運規則見：
 
 - [`apps/join/docs/SSOT.md`](./apps/join/docs/SSOT.md)
 - [`apps/join/docs/DEVELOPMENT.md`](./apps/join/docs/DEVELOPMENT.md)
 - [`apps/join/docs/MAINTENANCE.md`](./apps/join/docs/MAINTENANCE.md)
 
-目前已完成 P1-01 foundation 與 P1-02 canonical database schema；domain tables 在
-RLS policy 建立前仍維持 fail-closed。`apps/join` 的 LINE 登入、主辦建場、分享邀請與
-參加者報名仍在後續 Gate，請勿把目前已就緒的資料表誤認為可直接上線。
+## Current engineering handoff（2026-08-18）
 
-## 2026-08-05 進度摘要（可直接接續）
+本 handoff 的 evidence base 是 branch `codex/gather-mvp`、commit `69dab0c`；接手時必須先以 `git status -sb`／`git log -1` 重新固定 HEAD。本段為 docs-only handoff package，不代表 runtime source release。
+這是 Wave 0 manual roster 的收尾階段，不代表 Wave 0 已接受關閉；Wave 1 維持 blocked、不得開始。
+
+| Gate | 最新結果 | 證據 |
+| --- | --- | --- |
+| Local／isolated runtime | PASS | cleanup zero-residue；phase-aware concurrency one-shot `confirmed=1 / waitlisted=5`；catalog `33`、ACL PASS、RLS `8/8`、aggregate `0` |
+| Remote Supabase | PASS（REMOTE read-back） | 兩支指定 migration present；function `9/9` conforming；ACL PASS；RLS `8/8` enabled＋forced；aggregate `0` |
+| GitHub CI | PASS | Draft PR #1；run `32150304903` 的 `verify`、`local-supabase`、Pages check 均 PASS |
+| Staging | PASS（workers.dev public URL gate） | `gather-join-staging` version `82b00639-298b-4f73-aa91-d3169c75258a`；homepage `200`；無 Access assertion 的 protected route `403` |
+| Pages | PASS（PRODUCTION read-back；docs-only auto deployment） | last read-back source `69dab0c`；deployment [`f4febb0d.neo-rechao.pages.dev`](https://f4febb0d.neo-rechao.pages.dev) 與 [`gather.wedopr.com`](https://gather.wedopr.com) 均 `200`；不代表 runtime source release、Fresh acceptance 或 Wave 0 closure |
+| Independent Fresh review | pending | 前一輪 reviewer `Russell` 為 `READY_WITH_BLOCKERS`；文件已同步，尚待重新交 Fresh 複核 |
+
+已知邊界：`staging.join.gather.wedopr.com` 尚無 DNS／custom domain／zone route，因此只能宣稱 workers.dev staging gate，不能宣稱 canonical staging host 或同源瀏覽器 UAT 已驗收。約 593 kB bundle warning 與 Node engine warning 保留為非阻擋風險，未擴大本輪 scope。
+
+下一工程團隊請先讀 [`docs/squad/NEXT-TEAM-KICKOFF.md`](./docs/squad/NEXT-TEAM-KICKOFF.md)，再依序讀 `docs/squad/LEDGER.md`、`implementation-control-log.md`、`docs/squad/HANDOFF.md`。
+
+目前 P1-04 domain policy 已有正式雲端 9/9 證據；P1-06/P1-08 核心席次／候補
+序列與併發證據亦 PASS。canonical hardening A/B 已完成 SUM(seats)、strict FIFO、兩池
+deadline 順序與敏感欄位 direct UPDATE revoke；仍不把完整 LINE failure matrix、staging
+與第二帳號 E2E 放大為已完成。
+
+## 2026-08-15 進度摘要（可直接接續）
 
 - 完成項目
   - `apps/join`：P1-01-A/B 與 P1-02 已完成主要驗收，且有本機與雲端回讀資料。
@@ -45,10 +64,14 @@ RLS policy 建立前仍維持 fail-closed。`apps/join` 的 LINE 登入、主辦
     確認零 dev-auth 殘留。證據：`apps/join/docs/evidence/p1-03-green.md`。
 - 已知未完成/待續
   - P1-03 harness 尚未接線真實 Cloudflare Access／`AUTH_RATE_LIMITER` binding，
-    未部署至任何環境；「多 sub 受 RLS」的資料庫端強制力留待 P1-04。
-  - P1-04 domain RLS policies 還未上線；目前完整 fail-closed。
-  - P1-06/P1-08 冪等與席次引擎尚未上線。
-  - LINE callback、token 驗證與真人 E2E 尚未完成（T-01b）。
+    未部署至任何環境；P1-04 的多 sub RLS 強制力已完成正式雲端驗證。
+  - B migration 已撤銷 `authenticated` 對容量／兩池敏感欄位的 direct UPDATE；容量 RPC
+    ACL 與正式 Worker／前端路徑已完成 read-back。
+  - P1-06/P1-08 已證明 sequential 11/11、`8 搶 3 = 3/5`、`41 搶 40 = 40/1`，並補上
+    `SUM(seats)`、兩池 deadline merge/release 與 strict FIFO 的 rollback／遠端證據；完整
+    failure matrix 仍另列未完成。
+  - LINE 正常授權 production E2E 已 PASS；拒絕、無 email、incognito、過期 state/nonce
+    與第二個獨立帳號的完整失敗矩陣尚未完成。
 - 當前接力文件（優先看）
   - `apps/join/docs/SSOT.md`
   - `apps/join/docs/DEVELOPMENT.md`

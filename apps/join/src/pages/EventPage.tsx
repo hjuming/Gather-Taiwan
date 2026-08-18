@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   cancelEvent,
   cancelRegistration,
   declarePayment,
   getEventBySlug,
   getEventFields,
+  getGuestInvitationEvent,
+  getPublicEventSummary,
   getMyRegistrationForEvent,
   registerForEvent,
+  respondToGuestInvitation,
   reportPaymentInstructions,
   verifyEventPasswordBySlug,
 } from "../lib/api";
@@ -15,7 +18,10 @@ import { supabase } from "../lib/supabase";
 import { useSession } from "../lib/useSession";
 import { SafeRichText } from "../security/security";
 import { REGISTRATION_STATUS_LABEL, type EventFieldRow, type EventRow, type RegistrationRow } from "../lib/types";
+import type { PublicEventSummary } from "../lib/api";
 import RosterManager from "../components/RosterManager";
+import InvitationManager from "../components/InvitationManager";
+import PrivateEventInlineEditor from "../components/PrivateEventInlineEditor";
 import { validateEventAnswers, type EventAnswer } from "../lib/event-fields";
 import {
   copyText,
@@ -25,8 +31,17 @@ import {
   getGoogleMapsSearchUrl,
   getLineShareUrl,
 } from "../lib/event-links";
-
-const DEFAULT_HERO_IMAGE = `${import.meta.env.BASE_URL}assets/gather-event-hero-default-v1.png`;
+import { getGatheringTypeLabel, resolveCoverImage } from "../lib/gathering-types";
+import { formatTaipeiDateTimeRange } from "../lib/date-time";
+import { formatEventFee } from "../lib/event-fee";
+import {
+  consumeInviteeTokenFragment,
+  getStoredInviteeToken,
+  mergeGuestInvitationInvitee,
+  type GuestInvitationEvent,
+  type GuestInvitationInvitee,
+  type GuestInvitationRosterResponse,
+} from "../lib/guest-invitations";
 
 const VISIBILITY_LABEL: Record<EventRow["visibility"], string> = {
   public: "公開活動",
@@ -35,31 +50,7 @@ const VISIBILITY_LABEL: Record<EventRow["visibility"], string> = {
 };
 
 function formatDateRange(startsAt: string, endsAt: string): string {
-  const start = new Date(startsAt);
-  const end = new Date(endsAt);
-  const dateFmt = new Intl.DateTimeFormat("zh-TW", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-    timeZone: "Asia/Taipei",
-  });
-  const dateKeyFmt = new Intl.DateTimeFormat("en-CA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone: "Asia/Taipei",
-  });
-  const timeFmt = new Intl.DateTimeFormat("zh-TW", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-    timeZone: "Asia/Taipei",
-  });
-  const sameDay = dateKeyFmt.format(start) === dateKeyFmt.format(end);
-  return sameDay ? `${dateFmt.format(start)} - ${timeFmt.format(end)}` : `${dateFmt.format(start)} - ${dateFmt.format(end)}`;
+  return formatTaipeiDateTimeRange(startsAt, endsAt);
 }
 
 export default function EventPage() {
@@ -68,27 +59,59 @@ export default function EventPage() {
   const { session, loading: sessionLoading } = useSession();
 
   const [event, setEvent] = useState<EventRow | null | "not-found">(null);
+  const [guestInvitation, setGuestInvitation] = useState<GuestInvitationEvent | null>(null);
+  const [publicSummary, setPublicSummary] = useState<PublicEventSummary | null>(null);
   const [fields, setFields] = useState<EventFieldRow[]>([]);
   const [answers, setAnswers] = useState<Record<string, EventAnswer>>({});
   const [myRegistration, setMyRegistration] = useState<RegistrationRow | null>(null);
   const [isOrganizerAdmin, setIsOrganizerAdmin] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [updatingInviteeId, setUpdatingInviteeId] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [reportNote, setReportNote] = useState("");
   const [showReportField, setShowReportField] = useState(false);
+  const [coverExpanded, setCoverExpanded] = useState(false);
+  const [showInlineEditor, setShowInlineEditor] = useState(false);
 
   const load = useCallback(async () => {
     if (!slug) return;
+    const fragmentToken = consumeInviteeTokenFragment(slug);
+    const tokenForSlug = fragmentToken ?? getStoredInviteeToken(slug);
     try {
       const row = await getEventBySlug(slug);
-      setEvent(row ?? "not-found");
+      setPublicSummary(null);
       setFields([]);
       setAnswers({});
+      setGuestInvitation(null);
+      setIsOrganizerAdmin(false);
+      if (!row) {
+        const guestEvent = await getGuestInvitationEvent(slug, tokenForSlug).catch(() => null);
+        if (guestEvent) {
+          setGuestInvitation(guestEvent);
+          setPublicSummary({
+            organizerDisplayName: guestEvent.organizer_display_name,
+            registrationCount: guestEvent.attending_count,
+            capacity: guestEvent.capacity,
+            showCapacity: guestEvent.capacity !== null,
+          });
+          setEvent(guestEvent as unknown as EventRow);
+          return;
+        }
+        setEvent("not-found");
+        return;
+      }
+      setEvent(row);
       if (row) {
-        const eventFields = await getEventFields(row.id);
+        const [eventFields, summary] = await Promise.all([
+          getEventFields(row.id),
+          getPublicEventSummary(row.slug).catch(() => null),
+        ]);
         setFields(eventFields);
+        setPublicSummary(summary);
       }
       if (row && session) {
         const reg = await getMyRegistrationForEvent(row.id);
@@ -97,7 +120,15 @@ export default function EventPage() {
         const { data: adminCheck } = await supabase.rpc("is_organizer_admin", {
           p_organizer_id: row.organizer_id,
         });
-        setIsOrganizerAdmin(Boolean(adminCheck));
+        const isAdmin = Boolean(adminCheck);
+        setIsOrganizerAdmin(isAdmin);
+        if (isAdmin && row.visibility === "private" && row.invite_only) {
+          const hostGuestEvent = await getGuestInvitationEvent(
+            row.slug,
+            null,
+          ).catch(() => null);
+          if (hostGuestEvent) setGuestInvitation(hostGuestEvent);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "讀取活動失敗");
@@ -168,6 +199,7 @@ export default function EventPage() {
 
   const isOpen = event.status === "published";
   const isCancelled = event.status === "cancelled";
+  const isGuestInvitation = guestInvitation !== null;
 
   async function handleRegister(formEvent: FormEvent) {
     formEvent.preventDefault();
@@ -254,46 +286,16 @@ export default function EventPage() {
     }
   }
 
-  async function handleShare() {
-    const eventRow = event as EventRow;
-    const url = getEventShareUrl(eventRow.slug);
-    const text = getEventShareText(eventRow, url);
-    setError(null);
-    try {
-      if (navigator.share) {
-        // The activity URL is already the final plain-text line in `text`.
-        // Passing it again as Web Share's `url` duplicates the link in LINE
-        // and some iPad share targets, making the invitation harder to scan.
-        await navigator.share({ title: eventRow.title, text });
-        setNotice("已開啟分享面板");
-      } else {
-        await copyText(text);
-        setNotice("活動分享內容已複製，可以貼到 LINE 群組或聊天室");
-      }
-    } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") return;
-      setError("分享失敗，請改用複製連結");
-    }
-  }
-
   async function handleCopyLink() {
     setError(null);
     try {
       await copyText(getEventShareUrl((event as EventRow).slug));
-      setNotice("活動／邀請連結已複製");
+      // 成功提示的橫幅在頁面最上方，但這顆按鈕在頁面中段——按下去看不到任何回饋。
+      // 直接在按鈕上回報，兩秒後復原。
+      setLinkCopied(true);
+      window.setTimeout(() => setLinkCopied(false), 2000);
     } catch {
       setError("複製失敗，請手動複製瀏覽器網址");
-    }
-  }
-
-  async function handleCopyShareText() {
-    setError(null);
-    try {
-      const eventRow = event as EventRow;
-      await copyText(getEventShareText(eventRow, getEventShareUrl(eventRow.slug)));
-      setNotice("完整活動資訊已複製");
-    } catch {
-      setError("複製失敗，請改用分享到 LINE");
     }
   }
 
@@ -301,14 +303,296 @@ export default function EventPage() {
   const mapsUrl = getGoogleMapsSearchUrl(event);
   const mapEmbedUrl = getGoogleMapsEmbedUrl(event);
   const shareText = getEventShareText(event, eventUrl);
+  const gatheringTypeLabel = getGatheringTypeLabel(event.gathering_type);
+
+  function handleGuestUpdated(result: {
+    id: string;
+    guest_response: GuestInvitationRosterResponse;
+    guest_display_name: string;
+    attending_count: number;
+  }) {
+    setGuestInvitation((previous) => {
+      if (!previous) return previous;
+      const updatedInvitee: GuestInvitationInvitee = {
+        id: result.id,
+        display_name: result.guest_display_name,
+        response: result.guest_response,
+      };
+      const invitees = mergeGuestInvitationInvitee(previous.invitees ?? [], updatedInvitee);
+      return {
+        ...previous,
+        invitees,
+        guest_response: result.guest_response,
+        guest_display_name: result.guest_display_name,
+        attending_count: result.attending_count,
+      };
+    });
+    setPublicSummary((previous) => previous ? { ...previous, registrationCount: result.attending_count } : previous);
+    setNotice(
+      result.guest_response === "attending"
+        ? "已確認出席。"
+        : result.guest_response === "declined"
+          ? "已記下不克出席。"
+          : "已改為邀請中。",
+    );
+  }
+
+  async function handleGuestStatusChange(invitee: GuestInvitationInvitee) {
+    if (!guestInvitation) return;
+    const nextResponse: GuestInvitationRosterResponse = {
+      pending: "attending",
+      attending: "declined",
+      declined: "pending",
+    }[invitee.response] as GuestInvitationRosterResponse;
+    setUpdatingInviteeId(invitee.id);
+    setError(null);
+    try {
+      const tokenForSlug = getStoredInviteeToken(guestInvitation.slug);
+      if (!tokenForSlug || guestInvitation.guest_invitee_id !== invitee.id) {
+        throw new Error("這個邀請連結只能回覆自己的出席狀態");
+      }
+      const result = await respondToGuestInvitation(guestInvitation.slug, tokenForSlug, nextResponse);
+      handleGuestUpdated(result);
+      const refreshed = await getGuestInvitationEvent(
+        guestInvitation.slug,
+        tokenForSlug,
+      ).catch(() => null);
+      if (refreshed) {
+        setGuestInvitation(refreshed);
+        setPublicSummary((previous) => previous ? { ...previous, registrationCount: refreshed.attending_count } : previous);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "更新出席狀態失敗");
+    } finally {
+      setUpdatingInviteeId(null);
+    }
+  }
+
+  async function handleInlineEventSaved(updated: EventRow) {
+    setEvent(updated);
+    setShowInlineEditor(false);
+    const refreshed = await getGuestInvitationEvent(
+      updated.slug,
+        getStoredInviteeToken(updated.slug),
+    ).catch(() => null);
+    if (refreshed) {
+      setGuestInvitation(refreshed);
+      setPublicSummary((previous) => previous ? {
+        ...previous,
+        organizerDisplayName: refreshed.organizer_display_name,
+        registrationCount: refreshed.attending_count,
+        capacity: refreshed.capacity,
+        showCapacity: refreshed.capacity !== null,
+      } : previous);
+    }
+    setNotice("已儲存，這個頁面就是可以直接分享的邀請頁。");
+  }
+
+  async function handleCopyGuestShare() {
+    try {
+      await copyText(shareText);
+      setShareCopied(true);
+      window.setTimeout(() => setShareCopied(false), 2000);
+    } catch {
+      setError("複製失敗，請手動複製聚會資訊");
+    }
+  }
+
+  if (isGuestInvitation && guestInvitation) {
+    const invitees = guestInvitation.invitees ?? [];
+    const pendingCount = invitees.filter((invitee) => invitee.response === "pending").length;
+    const declinedCount = invitees.filter((invitee) => invitee.response === "declined").length;
+
+    const responseLabel = {
+      attending: "已確認",
+      pending: "邀請中",
+      declined: "不克出席",
+    } as const;
+
+    return (
+      <div className="event-page guest-invitation-page">
+        {notice && <div className="banner banner--success" aria-live="polite">{notice}</div>}
+        {error && <div className="banner banner--error" role="alert">{error}</div>}
+
+        <section className="event-hero guest-invitation-hero" aria-labelledby="guest-event-title">
+          <button
+            type="button"
+            className="btn-text guest-invitation-cover"
+            onClick={() => setCoverExpanded(true)}
+            aria-label="放大活動代表圖"
+          >
+            <img src={resolveCoverImage(guestInvitation)} alt={`${guestInvitation.title}代表圖`} />
+          </button>
+          <div className="event-hero__veil" />
+          <div className="event-hero__copy">
+            <p className="eyebrow">朋友邀請</p>
+            <h1 id="guest-event-title">{guestInvitation.title}</h1>
+            <p>{guestInvitation.summary || "相招來聚會"}</p>
+          </div>
+        </section>
+
+        <div className="event-page__body">
+          <section className="guest-invitation-summary" aria-label="聚會資訊">
+            <strong><span aria-hidden="true">📅</span> {formatDateRange(guestInvitation.starts_at, guestInvitation.ends_at)}</strong>
+            <div className="guest-invitation-summary__location">
+              <div className="guest-invitation-summary__location-copy">
+                <strong><span aria-hidden="true">📍</span> {guestInvitation.location_name || "尚未提供地點"}</strong>
+                {guestInvitation.location_address && mapsUrl ? (
+                  <a className="guest-invitation-summary__address" href={mapsUrl} target="_blank" rel="noreferrer">
+                    {guestInvitation.location_address}
+                  </a>
+                ) : guestInvitation.location_address ? (
+                  <span className="guest-invitation-summary__address">{guestInvitation.location_address}</span>
+                ) : null}
+              </div>
+            </div>
+            <strong><span aria-hidden="true">💰</span> {formatEventFee(guestInvitation)}</strong>
+            <div className="guest-invitation-summary__people">
+              <strong>
+                <span aria-hidden="true">👥</span>{" "}
+                {guestInvitation.capacity !== null
+                  ? `${guestInvitation.attending_count} / ${guestInvitation.capacity} 人`
+                  : `${guestInvitation.attending_count} 人`}
+              </strong>
+            </div>
+          </section>
+
+          <div
+            className={`guest-invitation-summary__actions${session && isOrganizerAdmin ? " guest-invitation-summary__actions--host" : ""}`}
+            aria-label="聚會操作"
+          >
+            {session && isOrganizerAdmin && (
+              <button
+                type="button"
+                className="btn-text guest-invitation-summary__action guest-invitation-summary__action--edit"
+                onClick={() => setShowInlineEditor((previous) => !previous)}
+                aria-label={showInlineEditor ? "關閉編輯" : "編輯聚會"}
+                title={showInlineEditor ? "關閉編輯" : "編輯聚會"}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="m4 16-.8 4.8L8 20l11.5-11.5a2.8 2.8 0 0 0-4-4L4 16Z" />
+                  <path d="m13.5 6.5 4 4" />
+                  <path d="M4 20h5" />
+                </svg>
+              </button>
+            )}
+            {mapsUrl && (
+              <a
+                className="btn-text guest-invitation-summary__action guest-invitation-summary__action--nav"
+                href={mapsUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="在地圖查看位置"
+                title="在地圖查看位置"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="m3 11 18-8-8 18-2-7-8-3Z" />
+                  <path d="m11 14 4-4" />
+                </svg>
+              </a>
+            )}
+            <button
+              type="button"
+              className="btn-text guest-invitation-summary__action guest-invitation-summary__share"
+              onClick={handleCopyGuestShare}
+              aria-label={shareCopied ? "已複製聚會資訊" : "分享聚會資訊"}
+              title={shareCopied ? "已複製聚會資訊" : "分享聚會資訊"}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                {shareCopied ? (
+                  <path d="m5 12 4 4L19 6" />
+                ) : (
+                  <>
+                    <path d="M12 16V3m0 0 4 4m-4-4L8 7" />
+                    <path d="M5 12v8h14v-8" />
+                  </>
+                )}
+              </svg>
+            </button>
+          </div>
+
+          {session && isOrganizerAdmin && showInlineEditor && (
+            <section className="guest-invitation-host-tools" aria-label="主辦人設定">
+              <PrivateEventInlineEditor event={event} onSaved={handleInlineEventSaved} onCancel={() => setShowInlineEditor(false)} />
+            </section>
+          )}
+
+          <section className="guest-invitation-roster" aria-label="出席狀況">
+            {session && isOrganizerAdmin && showInlineEditor ? (
+              <InvitationManager
+                eventId={event.id}
+                slug={event.slug}
+                capacity={event.capacity}
+                embedded
+                onChanged={async () => {
+                  const refreshed = await getGuestInvitationEvent(
+                    event.slug,
+                    getStoredInviteeToken(event.slug),
+                  ).catch(() => null);
+                  if (refreshed) setGuestInvitation(refreshed);
+                }}
+              />
+            ) : invitees.length > 0 ? (
+              <>
+                <p className="guest-invitation-roster__hint">
+                  {guestInvitation.guest_invitee_id
+                    ? "這是你的個人邀請連結；可再次用原始連結開啟並修改，主辦人重發後舊連結會失效。"
+                    : "此連結可查看名單與出席狀況；請使用個人邀請連結回覆。"}
+                </p>
+                <ul className="guest-invitation-roster__list">
+                  {invitees.map((invitee) => (
+                    <li key={invitee.id}>
+                      <strong>{invitee.display_name}</strong>
+                      {guestInvitation.guest_invitee_id === invitee.id ? (
+                        <button
+                          type="button"
+                          className={`status-pill guest-invitation-roster__status ${invitee.response === "attending" ? "status-pill--confirmed" : invitee.response === "declined" ? "status-pill--declined" : "status-pill--muted"}`}
+                          onClick={() => handleGuestStatusChange(invitee)}
+                          disabled={updatingInviteeId !== null}
+                          aria-label={`${invitee.display_name}目前${responseLabel[invitee.response]}，點選切換狀態`}
+                        >
+                          {responseLabel[invitee.response]}
+                        </button>
+                      ) : (
+                        <span className={`status-pill ${invitee.response === "attending" ? "status-pill--confirmed" : invitee.response === "declined" ? "status-pill--declined" : "status-pill--muted"}`}>
+                          {responseLabel[invitee.response]}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : <p className="hint">受邀名單尚未建立。</p>}
+            {!(session && isOrganizerAdmin && showInlineEditor) && invitees.length > 0 && (
+              <p className="guest-invitation-roster__stats">
+                出席人數 {guestInvitation.attending_count}{guestInvitation.capacity !== null ? ` / ${guestInvitation.capacity}` : ""}
+                （邀請中 {pendingCount} · 不克出席 {declinedCount}）
+              </p>
+            )}
+          </section>
+        </div>
+
+        {coverExpanded && (
+          <div className="guest-invitation-lightbox" role="dialog" aria-modal="true" aria-label="活動代表圖">
+            <button type="button" className="guest-invitation-lightbox__backdrop" onClick={() => setCoverExpanded(false)} aria-label="關閉代表圖" />
+            <button type="button" className="btn-text guest-invitation-lightbox__close" onClick={() => setCoverExpanded(false)}>關閉</button>
+            <img src={resolveCoverImage(guestInvitation)} alt={`${guestInvitation.title}代表圖`} />
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="event-page">
       <section className="event-hero" aria-labelledby="event-title">
-        <img src={DEFAULT_HERO_IMAGE} alt="溫暖餐桌上的相聚時光" width="1672" height="941" fetchPriority="high" />
+        <img src={resolveCoverImage(event)} alt="" width="1672" height="941" fetchPriority="high" />
         <div className="event-hero__veil" />
         <div className="event-hero__copy">
-          <p className="eyebrow">{VISIBILITY_LABEL[event.visibility]}</p>
+          <p className="eyebrow">
+            {VISIBILITY_LABEL[event.visibility]}
+            {gatheringTypeLabel ? ` · ${gatheringTypeLabel}` : ""}
+          </p>
           <h1 id="event-title">{event.title}</h1>
           <p>{event.summary || "相招來聚會"}</p>
         </div>
@@ -353,7 +637,7 @@ export default function EventPage() {
           </div>
           <div className="event-fact">
             <span className="event-fact__label">費用</span>
-            <strong>{Number(event.fee_amount) > 0 ? `NT$ ${event.fee_amount}` : "免費"}</strong>
+            <strong>{formatEventFee(event)}</strong>
           </div>
           <div className="event-fact">
             <span className="event-fact__label">人數上限</span>
@@ -367,21 +651,16 @@ export default function EventPage() {
           )}
         </section>
 
+        {/* 分享只留兩個出口：一個主要（LINE，帶完整活動資訊）、一個備用（複製連結）。
+            原本的「分享活動」「複製分享內容」與這兩個功能重疊，已移除以免選擇困難。 */}
         <section className="event-share event-share--full" aria-label="分享活動">
-          <button type="button" className="btn-primary" onClick={handleShare}>
-            分享活動
-          </button>
-          <a className="btn-secondary" href={getLineShareUrl(shareText)} target="_blank" rel="noreferrer">
+          <a className="btn-primary" href={getLineShareUrl(shareText)} target="_blank" rel="noreferrer">
             分享到 LINE
           </a>
-          <button type="button" className="btn-secondary" onClick={handleCopyShareText}>
-            複製分享內容
-          </button>
-          <button type="button" className="btn-text" onClick={handleCopyLink}>
-            複製活動／邀請連結
+          <button type="button" className="btn-secondary" onClick={handleCopyLink} aria-live="polite">
+            {linkCopied ? "已複製 ✓" : "複製連結"}
           </button>
         </section>
-        <p className="event-share__note">連結會把日期留在網址裡，方便大家辨認；私密聚會仍需要邀請或密碼才能進入。</p>
 
         {event.description && (
           <section id="event-description" className="event-section">
@@ -396,7 +675,8 @@ export default function EventPage() {
             <p className="section-kicker">主人家的話</p>
             <h2>收款說明</h2>
             <div className="event-richtext"><SafeRichText html={event.payment_instructions} /></div>
-            {session && !showReportField && (
+            {/* 主辦人是這段文字的作者，不該看到「檢舉我自己」。 */}
+            {session && !isOrganizerAdmin && !showReportField && (
               <button type="button" className="btn-text" onClick={() => setShowReportField(true)}>
                 檢舉這則收款說明
               </button>
@@ -419,11 +699,45 @@ export default function EventPage() {
             {isOrganizerAdmin && <span className="status-pill status-pill--confirmed">這場聚會的主人</span>}
           </div>
 
-          {isOrganizerAdmin && (
+          {publicSummary && (
+            <div className="event-register__details" aria-label="報名說明">
+              {publicSummary.organizerDisplayName && <p>由 {publicSummary.organizerDisplayName} 發起</p>}
+              {publicSummary.showCapacity && publicSummary.registrationCount !== null && (
+                <p>已報名 {publicSummary.registrationCount} / {publicSummary.capacity}</p>
+              )}
+              {isGuestInvitation ? (
+                <>
+                  <p>不用註冊，直接用這個網址回覆出席狀態</p>
+                  <p>回到同一個網址，就能查看或修改自己的回覆。</p>
+                </>
+              ) : (
+                <>
+                  <p>用 LINE 登入即可，免密碼，約 30 秒</p>
+                  <p>
+                    報名後可回到本頁查看或取消（也可以從
+                    <Link to="/me/registrations" className="event-register__link">我的報名</Link>進入）。
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+
+          {session && isOrganizerAdmin && (
             <div className="banner banner--info event-admin-note">
               這是你邀請大家相見的聚會。
-              {!isCancelled && <button type="button" className="btn-text" onClick={handleCancelEvent} disabled={busy}>取消整場活動</button>}
+              {!isCancelled && (
+                <>
+                  <button type="button" className="btn-secondary" onClick={() => setShowInlineEditor((previous) => !previous)}>
+                    {showInlineEditor ? "關閉編輯" : "編輯聚會"}
+                  </button>
+                  <button type="button" className="btn-text" onClick={handleCancelEvent} disabled={busy}>取消整場活動</button>
+                </>
+              )}
             </div>
+          )}
+
+          {session && isOrganizerAdmin && showInlineEditor && !isCancelled && (
+            <PrivateEventInlineEditor event={event} onSaved={handleInlineEventSaved} onCancel={() => setShowInlineEditor(false)} />
           )}
 
           {myRegistration ? (
@@ -457,18 +771,52 @@ export default function EventPage() {
           ) : <p className="hint">目前未開放報名</p>}
         </section>
 
-        {isOrganizerAdmin && (
+        <section className="event-contact" aria-labelledby="event-contact-title">
+          <div>
+            <p className="section-kicker">需要確認細節？</p>
+            <h2 id="event-contact-title">聯絡主辦人</h2>
+            {publicSummary?.organizerDisplayName && (
+              <p className="event-contact__organizer">這場活動由 {publicSummary.organizerDisplayName} 發起。</p>
+            )}
+            <p>
+              主辦人若有留下聯絡方式，會放在活動說明或收款說明裡；若頁面沒有提供，
+              可以聯絡聚場台灣並註明活動名稱，我們會協助確認活動資訊。
+            </p>
+          </div>
+          <a className="btn-secondary" href={`/contact/?event=${encodeURIComponent(event.slug)}`}>
+            聯絡聚場台灣
+          </a>
+        </section>
+
+        {session && isOrganizerAdmin && (
           <section id="roster-title" className="event-section roster-section">
             <p className="section-kicker">這張桌子，誰會來</p>
             <h2>一起來的人</h2>
+            {event.visibility === "private" && event.invite_only && (
+              <>
+                <h3>共用邀請回覆</h3>
+                <InvitationManager eventId={event.id} slug={event.slug} capacity={event.capacity} />
+              </>
+            )}
             <RosterManager eventId={event.id} capacity={event.capacity} />
           </section>
         )}
       </div>
 
+      {/* 底部只留一個動作。原本的「分享活動」與上方分享區重複，而「我要報名」
+          其實只是錨點，按下去只會捲到頁尾再出現另一顆按鈕——未登入時直接送去登入。 */}
       <div className="mobile-action-dock" aria-label="活動快捷操作">
-        <a href="#registration-title" className="btn-primary">{isOrganizerAdmin ? "回到報名區" : "我要報名"}</a>
-        <button type="button" className="btn-secondary" onClick={handleShare}>分享活動</button>
+        {isOrganizerAdmin ? (
+          <a href="#roster-title" className="btn-primary">看誰報名了</a>
+        ) : isGuestInvitation ? (
+          <a href="#registration-title" className="btn-primary">回覆出席狀態</a>
+        ) : session ? (
+          <a href="#registration-title" className="btn-primary">我要報名</a>
+        ) : (
+          <Link to={`/auth?redirect=${encodeURIComponent(`/e/${event.slug}`)}`} className="btn-primary">
+            我要報名
+          </Link>
+        )}
       </div>
     </div>
   );

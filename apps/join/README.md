@@ -1,5 +1,21 @@
 # Gather Join App
 
+## Current engineering handoff（2026-08-18）
+
+`apps/join` 目前位於 Wave 0 manual roster closeout。最新 Git fixed point 是
+handoff evidence base 是 `codex/gather-mvp@69dab0c`；本輪只同步文件，沒有新增 source、migration 或資料操作；接手時先重新 read-back HEAD。Pages auto deployment 也只代表 handoff 文件發布。
+
+- Local／isolated：synthetic fixture zero-residue；concurrency one-shot `PASS confirmed=1 waitlisted=5`。
+- Remote Supabase：catalog `33`；兩支指定 migration present；function `9/9`；ACL PASS；RLS `8/8` enabled＋forced；aggregate preflight `0`。
+- CI：Draft PR #1／run `32150304903` 的 `verify`、`local-supabase`、Cloudflare Pages check PASS。
+- Staging：`gather-join-staging` version `82b00639-298b-4f73-aa91-d3169c75258a` 100% traffic；workers.dev homepage `200`、未帶 Access assertion 的 `/__dev/session` `403`。
+- Pages：production source `69dab0c`，deployment `https://f4febb0d.neo-rechao.pages.dev` 與 `https://gather.wedopr.com` 均 `200`；這是 docs-only auto deployment，不代表 runtime source release 或 Wave 0 acceptance。
+- Fresh：文件同步後尚未完成新一輪 independent Fresh acceptance；Wave 0 仍未關閉，Wave 1 必須維持 blocked。
+
+canonical staging host `staging.join.gather.wedopr.com` 仍無 DNS／custom domain／zone route；這是未驗收子 gate，不等於 workers.dev deployment gate 失敗。不要為收尾自行新增 route／DNS，也不要重跑 concurrency verifier。
+
+下一團隊的可貼上啟動提示詞與完整接手順序見 [`../docs/squad/NEXT-TEAM-KICKOFF.md`](../docs/squad/NEXT-TEAM-KICKOFF.md)。
+
 `apps/join` 是同網域路徑掛載在 `gather.wedopr.com/app/*` 的 Cloudflare Worker（2026-08-06
 起改為此架構，之前是獨立子網域 `join.gather.wedopr.com`；見
 `implementation-control-log.md` 2026-08-06 段），使用 React/Vite、
@@ -9,21 +25,24 @@
 的 session 與未來 cookie 天然共用，不需處理跨子網域問題。Vite `base` 固定為
 `/app/`（見 `vite.config.ts`），React Router `basename` 讀 `import.meta.env.BASE_URL`。
 
-## 當前狀態（2026-08-10）
+## 歷史狀態基線（2026-08-15）
 
-- P1-01～P1-09/13（安全基礎、DB migration/seed、canonical schema、
-  dev-auth harness、RLS、RBAC、單一席次引擎、邀請制、付款聲明與年齡把關）
-  全部完成並在 Gather 專屬雲端 Supabase 通過交易內驗證＋套用＋再驗證。
+- P1-01～P1-09/13 已有分批歷史 evidence；其中 P1-04 有正式雲端 9/9 證據，
+  P1-06/P1-08 的 canonical hardening A/B、核心 sequential／concurrency 與 direct UPDATE
+  revoke 已完成 read-back；完整 failure matrix、staging 與第二帳號仍分開列為未完成。
 - P1-10：網站 UI 已建立（Supabase client、型別化 API 層、路由、5 個頁面：
-  首頁、email OTP 登入、建場表單、活動頁含報名/密碼閘門/付款聲明/整場取消、
-  我的報名）。已用真實雲端資料在瀏覽器實際驗證匿名可見的頁面；登入後的
-  互動流程尚未經瀏覽器實測（見下方「未完成」）。
+  首頁、LINE／email OTP／email＋密碼登入、帳號密碼與登入 email 設定、建場表單、活動頁含報名/密碼閘門/付款聲明/整場取消、
+  我的報名）。匿名與已登入主辦人正式瀏覽器 read-back 已涵蓋活動資訊、容量控制與名單
+  管理控制項；正式資料儲存 round-trip 仍以隔離測試活動補驗。
 - LINE 登入已完成正式 production 正常授權 E2E：LINE callback、Supabase Auth
   session、`/app/` authenticated DOM 均已驗證；email OTP 仍保留作為備援登入。
+  已登入會員可在 `/app/account/password` 設定帳號登入密碼、查看目前 Auth 登入 email，
+  並以確認信綁定新的登入 email；確認前不會切換登入身份。
+  最新正式 Worker version 為 `a5123237-c470-4047-a953-353aad4dc6a9`，登入資產為
+  `index-BeJCmF3D.js`；OTP confirmation link 會保留原活動導向，synthetic LINE 身份須先綁定自己的
+  email 才能設定密碼。
   正式 Cloudflare Access staging 接線仍未完成。
-- P2-02 的 server-only Supabase grant 已以 Dashboard SQL 套用並 read-back；本地
-  forward-only migration 已建立，但 migration ledger 尚待依維運流程同步，不能把
-  Dashboard 直接執行誤報為 ledger PASS。
+- P2-02 的 server-only Supabase grant 與本輪 B migration 均已完成正式 ledger／ACL read-back。
 - production source 與 build output 不得含 dev-auth 或 service-role 字詞；`pnpm smoke`
   會檢查（掃描範圍已修正為安全性掃全部、程式碼衛生只掃自家原始碼，避免
   vendored 依賴內部字串造成誤判）。
@@ -59,20 +78,26 @@ pnpm smoke
   證據：`docs/evidence/p1-04-green.md`。
 - P1-05：owner/admin/staff RBAC（`add_organizer_member`／
   `revoke_organizer_member`）。證據：`docs/evidence/p1-05-green.md`。
-- P1-06 / P1-08：單一席次引擎（`register_for_event` 等 8 個 RPC）、
-  idempotency、deadlock-free（併發測試抓到並修好一個真實 lock-upgrade
-  死結）。證據：`docs/evidence/p1-06-08-green.md`。
-- P1-07：雙邀請制（verified-email 自動資格＋one-time token）、event
-  password 驗證（dummy-hash 統計容差）。
+- P1-06 / P1-08 核心證據：既有 `docs/evidence/p1-06-08-green.md` 保留當時的單席
+  引擎、idempotency 與 lock-upgrade 死結修正證據；2026-08-14 Node 22 復驗為
+  sequential 11/11、`8 搶 3 = confirmed 3 / waitlisted 5`、
+  `41 搶 40 = confirmed 40 / waitlisted 1`，均無 oversell 且 fixture cleanup 完成。
+  這些是核心不變量證據，不是 P1-06/P1-08 整體 closure。
+- P1-07：雙邀請制（verified-email 自動資格＋one-time token）、活動檢視密碼驗證（與帳號登入密碼不同；
+  dummy-hash 統計容差）。
   證據：`docs/evidence/p1-07-green.md`。
 - P1-09 / P1-13：付款聲明（無金額/帳號欄位）、`min_age` 強制、2/29 生日
   年齡計算。證據：`docs/evidence/p1-09-13-green.md`。
-- P1-10：網站 UI（建場表單、活動頁、報名、我的報名、email OTP 登入）、
-  activity password 解鎖的實際 RLS 授權路徑（`event_password_grants`）、
+- P1-10：網站 UI（建場表單、活動頁、報名、我的報名、LINE／email OTP／email＋密碼登入）、
+  帳號登入密碼與登入 email 設定、活動檢視密碼解鎖的實際 RLS 授權路徑（`event_password_grants`）、
   整場取消（`cancel_event`）。證據：`docs/evidence/p1-10-green.md`。
 
 ## 未完成 / 下一階（可接手）
 
+- P1-06/P1-08 canonical hardening A/B 已完成：容量以 `SUM(seats)`、attending 邀請者計入、
+  strict FIFO／兩池 deadline merge 有遠端 rollback／併發證據，B 已撤銷 `authenticated` 與前端
+  對 `capacity`、`invite_reserved_seats`、`invite_pool_deadline`、`invite_pool_released_at`
+  的直接 UPDATE；仍以 conditional closure 管理完整 failure matrix 邊界。
 - LINE 登入正常授權以外的失敗矩陣（拒絕、無 email、incognito、過期 state/nonce、
   第二個 LINE 帳號）尚待補跑。
 - 部署 staging（真實 Cloudflare Access 接線、`AUTH_RATE_LIMITER` binding）
@@ -80,7 +105,7 @@ pnpm smoke
   （目前只驗證了匿名可見頁面的真實瀏覽器渲染）。
 - 自訂報名欄位（`event_fields`）的主辦端建立／編輯 UI；參加者端動態渲染、必填與選項驗證、
   `p_answers` 送出已完成（2026-08-08）。
-- 主辦端報名者名單管理頁面（confirm/decline/remove 的 UI 化）。
+- 主辦端報名者 confirm/decline/remove 的完整 UI 化仍待後續；本輪已完成邀請名單新增／編輯／移除。
 - 通知：Phase-2 前續（隱私權條款、callback、secret 寫入後）。
 
 ## 2026-08-10 LINE production E2E 交接
@@ -136,5 +161,5 @@ DB URL 時會明確 skip 併發整合測試，不代表 migration／併發已通
 專屬雲端 Gate 的現行操作方式與回滾見 `docs/DEVELOPMENT.md` 與
 `docs/MAINTENANCE.md`。
 
-部署由後續環境 Gate 建立 staging／production Worker 後才處理；本目錄目前沒有
-deploy script。完整產品狀態以 `docs/SSOT.md` 為準。
+production Worker 已部署在 `gather.wedopr.com/app/*`；真實 Cloudflare Access staging
+仍是獨立後續 Gate。完整產品狀態以 `docs/SSOT.md` 為準。

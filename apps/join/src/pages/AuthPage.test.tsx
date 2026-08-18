@@ -18,4 +18,16 @@ describe("AuthPage LINE login entry", () => {
     expect(markup).toContain('value="/events/demo"');
     expect(markup).not.toContain("window.location.href");
   });
+
+  it("offers email password login with a visibility toggle", () => {
+    const markup = renderToStaticMarkup(
+      <MemoryRouter initialEntries={["/auth"]}>
+        <AuthPage />
+      </MemoryRouter>,
+    );
+
+    expect(markup).toContain('autoComplete="current-password"');
+    expect(markup).toContain('aria-label="顯示密碼"');
+    expect(markup).toContain("需要 email 驗證碼？用它登入或建立帳號");
+  });
 });
