@@ -5,7 +5,7 @@
 - 日期：2026-08-19
 - 初始 branch：`codex/gather-mvp`
 - 初始 HEAD：`83a38e8`
-- 目前 handoff evidence base：branch=`codex/gather-mvp`、commit=`83a38e8`；本輪 read-back 確認 working tree clean，local HEAD 與 tracking ref 相同。
+- source/runtime evidence fixed point：branch=`codex/gather-mvp`、commit=`83a38e8`；目前 docs-only handoff HEAD=`22a9de9`，本輪 read-back 確認 working tree clean，local HEAD 與 tracking ref 相同。`22a9de9` 未修改 source／runtime。
 - 目前 Wave：**Wave 0｜manual roster P0（Fresh re-review pending）**
 - Atlas fixed point：**done／acceptance pending**；LOCAL Git clean、local refs `50 ahead / 0 behind`；Node `24.15`、pnpm `10.33.2`。
 - Atlas production read-back：**PASS（PRODUCTION）**；Worker version `e0fcc0c2-c834-480b-b9d3-424783e20b19`、route `gather.wedopr.com/app/*`、production assets／headers read-back PASS。
@@ -30,23 +30,29 @@
 
 ## 2026-08-19：current fixed-point and read-only evidence sync
 
-- `[FIXED POINT / LOCAL read-only]` branch=`codex/gather-mvp`、HEAD=`83a38e8212c52afa8ed4ff294c305071453bbae8`、working tree clean；本輪未 reset、未修改 source／migration／test／package／workflow。
+- `[SOURCE/RUNTIME FIXED POINT / LOCAL read-only]` branch=`codex/gather-mvp`、evidence HEAD=`83a38e8212c52afa8ed4ff294c305071453bbae8`；current docs-only HEAD=`22a9de94eb41ec13a517484caf93a0a11a2cc7da`、working tree clean；本輪未 reset、未修改 source／migration／test／package／workflow。
 - `[GITHUB / read-only]` Draft PR #1 head=`83a38e8`；Gather Join Gates run `32184957402` conclusion=`success`。
 - `[STAGING / read-only]` `gather-join-staging.hjuming.workers.dev/`=`200`；依 `smoke-staging.mjs` 的 POST contract，無 Access assertion 的 `/__dev/session`=`403`。GET 直接探測回 `405 Method not allowed`，不列為 route failure。Canonical `staging.join.gather.wedopr.com` 仍 `UNVERIFIED`。
 - `[PAGES / read-only]` Cloudflare bot 回報 current source=`83a38e8` deploy successful；deployment preview 與 canonical 本輪 HTTP 均=`200`。這是 Pages／公開 URL read-back，不等於 runtime source release 或 Wave 0 acceptance。
 - `[SUPABASE MCP / read-only]` 已將 Supabase app permission 設為 `ask_before_writes`，保留寫入需確認；`list_migrations` 與唯讀 `execute_sql` 仍回 `MCP -32600 You do not have permission`。因此本輪未執行任何 remote SQL／migration／data operation，remote catalog／function／ACL／RLS／aggregate 只能引用前次已標註的 remote read-back，不能宣稱本輪重驗證。
 - Wave 0：**未關閉／Fresh re-review pending**。Wave 1：**BLOCKED，未啟動**。下一步只有在 Supabase MCP read-only connector 真正可用後補 remote read-back，並交獨立 Fresh reviewer；不得重跑 one-shot concurrency verifier。
 
+## 2026-08-19：Fresh review Maxwell verdict
+
+- 獨立 fresh-context reviewer `Maxwell` 只讀檢查 current docs-only HEAD=`22a9de9`、source/runtime evidence base=`83a38e8`、三份文件、workflow／staging contract 與既有 evidence tiers；未修改檔案、未操作 DB、未重跑 concurrency、未 deploy／push。
+- Verdict=`NOT_ACCEPTED`；P0：current Supabase MCP read-only 仍遭 `-32600`，且尚無 Fresh `ACCEPTED`。P1：要求明確區分 docs-only HEAD 與 source/runtime evidence base；已在本段與頂部狀態修正 provenance。
+- Wave 0：維持未關閉。Wave 1：維持 `BLOCKED`、未啟動。不得用 prior remote evidence 或 docs-only CI／Pages read-back 代替 current remote read-back。
+
 ## Wave 0 workboard
 
 | 工單 | 狀態 | 產物／證據路徑摘要 | 驗收狀態 | 下一步 |
 |---|---|---|---|---|
 | W0-ATLAS fixed point | done | branch／HEAD、LOCAL Git、Node／pnpm、Worker／Pages route／deployment read-back | acceptance=pending | Fresh re-review |
-| W0-DB discovery | done | `apps/join/supabase/migrations/`、`apps/join/scripts/verify-p1-11-manual-roster.sql`、RLS／RPC 契約 | remote DB read-back PASS；Fresh pending | 只交獨立 Fresh re-review；Wave 2 維持 blocked |
+| W0-DB discovery | done | `apps/join/supabase/migrations/`、`apps/join/scripts/verify-p1-11-manual-roster.sql`、RLS／RPC 契約 | prior remote read-back PASS；current MCP re-read blocked；Fresh pending | 恢復合法唯讀 connector 後補 current remote read-back，再交 Fresh；Wave 2 維持 blocked |
 | W0-APP discovery | done | `apps/join/src/components/RosterManager.tsx`、`src/lib/api.ts`、`worker/index.ts`、`scripts/smoke.mjs`、`scripts/smoke-staging.mjs`、`.github/workflows/join-gates.yml` | CI／staging read-back PASS；Fresh pending | 只交獨立 Fresh re-review；Wave 1 維持 blocked |
 | W0-ECHO | done | `docs/squad/CHARTER.md`、`docs/squad/LEDGER.md`、本段 control log | docs sync complete；Fresh pending | 只交獨立 Fresh re-review |
 | W0-Forge-DB correction round 3 | historical / superseded | `20260815060000_manual_roster_capacity_seat_engine_fix.sql`、manual-roster capacity／concurrency verifiers、package gate wiring；不得擴大至 event_fields | Fresh3 historical REJECT；已由 architecture replacement supersede | No action；不得重開舊 correction round |
-| W0-Forge-DB architecture replacement | done／Fresh pending | isolated local cleanup／one-shot concurrency／catalog／ACL／RLS／aggregate gates；remote read-back | isolated local＋remote PASS；Fresh overall pending | 只交獨立 Fresh re-review |
+| W0-Forge-DB architecture replacement | done／Fresh pending | isolated local cleanup／one-shot concurrency／catalog／ACL／RLS／aggregate gates；prior remote read-back | isolated local PASS；prior remote PASS；current MCP blocked；Fresh overall pending | 恢復合法唯讀 connector 後補 current remote read-back，再交獨立 Fresh reviewer |
 | W0-ATLAS single-DB fallback | done／historical evidence | Fallback3 isolated DB route 與 cleanup evidence；existing stack unchanged | historical partial runtime；current closeout evidence 已另列 | No action；不得重跑舊 fallback |
 | W0-FRESH2 | historical / superseded | REJECT：P0=0、P1=3、P2=2 | historical REJECT | No action；已由後續 Fresh round supersede |
 | W0-FRESH3 | historical / superseded | REJECT：P0=0、P1=2 | historical REJECT | No action；已由後續 Fresh round supersede |

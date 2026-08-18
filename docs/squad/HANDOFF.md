@@ -12,7 +12,7 @@
 
 ### 已完成
 
-- Branch：`codex/gather-mvp`；本 handoff evidence base／latest verified package=`83a38e8`；本輪 read-back 確認 working tree clean、HEAD 與 tracking ref 相同。
+- Branch：`codex/gather-mvp`；source/runtime evidence base=`83a38e8`；目前 docs-only handoff HEAD=`22a9de9`。本輪 read-back 確認 working tree clean、HEAD 與 tracking ref 相同；`22a9de9` 未修改 source／runtime。
 - Docker daemon 已恢復；`gather-join-diag-01`、`gather-join-p1` 曾確認 running／healthy。
 - 既有 phase-aware concurrency one-shot：`PASS confirmed=1 waitlisted=5`。
 - 本輪 guest invitation verifier：token、RLS、aggregate、duplicate roster、capacity、rollback zero-residue 全 PASS。
@@ -56,6 +56,11 @@
 - 已明確以乾淨 `83a38e8` 作為 fixed point；未 reset、未 broad cleanup、未修改 source／migration／test／package／workflow。
 - Supabase app permission 已設為 `ask_before_writes`，只允許讀取而保留寫入確認；但 connector 仍拒絕 `list_migrations` 與唯讀 SQL。未繞過 MCP、未使用 secrets／token／DB 密碼，remote catalog／function／ACL／RLS／aggregate 本輪維持未重驗證。
 - Current CI／staging／Pages read-back 已補齊；只有 independent Fresh reviewer 明確 `ACCEPTED` 才能關閉 Wave 0。Wave 1 維持 `BLOCKED`、未啟動。
+
+### Fresh review Maxwell（2026-08-19）
+
+- Verdict=`NOT_ACCEPTED`。Reviewer 確認三檔 allowlist、hard-stop、Wave 1 gate 與 evidence boundary 通過；未修改檔案、未操作 DB、未重跑 concurrency、未 deploy／push。
+- 兩個 blocker 已列入 current 文件：Supabase MCP 唯讀 connector 仍拒絕；以及 docs-only handoff HEAD=`22a9de9` 必須和 source/runtime evidence base=`83a38e8` 分開標示。修正後仍需再交 Fresh reviewer，Wave 0 不關閉。
 
 ## 重要決策與邊界
 

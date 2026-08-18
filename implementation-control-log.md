@@ -2098,7 +2098,7 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 
 ### Scope and fixed point
 
-- 使用者明確確認以目前乾淨 `codex/gather-mvp@83a38e8` 作為 fixed point；本輪 read-back：working tree clean、local HEAD 與 tracking ref 相同。
+- 使用者明確確認以乾淨 `codex/gather-mvp@83a38e8` 作為 source/runtime evidence fixed point；本輪 docs-only sync 後 current HEAD=`22a9de9`，read-back 為 working tree clean、local HEAD 與 tracking ref 相同。
 - 只允許更新 `docs/squad/LEDGER.md`、`docs/squad/HANDOFF.md`、`implementation-control-log.md`；未修改 source／migration／test／package／workflow。
 - 不執行 remote migration、SQL write、DELETE、reset、rollback、broad cleanup、Cloudflare route／DNS 變更或 deploy。
 
@@ -2115,3 +2115,10 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - Wave 0：**未關閉／Fresh re-review pending**。Remote MCP read-only access 仍是外部 connector blocker；取得可讀權限並完成 catalog／function／ACL／RLS／aggregate read-back後，才交獨立 Fresh reviewer。
 - Wave 1：**BLOCKED，未啟動**。
 - 不處理約 593 kB bundle warning；不輸出或保存 secrets、tokens、DB 密碼或個資。
+
+## 2026-08-19：Fresh review Maxwell provenance correction
+
+- Reviewer `Maxwell` 以 fresh context 只讀審查 current docs-only HEAD=`22a9de9`、source/runtime evidence fixed point=`83a38e8`、LEDGER／HANDOFF／control log 與 workflow／staging contract；未修改檔案、未操作 DB、未重跑 concurrency、未 deploy／push。
+- Verdict=`NOT_ACCEPTED`。他確認 hard-stop、Wave 1 gate、三檔 allowlist 與 evidence boundary 正確；指出 LEDGER／HANDOFF／control log 必須明確區分目前 docs-only HEAD 與 source/runtime evidence base，且 workboard 不得把 prior remote PASS 寫成 current remote PASS。
+- 本輪已修正 provenance：`83a38e8` 僅代表 source/runtime evidence fixed point，`22a9de9` 代表未改 source 的 docs-only handoff HEAD；W0 DB／Forge rows 改標 prior remote PASS、current MCP re-read blocked。
+- Gate 不變：Wave 0 未關閉，Wave 1 `BLOCKED`／未啟動；須先恢復合法 Supabase MCP 唯讀 connector、完成 catalog／function／ACL／RLS／aggregate current read-back，再交 Fresh reviewer。不得繞過 connector 或重跑 one-shot concurrency。
