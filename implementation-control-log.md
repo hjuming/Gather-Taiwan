@@ -1961,12 +1961,19 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 
 ### Remaining gates
 
-- `[NOT_RUN]` GitHub CI read-back 尚未完成；不得用本機 tests/build 代替 CI。
-- `[NOT_RUN]` staging deployment／smoke／公開 URL read-back 尚未完成。既有 repo 設定唯一指定 staging target=`gather-join-staging`（`apps/join/wrangler.staging.jsonc`）；若實際 target、credentials 或 route 無法唯一確認，立即停止。
-- Independent Fresh reviewer 既有 verdict=`READY_WITH_BLOCKERS`；必須在 CI／staging evidence 補齊後重新交 reviewer。
+- `[CI / read-only]` PR #1／run `32146604033` 的 `verify` 與 `local-supabase` 均 PASS；Node 20 deprecation annotation 不影響結果。
+- `[STAGING / read-only]` target=`gather-join-staging` version=`82b00639-298b-4f73-aa91-d3169c75258a` 100% traffic；build／local smoke PASS；workers.dev homepage=`200`、未帶 Access assertion 的 `/__dev/session`=`403`。Canonical `staging.join.gather.wedopr.com` 無 DNS answer、Workers custom domain 或 `wedopr.com` zone route，未宣稱 custom host 已驗收。
+- Independent Fresh reviewer 既有 verdict=`READY_WITH_BLOCKERS`；CI／staging evidence 已補齊，必須重新交 reviewer。
 - Wave 0 維持未關閉；Wave 1 維持 blocked。只有 Fresh reviewer 明確 `ACCEPTED`，才可更新為 Wave 0 CLOSED。
 
 ### Evidence boundary
 
 - isolated local、remote、production、CI、staging、Fresh 各自標註，不互相替代。
 - 不處理約 593 kB bundle warning；不輸出或保存 secrets、tokens、密碼、個資。
+
+## 2026-08-18：staging route diagnosis／propagation read-back
+
+- `[READ-ONLY]` Cloudflare Workers routes：`gather.wedopr.com/app/* → gather-join`；沒有 `gather-join-staging` zone route。Workers custom domains 清單沒有 `staging.join.gather.wedopr.com`；公開 DNS-over-HTTPS 對該 hostname 的 A/CNAME 查詢均無答案。
+- `[READ-ONLY]` `gather-join-staging` script subdomain binding：enabled；deployment version=`82b00639-298b-4f73-aa91-d3169c75258a` traffic=`100%`。
+- `[READ-ONLY]` deployment propagation 後 `https://gather-join-staging.hjuming.workers.dev/` 回 HTTP `200`，title=`來聚一場｜報名系統`；未帶 Access assertion 的 `/__dev/session` 回 HTTP `403`。
+- 結論：staging deployment public URL gate PASS；canonical custom host route 未配置，保留為未驗收風險，不做 route／DNS 修正。

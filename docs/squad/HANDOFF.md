@@ -2,11 +2,11 @@
 
 日期：2026-08-18
 來源：Codex／`codex/gather-mvp`
-交接性質：Wave 0 closeout evidence sync；CI／staging／Fresh final acceptance 仍未完成，不代表 Wave 0 closure。
+交接性質：Wave 0 closeout evidence sync；CI／staging 已完成，Fresh final acceptance 仍未完成，不代表 Wave 0 closure。
 
 ## 下一個 session 的目標
 
-在不擴大 Wave 0 scope 的前提下，完成 docs-only sync、CI read-back、唯一 staging target `gather-join-staging` 的既有流程 read-back，然後交獨立 Fresh reviewer。只有 Fresh 明確 `ACCEPTED` 才可關閉 Wave 0；Wave 1 目前不得開始。
+在不擴大 Wave 0 scope 的前提下，完成最新 docs-only sync 後交獨立 Fresh reviewer。只有 Fresh 明確 `ACCEPTED` 才可關閉 Wave 0；Wave 1 目前不得開始。
 
 ## 目前狀態
 
@@ -46,8 +46,8 @@
 - 本輪 synthetic member fixture 已清理完成，zero-residue read-back PASS。
 - 本輪 concurrency verifier 已依規則只執行一次並 PASS；不得再 retry。
 - RLS forward migration 已套用並 read-back 為 `8/8`；catalog／ACL／aggregate 亦 PASS。
-- CI read-back 尚未完成。
-- staging deployment／smoke／公開 URL read-back 尚未完成；唯一 target 由 `apps/join/wrangler.staging.jsonc` 指定為 `gather-join-staging`，不得猜測其他 target。
+- CI read-back PASS：PR #1／run `32146604033` 的 `verify` 與 `local-supabase` 均 PASS。
+- staging deployment／smoke／public URL read-back PASS：target=`gather-join-staging`、version=`82b00639-298b-4f73-aa91-d3169c75258a`、workers.dev homepage=`200`、未帶 Access assertion 的 `/__dev/session`=`403`。canonical custom host 尚無 DNS/custom-domain/zone route，未將其宣稱為已驗收。
 - Pages production read-back 已完成；不等於 CI／staging／Fresh acceptance。
 - remote migration／data 操作、rollback 均未在本次 docs sync 中執行。
 
@@ -126,11 +126,11 @@
 - `[REMOTE / read-only]` Supabase catalog=`33`；`20260815060000`／`20260818121055` present；expected functions=`9/9` conforming；ACL PASS；RLS=`8/8` enabled＋forced；aggregate preflight=`0`。
 - `[REMOTE / prior authorized operation]` 唯一 over-limit test event 及明確 domain child rows 已清除；zero-residue read-back PASS；未碰 auth.users、public.users、其他 events。
 - `[PRODUCTION / read-only]` Cloudflare Pages project=`gather-taiwan`，source=`a21ce2b`，deployment=`https://1ba56fa0.neo-rechao.pages.dev`；canonical=`https://gather.wedopr.com`；兩者 HTTP `200`。
-- `[NOT_RUN]` GitHub CI read-back、staging deployment／smoke／公開 URL read-back 尚未完成；staging target 唯一由 `apps/join/wrangler.staging.jsonc` 指定為 `gather-join-staging`。
+- `[CI／STAGING / read-only]` PR #1／run `32146604033` 的 `verify` 與 `local-supabase` PASS；`gather-join-staging` version=`82b00639-298b-4f73-aa91-d3169c75258a`、workers.dev homepage=`200`、protected route=`403`。Canonical custom host 仍無 DNS/custom-domain/zone route。
 - 歷史段落中的「尚未套用 migration／尚未 deploy」是當時狀態；本段為 current read-back，不得混用 evidence tier。
 
 ## Current closeout gate
 
 - Wave 0：**未關閉／Fresh pending**。
 - Wave 1：**blocked，未啟動**。
-- 下一步：docs-only commit／push 後讀回 CI，執行既有 staging 流程並 read-back，再交獨立 Fresh reviewer。
+- 下一步：docs-only commit／push 後重新讀回 CI／Pages，再交獨立 Fresh reviewer。
