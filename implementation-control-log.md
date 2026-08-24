@@ -2361,6 +2361,20 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[FRESH / ✅ ACCEPTED]` 獨立 fresh-context reviewer 以 current working tree、最末 control-log rule 與已下載 baseline／provenance JSON 完成 read-only review：P0=`0`、P1=`0`、P2=`0`；確認 skip identity、staging fail-closed、CI job boundary、current-doc provenance 與 Wave boundary 均符合。此 acceptance 不把歷史 artifact `32711417527` 誤當本次 current CI；本段 current exact read-back 以 `32712453729` 為準。
 - `[WAVE]` Wave 0 維持 `CLOSED（evidence-boundary closure）`；Wave 1 維持 `BLOCKED／未啟動`，未因 Phase 1 baseline 完成而自動解鎖。
 
+## 2026-08-24：Wave 1 final authoritative current read-back
+
+本節為本檔 EOF 的 authoritative current section；上方較早的 status-sync／historical sections 保留追溯，不代表目前波次狀態。
+
+- `[SCOPE／OWNER]` 使用者已明確授權組長代表執行、派遣獨立 Fresh reviewer，目標為打通 Wave 1 Release baseline；不延伸授權 Wave 2、production、Cloudflare route／DNS、migration、DELETE、reset、rollback、merge 或 production data write。
+- `[GIT / CURRENT]` source／CI baseline commit=`e4dfcd04a447af393a411797d6fece71548da763`（`e4dfcd0`）；branch=`codex/gather-mvp`。本節只做 control-log-only provenance closure，不改變 app／workflow／verifier 行為；current repo HEAD／origin 仍以 Git read-back 為準。
+- `[CI / ✅ 已真實驗證]` run `32715574635` completed／success；URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32715574635`；verify job 與 `Isolated local Supabase runtime gate (separate evidence tier)` 均 success。
+- `[CI / ARTIFACT ✅]` baseline artifact=`gather-join-release-baseline-32715574635`、ID=`9515761760`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32715574635/artifacts/9515761760`；provenance artifact=`gather-join-release-provenance-32715574635`、ID=`9515762391`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32715574635/artifacts/9515762391`；兩份 JSON 均已下載並解析。
+- `[CI / REPORT ✅]` evidenceTier=`CI`；overall=`PASS_WITH_EXPECTED_SKIP`；failedGates=`[]`；report head／CI commit SHA=`e4dfcd04a447af393a411797d6fece71548da763`；expected／observed skip count=`1`，唯一 file=`scripts/concurrency-harness.test.ts`，unexpected=`[]`。
+- `[CI / PROVENANCE ✅]` manifest commit／run／baseline artifact identity exact-match=`PASS`；mismatches=`[]`。report 的 databaseRuntime、stagingSmoke、cloudflareAccess、productionSemantic、deviceUAT 均=`NOT_RUN`；isolated local runtime 不升格為 hermetic report 或 production acceptance。
+- `[LOCAL / ✅ 已真實驗證]` 最新 independent Fresh reviewer 前一輪對當時 current baseline 回報 `ACCEPTED`；local `pnpm typecheck`、`pnpm lint`、`pnpm test`（179 passed／1 skipped）、`pnpm test:security`（14 passed）、`pnpm build`、`pnpm smoke`（82 audited files）均通過。P2 僅為 Node `20.20.2` 低於 package `>=22` 與約 `593.15 kB` bundle warning，非阻塞。
+- `[BOUNDARY]` 本輪未重跑既有 phase-aware concurrency one-shot（僅引用既有 `confirmed=1 waitlisted=5`）；未執行 migration、DELETE、reset、rollback、Cloudflare、production write、merge 或 deploy。
+- `[WAVE]` Wave 0=`CLOSED（evidence-boundary closure）`；Wave 1=`ACCEPTED／CLOSED（Release baseline）`；Wave 2=`BLOCKED／未啟動`。Phase 2 organizer confirm／decline／remove API／UI 缺口列為下一波，未在本輪處理。
+
 ## 2026-08-24：Wave 1 Release baseline closure after scope／owner decision
 
 - `[SCOPE／OWNER]` 使用者本輪明確授權組長代表執行、派遣獨立 Fresh reviewer，目標為打通 Wave 1 Release baseline。此授權不延伸至 Wave 2、production、Cloudflare route／DNS、migration、DELETE、reset、rollback、merge 或 production data write。
@@ -2381,5 +2395,19 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[CI / PROVENANCE ✅]` manifest `exactMatch=PASS`、mismatches=`[]`；manifest commit／run 與 baseline artifact name／ID／URL 均 exact-match current run。
 - `[CI / SKIP CONTRACT ✅]` expected／observed skip count=`1`；唯一 expected／observed file=`scripts/concurrency-harness.test.ts` count=`1`；unexpected skipped files=`[]`；database suite、alternative isolated runtime evidence 與其 evidence boundary 均明確分開。
 - `[CI / BOUNDARY]` databaseRuntime、stagingSmoke、cloudflareAccess、productionSemantic、deviceUAT 均=`NOT_RUN`；本輪未執行 migration、remote DB write、Cloudflare route／DNS、production deploy、device UAT 或 merge。既有 isolated local runtime job 的成功不升格為 hermetic report 或 production acceptance。
-- `[FRESH / ✅ ACCEPTED]` 兩輪獨立 fresh-context reviewer 均對完整 current evidence 回報 P0=`0`、P1=`0`、P2=`0`；本次 status-only 文件同步僅將已完成的 Fresh verdict 從 pending 改為 accepted，未改變 source／workflow／verifier contract。最後一輪 reviewer 亦確認 current HEAD／CI／artifact exact-match 與文件邊界。
-- `[WAVE]` Wave 0 維持 `CLOSED（evidence-boundary closure）`；Wave 1 維持 `BLOCKED／未啟動`，未因 Phase 1 baseline 完成而自動解鎖。
+- `[FRESH / ✅ ACCEPTED]` 兩輪獨立 fresh-context reviewer 均對完整 current evidence 回報 P0=`0`、P1=`0`、P2=`0`；本次 status-only 文件同步僅將已完成的 Fresh verdict 從 pending 改為 accepted，未改變 source／workflow／verifier contract。最後一輪 reviewer 亦確認 current HEAD／CI／artifact exact-match 與文件邊界。此段為歷史快照，最新 authoritative current section 以本檔 EOF 為準。
+- `[WAVE]` Wave 0 維持 `CLOSED（evidence-boundary closure）`；Wave 1 維持 `BLOCKED／未啟動`，未因 Phase 1 baseline 完成而自動解鎖。此段為歷史快照，最新 authoritative current section 以本檔 EOF 為準。
+
+## 2026-08-24：Wave 1 final authoritative current read-back
+
+本節為本檔 EOF 的 authoritative current section；上方較早的 status-sync／historical sections 保留追溯，不代表目前波次狀態。
+
+- `[SCOPE／OWNER]` 使用者已明確授權組長代表執行、派遣獨立 Fresh reviewer，目標為打通 Wave 1 Release baseline；不延伸授權 Wave 2、production、Cloudflare route／DNS、migration、DELETE、reset、rollback、merge 或 production data write。
+- `[GIT / CURRENT]` source／CI baseline commit=`e4dfcd04a447af393a411797d6fece71548da763`（`e4dfcd0`）；branch=`codex/gather-mvp`。本節只做 control-log-only provenance closure，不改變 app／workflow／verifier 行為；current repo HEAD／origin 仍以 Git read-back 為準。
+- `[CI / ✅ 已真實驗證]` run `32715574635` completed／success；URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32715574635`；verify job 與 `Isolated local Supabase runtime gate (separate evidence tier)` 均 success。
+- `[CI / ARTIFACT ✅]` baseline artifact=`gather-join-release-baseline-32715574635`、ID=`9515761760`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32715574635/artifacts/9515761760`；provenance artifact=`gather-join-release-provenance-32715574635`、ID=`9515762391`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32715574635/artifacts/9515762391`；兩份 JSON 均已下載並解析。
+- `[CI / REPORT ✅]` evidenceTier=`CI`；overall=`PASS_WITH_EXPECTED_SKIP`；failedGates=`[]`；report head／CI commit SHA=`e4dfcd04a447af393a411797d6fece71548da763`；expected／observed skip count=`1`，唯一 file=`scripts/concurrency-harness.test.ts`，unexpected=`[]`。
+- `[CI / PROVENANCE ✅]` manifest commit／run／baseline artifact identity exact-match=`PASS`；mismatches=`[]`。report 的 databaseRuntime、stagingSmoke、cloudflareAccess、productionSemantic、deviceUAT 均=`NOT_RUN`；isolated local runtime 不升格為 hermetic report 或 production acceptance。
+- `[LOCAL / ✅ 已真實驗證]` 最新 independent Fresh reviewer 前一輪對當時 current baseline 回報 `ACCEPTED`；local `pnpm typecheck`、`pnpm lint`、`pnpm test`（179 passed／1 skipped）、`pnpm test:security`（14 passed）、`pnpm build`、`pnpm smoke`（82 audited files）均通過。P2 僅為 Node `20.20.2` 低於 package `>=22` 與約 `593.15 kB` bundle warning，非阻塞。
+- `[BOUNDARY]` 本輪未重跑既有 phase-aware concurrency one-shot（僅引用既有 `confirmed=1 waitlisted=5`）；未執行 migration、DELETE、reset、rollback、Cloudflare、production write、merge 或 deploy。
+- `[WAVE]` Wave 0=`CLOSED（evidence-boundary closure）`；Wave 1=`ACCEPTED／CLOSED（Release baseline）`；Wave 2=`BLOCKED／未啟動`。Phase 2 organizer confirm／decline／remove API／UI 缺口列為下一波，未在本輪處理。
