@@ -6,7 +6,7 @@
 
 - Wave 0：`CLOSED（evidence-boundary closure）`；Wave 1：`BLOCKED／未啟動`。
 - Source/runtime evidence fixed point：`83a38e8`；current repo／origin HEAD 以 Git read-back 為準。
-- Phase 1 的 `pnpm verify:release-baseline` 是 LOCAL gate report；DB suite、Cloudflare Access、Pages source、production semantic/device UAT 仍分層驗證，不可互相替代。
+- Phase 1 的 `pnpm verify:release-baseline` 依執行環境標記 `LOCAL` 或 `CI`；DB suite、Cloudflare Access、Pages source、production semantic/device UAT 仍分層驗證，不可互相替代。CI 另產生 provenance manifest，要求 PR head commit、CI run 與 baseline artifact URL exact match。
 - 下方 2026-08-18 snapshot 保留作歷史契約與追溯，不覆寫 current handoff；current wave status 以 `docs/squad/LEDGER.md`、`HANDOFF.md` 與 `NEXT-PHASE-PLAN.md` 為準。
 
 ## [HISTORICAL／SUPERSEDED] Wave 0 closeout snapshot

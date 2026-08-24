@@ -2266,3 +2266,33 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[LOCAL / ✅ 已真實驗證]` parser 改以 `String.fromCharCode(27)` 組合 ANSI pattern，通過 `FORCE_COLOR=1 pnpm lint`；避免 `no-control-regex` 對 literal escape 的誤判。
 - `[CI / ✅ 已真實驗證]` 修正後 run `32707975139`、head SHA=`086842ba75c6b9cd4c1ffd1bd1ea180993c07302`：`verify` success（36s，release baseline gates 與 report artifact 均完成）；`local-supabase` success（3m29s，isolated local project、既有 reset probe／PostgreSQL concurrency harness 與 finally stop 均完成）。
 - `[CI / ⚠️ 邊界]` GitHub Actions annotation 顯示 action runtime 的 Node.js 20 deprecation warning；未影響本輪 job success。此 CI 結果仍不等於 staging、production、device 或 Fresh acceptance。
+
+## 2026-08-24：Phase 1 completion-audit correction
+
+### Audit finding
+
+- 重新依 `NEXT-PHASE-PLAN.md` 的 Phase 1 acceptance audit 後，發現前一輪 baseline 雖已通過 gates，仍有三個 provenance 缺口：report 在 CI 固定標成 `LOCAL`、PR workflow 預設 checkout merge ref、以及未產生可機讀的 baseline artifact URL exact-match manifest。
+- 同一 acceptance 也要求明確標示 DB suite skip、Cloudflare Access 未接、staging／production semantic 與 device UAT 的邊界；原 report 只有 DB skip policy，未完整呈現其餘狀態。
+
+### Exact allowlist
+
+- `apps/join/scripts/verify-release-baseline.mjs`
+- `apps/join/scripts/write-ci-provenance.mjs`
+- `apps/join/package.json`
+- `.github/workflows/join-gates.yml`
+- `apps/join/README.md`
+- `apps/join/docs/DEVELOPMENT.md`
+- `apps/join/docs/SSOT.md`
+- `implementation-control-log.md`
+
+### Correction and boundary
+
+- runner 依執行環境標記 `LOCAL`／`CI`，新增 `evidenceBoundaries` 與 CI commit／trigger SHA／run URL metadata。
+- workflow 兩個 job 均固定 checkout `${{ github.event.pull_request.head.sha || github.sha }}`；verify job 以 head SHA 作為 baseline commit identity。
+- baseline report upload 後，`write-ci-provenance.mjs` 產生並上傳第二個 provenance artifact，將 baseline artifact name／id／URL、commit SHA、CI run 與 report HEAD 做 exact-match；mismatch 時 manifest 失敗。
+- 本 correction 仍不執行 migration、DB write、Cloudflare route／DNS、production deploy、merge、device UAT 或 Fresh acceptance；rollback 僅限本 allowlist 的本次 diff。
+
+### Verification still required
+
+- `[LOCAL / NOT_RUN]` CI-only artifact URL exact-match manifest 需由新 GitHub Actions run 取得真實 artifact output 後驗證；local runner 只驗證 report schema／boundary 欄位。
+- `[CI / PENDING]` 新 workflow head-checkout、CI evidence tier、兩個 artifact 與 manifest `exactMatch=PASS` 尚待新 HEAD run read-back。

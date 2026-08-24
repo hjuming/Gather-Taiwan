@@ -20,6 +20,8 @@ jobs:
         working-directory: apps/join
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: pnpm/action-setup@v4
         with:
           version: 10.33.2
@@ -30,13 +32,31 @@ jobs:
           cache-dependency-path: apps/join/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - name: Release baseline gates
+        env:
+          GATHER_JOIN_CI_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: pnpm verify:release-baseline
       - name: Upload release baseline report
+        id: release_baseline
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: gather-join-release-baseline-${{ github.run_id }}
           path: apps/join/.reports/release-baseline.json
+          if-no-files-found: warn
+      - name: Write CI provenance manifest
+        if: always()
+        env:
+          GATHER_JOIN_CI_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          GATHER_JOIN_BASELINE_ARTIFACT_NAME: gather-join-release-baseline-${{ github.run_id }}
+          GATHER_JOIN_BASELINE_ARTIFACT_ID: ${{ steps.release_baseline.outputs.artifact-id }}
+          GATHER_JOIN_BASELINE_ARTIFACT_URL: ${{ steps.release_baseline.outputs.artifact-url }}
+        run: pnpm verify:ci-provenance
+      - name: Upload CI provenance manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gather-join-release-provenance-${{ github.run_id }}
+          path: apps/join/.reports/release-baseline-provenance.json
           if-no-files-found: warn
   local-supabase:
     runs-on: ubuntu-latest
@@ -45,6 +65,8 @@ jobs:
         working-directory: apps/join
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: pnpm/action-setup@v4
         with:
           version: 10.33.2

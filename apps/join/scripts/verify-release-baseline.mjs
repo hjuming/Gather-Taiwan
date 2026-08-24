@@ -7,6 +7,15 @@ const repoRoot = readGit(["rev-parse", "--show-toplevel"]) ?? "NOT_AVAILABLE";
 const branch = readGit(["symbolic-ref", "--short", "HEAD"]) ?? "DETACHED_OR_NOT_AVAILABLE";
 const head = readGit(["rev-parse", "HEAD"]) ?? "NOT_AVAILABLE";
 const sourceRuntimeFixedPoint = process.env.GATHER_SOURCE_RUNTIME_FIXED_POINT ?? "83a38e8";
+const ciCommitSha = process.env.GATHER_JOIN_CI_COMMIT_SHA ?? process.env.GITHUB_SHA ?? "NOT_AVAILABLE";
+const isCi = process.env.GITHUB_ACTIONS === "true" || process.env.GATHER_JOIN_CI_COMMIT_SHA !== undefined;
+const evidenceTier = isCi ? "CI" : "LOCAL";
+const ciRunId = process.env.GITHUB_RUN_ID ?? "NOT_AVAILABLE";
+const ciRepository = process.env.GITHUB_REPOSITORY ?? "NOT_AVAILABLE";
+const ciRunUrl =
+  ciRunId !== "NOT_AVAILABLE" && ciRepository !== "NOT_AVAILABLE"
+    ? `${process.env.GITHUB_SERVER_URL ?? "https://github.com"}/${ciRepository}/actions/runs/${ciRunId}`
+    : "NOT_AVAILABLE";
 
 const gates = [
   { id: "typecheck", args: ["typecheck"] },
@@ -91,7 +100,7 @@ const nodeMajor = Number(process.versions.node.split(".")[0]);
 const report = {
   schema: "gather-join/phase1-release-baseline/v1",
   generatedAt: new Date().toISOString(),
-  evidenceTier: "LOCAL",
+  evidenceTier,
   scope: "Six deterministic app gates without a database connection",
   expectedSkipPolicy: {
     databaseSuite: "NOT_RUN",
@@ -100,6 +109,28 @@ const report = {
     observedSkipCount,
     contract: skipContract,
     unexpectedSkips: observedSkipCount === null ? "NOT_VERIFIED" : Math.max(0, observedSkipCount - expectedSkipCount),
+  },
+  evidenceBoundaries: {
+    databaseRuntime: {
+      status: "NOT_RUN",
+      reason: "The hermetic baseline removes GATHER_JOIN_TEST_DATABASE_URL; database runtime requires a separately authorized fixture gate.",
+    },
+    stagingSmoke: {
+      status: "NOT_RUN",
+      reason: "This report does not claim a current staging URL or canonical staging host read-back.",
+    },
+    cloudflareAccess: {
+      status: "NOT_RUN",
+      reason: "No Cloudflare Access assertion or protected staging session is exercised by this baseline.",
+    },
+    productionSemantic: {
+      status: "NOT_RUN",
+      reason: "Local build and smoke evidence cannot establish production semantic parity.",
+    },
+    deviceUAT: {
+      status: "NOT_RUN",
+      reason: "No rendered browser or physical-device UAT is exercised by this baseline.",
+    },
   },
   provenance: {
     sourceRuntimeEvidenceFixedPoint: sourceRuntimeFixedPoint,
@@ -120,8 +151,13 @@ const report = {
     },
     ci: {
       provider: "GitHub Actions",
+      event: process.env.GITHUB_EVENT_NAME ?? "NOT_AVAILABLE",
+      repository: ciRepository,
+      commitSha: ciCommitSha,
+      triggerSha: process.env.GITHUB_SHA ?? "NOT_AVAILABLE",
       sha: process.env.GITHUB_SHA ?? "NOT_AVAILABLE",
-      runId: process.env.GITHUB_RUN_ID ?? "NOT_AVAILABLE",
+      runId: ciRunId,
+      runUrl: ciRunUrl,
       workflow: process.env.GITHUB_WORKFLOW ?? "NOT_AVAILABLE",
       ref: process.env.GITHUB_REF ?? "NOT_AVAILABLE",
       headRef: process.env.GITHUB_HEAD_REF ?? "NOT_AVAILABLE",

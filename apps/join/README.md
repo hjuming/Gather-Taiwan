@@ -77,7 +77,9 @@ pnpm build
 pnpm smoke
 ```
 
-`pnpm verify:release-baseline` 會先移除 `GATHER_JOIN_TEST_DATABASE_URL`，依序執行六個本地 gate，並輸出 ignored 的 `.reports/release-baseline.json`。報告中的 DB suite `NOT_RUN` 是預期邊界，不代表 migration、Supabase 或 concurrency PASS。
+`pnpm verify:release-baseline` 會先移除 `GATHER_JOIN_TEST_DATABASE_URL`，依序執行六個 hermetic gate，並輸出 ignored 的 `.reports/release-baseline.json`。報告中的 DB suite、staging／Cloudflare Access、production semantic 與 device UAT 都會明確標為 `NOT_RUN`；這些狀態不代表 migration、Supabase、staging 或 production PASS。
+
+GitHub Actions 會 checkout PR head SHA，將 baseline report 上傳後，再產生 `.reports/release-baseline-provenance.json`，以 exact-match read-back 綁定 PR head commit、CI run 與 baseline artifact URL。這份 CI provenance manifest 只在 CI 產生，不含 secrets。
 
 若缺 `GATHER_JOIN_TEST_DATABASE_URL`，`pnpm test` 只會 skip 本機 DB suite；
 這不能代替 migration / concurrency pass。

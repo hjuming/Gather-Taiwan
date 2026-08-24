@@ -36,7 +36,8 @@
     "test:p1-01": "pnpm reset && pnpm verify && pnpm reset && pnpm verify && pnpm concurrency",
     "smoke": "node scripts/smoke.mjs",
     "smoke:staging": "node scripts/smoke-staging.mjs",
-    "verify:release-baseline": "node scripts/verify-release-baseline.mjs"
+    "verify:release-baseline": "node scripts/verify-release-baseline.mjs",
+    "verify:ci-provenance": "node scripts/write-ci-provenance.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.1",
