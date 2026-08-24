@@ -17,7 +17,7 @@
 
 - `verify-release-baseline` 在 CI report 中標記 evidenceTier=`CI`，六 gate verdict=`PASS_WITH_EXPECTED_SKIP`，DB skip identity contract 預期為 `scripts/concurrency-harness.test.ts`。
 - baseline artifact 與 provenance manifest 的 commit／run／artifact URL exact-match=`PASS`；current exact values 以 control log 最末 current section read-back 為準，避免 docs-only commit 造成過期 snapshot。
-- DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT 均維持 `NOT_RUN`；verifier／staging／provenance corrections 已完成，第三輪獨立 Fresh acceptance 以 control log 最末 current section 為準，尚待回報；不得解除 Wave 1。
+- DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT 均維持 `NOT_RUN`；verifier／staging／provenance corrections 已完成，第三輪獨立 Fresh acceptance 已回報 `ACCEPTED`，完整 exact read-back 以 control log 最末 current section 為準；不得解除 Wave 1。
 
 ## [HISTORICAL／SUPERSEDED] Current engineering handoff（2026-08-18）
 
