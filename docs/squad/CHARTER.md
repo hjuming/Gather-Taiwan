@@ -2,7 +2,9 @@
 
 ## Charter fixed point
 
-- 確認日：2026-08-15
+- 確認日：2026-08-24
+- current source/runtime fixed point：`83a38e8`；本輪 repo／origin read-back 起點：`50bb2ea`，後續 docs-only package 完成後以 Git read-back 為準。
+- current gate：**Wave 0 CLOSED（evidence-boundary closure）**；**Wave 1 BLOCKED／未啟動**。本 Charter 的 Wave 1–6 scope 是後續規劃，不是自動開工授權。
 - 任務：完成聚場台灣報名系統 Wave 0–6 的資料、應用、部署、驗收與跨 session 交接閉環；Wave 0 先完成 manual roster P0。
 - 協作形狀：T1 orchestrator-workers；Orion 統籌，工作可拆時並行派工，最後由 Orion 整合。
 - 目標模式：自動執行＋事後審；每項必須先自我驗證、交付、更新 LEDGER，再交 Fresh Reviewer，未驗證部分標 `NOT_RUN`。
@@ -22,10 +24,10 @@
 
 目標模式自動授權僅限本 repo、明確範圍與可回退工作；以下授權已由 MING 確認，不需逐項重問：
 
-- 唯讀檢查、測試、瀏覽器 QA，以及本 repo 的 code、test、docs、migration 施工。
+- 唯讀檢查、測試、瀏覽器 QA，以及本 repo 內明確 scope 的 code、test、docs 施工。
 - 相容且必要的 dependency patch；使用隔離 worktree；保留其他代理與使用者既有修改。
-- 只對明確檔案 allowlist 執行 commit、push、PR；CI 與 Fresh 通過後可 merge；禁止 `git add -A`。
-- 合格的 forward-only migration、既有 Worker／Pages deploy／rollback 均可自動執行，必須留下版本與 read-back 證據。
+- 只對明確檔案 allowlist 執行 commit、push、PR；CI 與 Fresh 通過後才可另行評估 merge；禁止 `git add -A`。
+- migration、Cloudflare Worker／Pages deploy／rollback、production data 或 owner console 操作均不屬於一般自動授權；必須有 action-specific authorization、版本與 read-back 證據。
 - 自動授權不包含猜測 secrets、擴大範圍、繞過 RLS、把 static／local 當成 staging／production，或跳過 Fresh gate。
 
 ## MING six hard stops

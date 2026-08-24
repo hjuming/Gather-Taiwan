@@ -26,7 +26,25 @@
 - [`apps/join/docs/DEVELOPMENT.md`](./apps/join/docs/DEVELOPMENT.md)
 - [`apps/join/docs/MAINTENANCE.md`](./apps/join/docs/MAINTENANCE.md)
 
-## Current engineering handoff（2026-08-18）
+## Current engineering handoff（2026-08-24）
+
+本專案目前已完成 Wave 0 manual roster 的 evidence-boundary closure，並準備移交下一個工程團隊。source/runtime evidence fixed point 是 `83a38e8`；本交接 package 的 baseline repo／origin HEAD read-back 為 `50bb2ea`，完成推送後以 Git read-back 為準。不能把 Git push、CI、公開 HTTP 200 或 Pages deployment URL 誤寫成 production feature acceptance。
+
+| Evidence tier | Current result | Boundary |
+| --- | --- | --- |
+| `LOCAL`／`ISOLATED LOCAL` | 既有 typecheck、lint、test、build、smoke 與一次性 concurrency evidence 保留；`confirmed=1 waitlisted=5` | 本輪不重跑 concurrency；local 不代替 remote／production |
+| `REMOTE` | Supabase catalog `33`；指定 migrations present；functions／ACL `9/9`；source-aligned RLS `15/15`；aggregate `0`；non-null orphan refs `0` | advisors security `54`、performance `21` 為未處理 technical debt |
+| `CI` | 本輪 evidence snapshot head `50bb2ea`；Gather Join Gates run `32187430242` success | PR 仍 open、draft、未 merge；後續 docs-only package HEAD 以 Git read-back 為準 |
+| `STAGING` | workers.dev homepage `200`；無 Access assertion 的 POST `/__dev/session` `403` | canonical `staging.join.gather.wedopr.com` DNS `UNVERIFIED` |
+| `PRODUCTION` | `/`、`/app/` `200`；POST `/app/__dev/session` `404` | 未完成 production semantic／device UAT |
+| `PAGES` | deployment URL `https://f4febb0d.neo-rechao.pages.dev/` `200` | source／control-plane metadata `NOT_VERIFIED` |
+| `FRESH` | 完整 current evidence 明確 `ACCEPTED` | Wave 0 CLOSED 不等於 merge、deploy 或 production feature PASS |
+
+目前波次：**Wave 0：CLOSED（evidence-boundary closure）**；**Wave 1：BLOCKED／未啟動**。下一階段提案見 [`docs/squad/NEXT-PHASE-PLAN.md`](./docs/squad/NEXT-PHASE-PLAN.md)，可直接貼上的開發啟動提示詞見 [`docs/squad/NEXT-TEAM-KICKOFF.md`](./docs/squad/NEXT-TEAM-KICKOFF.md)。
+
+接手順序：先讀 `NEXT-TEAM-KICKOFF.md`、`NEXT-PHASE-PLAN.md`、`LEDGER.md`、`HANDOFF.md`、`implementation-control-log.md`，再讀 `apps/join/docs/SSOT.md`、`DEVELOPMENT.md`、`MAINTENANCE.md`，最後重新固定 Git 狀態。未取得新的 action-specific authorization 前，不執行 migration、DELETE、reset、rollback、broad cleanup、Cloudflare route／DNS／custom domain 變更或 production data 操作。
+
+## [HISTORICAL／SUPERSEDED] Current engineering handoff（2026-08-18）
 
 本 handoff 的 evidence base 是 branch `codex/gather-mvp`、commit `69dab0c`；接手時必須先以 `git status -sb`／`git log -1` 重新固定 HEAD。本段為 docs-only handoff package，不代表 runtime source release。
 這是 Wave 0 manual roster 的收尾階段，不代表 Wave 0 已接受關閉；Wave 1 維持 blocked、不得開始。
@@ -123,7 +141,7 @@ Local `.env.local` should use these keys:
 ```env
 EMAILJS_SERVICE_ID=service_py2gq7e
 EMAILJS_TEMPLATE_ID=template_6970fud
-EMAILJS_PUBLIC_KEY=VxaEkKp7MjM20ERo8
+EMAILJS_PUBLIC_KEY=[REDACTED]
 EMAILJS_PRIVATE_KEY=
 GATHER_CONTACT_CC_EMAIL=gather@wedopr.com
 ```

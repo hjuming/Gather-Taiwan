@@ -1,6 +1,19 @@
 # Gather Join App
 
-## Current engineering handoff（2026-08-18）
+## Current engineering handoff（2026-08-24）
+
+`apps/join` 的 Wave 0 manual roster evidence-boundary closure 已完成，準備移交下一工程團隊。source/runtime fixed point=`83a38e8`；本輪 evidence snapshot HEAD=`50bb2ea`，docs-only package 推送後以 Git read-back 為準；Wave 0=`CLOSED`、Wave 1=`BLOCKED／未啟動`。
+
+- `[REMOTE]` Supabase catalog=`33`；指定 migrations present；functions／ACL=`9/9`；source-aligned RLS=`15/15` enabled＋forced；aggregate=`0`；non-null orphan refs=`0`。
+- `[CI]` PR #1 仍 open、draft、未 merge；evidence snapshot HEAD `50bb2ea` 的 Gather Join Gates run `32187430242` success；package push 後以 Git read-back 為準。
+- `[STAGING]` workers.dev homepage=`200`；無 Access assertion 的 POST `/__dev/session`=`403`。Canonical staging host `staging.join.gather.wedopr.com` 維持 `UNVERIFIED`。
+- `[PRODUCTION]` `/`、`/app/`=`200`；POST `/app/__dev/session`=`404`。這不是 production semantic／device UAT。
+- `[PAGES]` deployment URL `https://f4febb0d.neo-rechao.pages.dev`=`200`；source／control-plane metadata=`NOT_VERIFIED`。
+- `[FRESH]` 完整 current evidence 明確 `ACCEPTED`；不等於 PR merge、部署核准或 production feature PASS。
+
+下一階段規劃見 [`../../docs/squad/NEXT-PHASE-PLAN.md`](../../docs/squad/NEXT-PHASE-PLAN.md)，啟動提示詞見 [`../../docs/squad/NEXT-TEAM-KICKOFF.md`](../../docs/squad/NEXT-TEAM-KICKOFF.md)。既有一次性 concurrency evidence 僅引用 `confirmed=1 waitlisted=5`，本輪不重跑。
+
+## [HISTORICAL／SUPERSEDED] Current engineering handoff（2026-08-18）
 
 `apps/join` 目前位於 Wave 0 manual roster closeout。最新 Git fixed point 是
 handoff evidence base 是 `codex/gather-mvp@69dab0c`；本輪只同步文件，沒有新增 source、migration 或資料操作；接手時先重新 read-back HEAD。Pages auto deployment 也只代表 handoff 文件發布。
@@ -14,7 +27,7 @@ handoff evidence base 是 `codex/gather-mvp@69dab0c`；本輪只同步文件，�
 
 canonical staging host `staging.join.gather.wedopr.com` 仍無 DNS／custom domain／zone route；這是未驗收子 gate，不等於 workers.dev deployment gate 失敗。不要為收尾自行新增 route／DNS，也不要重跑 concurrency verifier。
 
-下一團隊的可貼上啟動提示詞與完整接手順序見 [`../docs/squad/NEXT-TEAM-KICKOFF.md`](../docs/squad/NEXT-TEAM-KICKOFF.md)。
+下一團隊的可貼上啟動提示詞與完整接手順序見 [`../../docs/squad/NEXT-TEAM-KICKOFF.md`](../../docs/squad/NEXT-TEAM-KICKOFF.md)。
 
 `apps/join` 是同網域路徑掛載在 `gather.wedopr.com/app/*` 的 Cloudflare Worker（2026-08-06
 起改為此架構，之前是獨立子網域 `join.gather.wedopr.com`；見
@@ -49,9 +62,9 @@ canonical staging host `staging.join.gather.wedopr.com` 仍無 DNS／custom doma
 
 ## 當前可接手入口
 
-- 本輪交接建議先讀：`../implementation-control-log.md`、
-  `./docs/SSOT.md`、`./docs/DEVELOPMENT.md`、`./docs/MAINTENANCE.md`、
-  `../line-t01a-settings-record.md`
+- 本輪交接建議先讀：`implementation-control-log.md`、
+  `apps/join/docs/SSOT.md`、`apps/join/docs/DEVELOPMENT.md`、`apps/join/docs/MAINTENANCE.md`、
+  `line-t01a-settings-record.md`
 - 本地驗證已建立：
 
 ```sh

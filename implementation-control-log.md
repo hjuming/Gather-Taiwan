@@ -8,6 +8,11 @@
 - 讀者：Gather Taiwan / 聚場台灣專案決策者、WEDO 團隊、後續接手工程與內容協作者。
 - 本文件用途：記錄本輪 Implementation Draft Gate 的需求、AI 決策、觸及檔案、驗證結果與回滾方式。
 
+## Current authoritative index（2026-08-24）
+
+- Current handoff／next-phase evidence 以本檔最末的 `2026-08-24` sections 為準；更早日期的 entries 是 historical record，不覆寫 current Wave 0 CLOSED、Wave 1 BLOCKED／未啟動，也不構成可執行指令。
+- Current handoff exact allowlist：`README.md`、`apps/join/README.md`、`docs/squad/CHARTER.md`、`docs/squad/HANDOFF.md`、`docs/squad/LEDGER.md`、`docs/squad/NEXT-TEAM-KICKOFF.md`、`docs/squad/NEXT-PHASE-PLAN.md`、`implementation-control-log.md`。
+
 ## 1. 任務目標
 
 - 將 `/`、`/moonlight-bbq`、`/neo-rechao` 整理為同一個 `聚場台灣 / Gather Taiwan` Culture Platform 產品。
@@ -1868,14 +1873,14 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - 測試只使用本地隔離 DB 與 synthetic identities；未回傳、落檔或重用任何 service-role key、密碼或正式 secrets，既有其他 Docker stacks 未操作。
 - [HISTORICAL／SUPERSEDED／DO NOT EXECUTE] Wave 0 維持開啟，Wave 1 維持 blocked；待 execution escalation 恢復後，先 cleanup fixture，再做一次 phase-aware concurrency 與 catalog／ACL／RLS read-back，最後才交 Fresh runtime。此流程已被 current fixed point supersede，不得照做；目前只交獨立 Fresh reviewer。
 
-## 2026-08-18：最終 handoff 與 Git publish 邊界
+## [HISTORICAL／SUPERSEDED] 2026-08-18：最終 handoff 與 Git publish 邊界
 
 - 新增 `docs/squad/HANDOFF.md` 作為短期 session 交接文件，引用 LEDGER／control log，不取代長期台帳。
 - 本 session 的交付範圍：handoff、runtime 未完成項、續接 prompt、驗證命令與 evidence boundary；不宣稱 Wave 0 closure、Fresh acceptance、remote migration 或 production deploy。
 - Git publish 需只 stage 明確的本次檔案；`gh auth status` 顯示目前 token invalid，因此若 Git remote push 認證失敗，必須在 push 前停止並回報，不得繞過認證。
 - 實際結果：`git push -u origin codex/gather-mvp` 成功，remote branch 已讀回 `e2cdeb9e4dddcd95d30bd3e5cf34ab2d74ce438b`；此為 Git remote publish，不是 production deploy 或 Wave 0 acceptance。
 
-## 2026-08-18：Wave 0 runtime closeout attempt（blocked，isolated local only）
+## [HISTORICAL／SUPERSEDED／DO NOT EXECUTE] 2026-08-18：Wave 0 runtime closeout attempt（blocked，isolated local only）
 
 ### Fixed point and scope
 
@@ -1899,9 +1904,9 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 
 - 因 cleanup zero-residue 未成立，本輪 phase-aware concurrency verifier **NOT_RUN**；沒有新增 concurrency PASS，也沒有 retry。Fresh runtime review **NOT_READY**。
 - Wave 0 維持未關閉；Wave 1 維持 blocked。以上 local/static/isolated evidence 不轉譯為 remote DB、CI、staging 或 production evidence。
-- 未處理 593 kB bundle warning；未擴大 scope。後續須先由授權 session 處理明確 fixture cleanup／zero-residue 與 RLS gate，再決定是否可跑唯一一次 concurrency verifier。
+- 未處理 593 kB bundle warning；未擴大 scope。上述「後續須先處理 fixture cleanup／zero-residue 與 RLS gate，再決定是否可跑唯一一次 concurrency verifier」僅為歷史追溯，已被 current fixed point supersede，禁止照做；目前不得重跑 one-shot concurrency，唯一下一步依 current handoff 為合法 remote read-only connector 恢復後的 current read-back 與 Fresh review。
 
-## 2026-08-18：authorized continuation／RLS correction and managed-auth blocker
+## [HISTORICAL／SUPERSEDED] 2026-08-18：authorized continuation／RLS correction and managed-auth blocker
 
 ### RLS correction
 
@@ -1921,7 +1926,7 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - 需要對「唯一 local orphan auth fixture 是否可採 direct local cleanup」取得明確 action-specific authorization；在此之前不得碰 `auth.users`，也不得跑 concurrency。
 - Wave 0 維持未關閉；Wave 1 維持 blocked；不處理 593 kB bundle warning，不做 remote migration／deploy／push。
 
-## 2026-08-18：authorized orphan cleanup／concurrency one-shot complete
+## [HISTORICAL／SUPERSEDED] 2026-08-18：authorized orphan cleanup／concurrency one-shot complete
 
 ### Exact local cleanup
 
@@ -1941,7 +1946,7 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - 目前工具沒有可派 fresh-context reviewer 的 subagent 能力，因此 Fresh reviewer status=`READY_TO_REVIEW`，不是 `ACCEPTED`。
 - Wave 0 維持未關閉；Wave 1 維持 blocked；未做 remote migration／CI／production／deploy／rollback／push，593 kB bundle warning 未處理。
 
-## 2026-08-18：independent Fresh runtime review
+## [HISTORICAL／SUPERSEDED] 2026-08-18：independent Fresh runtime review
 
 - User requested an independent external reviewer. Reviewer `Faraday` ran a fresh-context, read-only review of the repo evidence and isolated local DB; no file mutation, DB write, concurrency rerun, migration apply, DELETE, reset, broad cleanup, remote/production action, commit, or push occurred.
 - Verdict：`READY_WITH_BLOCKERS`。
@@ -1950,14 +1955,14 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - Fresh conclusion：isolated local runtime gate `ACCEPTED`，但 Wave 0 overall `NOT_ACCEPTED for closure`；remote DB／CI／staging／production 未驗收，migration 尚未 commit；Wave 1 維持 `BLOCKED`。
 - Required follow-up：owner 另行 exact-allowlist commit 必要檔案，取得 remote／CI／staging／production read-back 後，再重新評估 Wave 0 closure。Local／isolated evidence 不得宣稱為 release-ready。
 
-## 2026-08-18：authorized remote test-event cleanup
+## [HISTORICAL／SUPERSEDED] 2026-08-18：authorized remote test-event cleanup
 
 - `[REMOTE / read-only preflight]` 唯一 over-limit event=`1`；registrations=`7`、event_invitation_targets=`9`、audit_logs=`82`；其他明確 domain child rows=`0`；auth.users=`4`、public.users=`3`。
 - `[REMOTE / authorized destructive scope]` 單一 transaction 只刪除該 event 與其明確關聯 domain child rows；delete result：events=`1`、registrations=`7`、event_invitation_targets=`9`、audit_logs=`82`，其餘 allowlisted child rows=`0`。未碰 auth.users／public.users／其他 events，未做 reset／rollback／broad cleanup。
 - `[REMOTE / independent zero-residue read-back]` over-limit event=`0`；orphan registrations／registration_answers／event_invitation_targets／event_fields／event_invitees／event_blocklist／event_password_grants／audit_logs／notifications／outbox_events／idempotency_requests 全為 `0`；auth.users=`4`、public.users=`3` unchanged。
 - Gate：缺少的 `20260815060000_manual_roster_capacity_seat_engine_fix.sql` 尚未套用；`gather-taiwan` deploy 尚未執行。需另取得該 migration 明確授權後，才可重新完成 remote catalog／function／ACL／RLS／aggregate read-back。
 
-## 2026-08-18：Wave 0 closeout evidence sync／CI-staging-Fresh pending
+## [HISTORICAL／SUPERSEDED] 2026-08-18：Wave 0 closeout evidence sync／CI-staging-Fresh pending
 
 ### Fixed point and allowlist
 
@@ -1983,14 +1988,14 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - isolated local、remote、production、CI、staging、Fresh 各自標註，不互相替代。
 - 不處理約 593 kB bundle warning；不輸出或保存 secrets、tokens、密碼、個資。
 
-## 2026-08-18：staging route diagnosis／propagation read-back
+## [HISTORICAL／SUPERSEDED] 2026-08-18：staging route diagnosis／propagation read-back
 
 - `[READ-ONLY]` Cloudflare Workers routes：`gather.wedopr.com/app/* → gather-join`；沒有 `gather-join-staging` zone route。Workers custom domains 清單沒有 `staging.join.gather.wedopr.com`；公開 DNS-over-HTTPS 對該 hostname 的 A/CNAME 查詢均無答案。
 - `[READ-ONLY]` `gather-join-staging` script subdomain binding：enabled；deployment version=`82b00639-298b-4f73-aa91-d3169c75258a` traffic=`100%`。
 - `[READ-ONLY]` deployment propagation 後 `https://gather-join-staging.hjuming.workers.dev/` 回 HTTP `200`，title=`來聚一場｜報名系統`；未帶 Access assertion 的 `/__dev/session` 回 HTTP `403`。
 - 結論：staging deployment public URL gate PASS；canonical custom host route 未配置，保留為未驗收風險，不做 route／DNS 修正。
 
-## 2026-08-18：Fresh closeout re-review preparation
+## [HISTORICAL／SUPERSEDED] 2026-08-18：Fresh closeout re-review preparation
 
 - `[FIXED POINT / read-only]` branch=`codex/gather-mvp`、HEAD=`364d61b`、origin 同步、working tree clean；本次 docs-only sync 未修改 migration、source、test、package 或 workflow。
 - `[CI / read-only]` Draft PR #1／run `32147680323`：`verify` PASS、`local-supabase` PASS、Cloudflare Pages check PASS；Node 20 deprecation annotations 不影響結果。
@@ -1999,7 +2004,7 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - 獨立 Fresh Reviewer `Russell` 完成只讀複核，verdict=`READY_WITH_BLOCKERS`；最小 blocker 是先前三份 closeout 文件未同步 current HEAD／CI／Pages evidence。本段完成同步後，仍須重新交獨立 Fresh reviewer，只有明確 `ACCEPTED` 才可將 Wave 0 標記 CLOSED。
 - Wave 0 維持未關閉；Wave 1 維持 `BLOCKED`、未啟動。約 593 kB bundle warning 與 Node engine warning 保留為非阻擋剩餘風險，未擴大處理。
 
-## 2026-08-18：下一工程團隊交接文件包同步
+## [HISTORICAL／SUPERSEDED] 2026-08-18：下一工程團隊交接文件包同步
 
 ### Task / scope
 
@@ -2029,7 +2034,7 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `⚠️ 部分驗證`：Fresh reviewer 尚未對本次文件 sync 後的狀態重新給 verdict；canonical staging host／同源 staging UAT 未驗證。
 - `❌ 未驗證`：任何新的 route／DNS 修正、Wave 1 工作、完整 LINE failure matrix、device UAT。
 
-## 2026-08-18：final handoff metadata read-back
+## [HISTORICAL／SUPERSEDED] 2026-08-18：final handoff metadata read-back
 
 - `[FIXED POINT / read-only]` branch=`codex/gather-mvp`、HEAD=`6622f72`、origin 同步、working tree clean。
 - `[CI / read-only]` Draft PR #1／run `32149787655`：`verify`、`local-supabase`、Cloudflare Pages check 均 PASS；Node 20 deprecation annotations 仍為 warning。
@@ -2037,7 +2042,7 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - Handoff docs、README、Join SSOT／DEVELOPMENT／MAINTENANCE 與 `NEXT-TEAM-KICKOFF.md` 已同步至本 fixed point；未修改 source／migration／test／package／workflow。
 - Wave 0 仍未關閉：文件已具備 current metadata，但 Fresh re-review 尚未完成；Wave 1 維持 `BLOCKED`、未啟動。Canonical staging host 維持 `UNVERIFIED`。
 
-## 2026-08-18：handoff package final current read-back
+## [HISTORICAL／SUPERSEDED] 2026-08-18：handoff package final current read-back
 
 - `[FIXED POINT / read-only]` branch=`codex/gather-mvp`、HEAD/origin=`69dab0c`、working tree clean。
 - `[CI / read-only]` Draft PR #1／run `32150304903`：`verify`、`local-supabase`、Cloudflare Pages check 均 PASS；Node 20 deprecation annotations 仍為 warning。
@@ -2045,7 +2050,7 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `README.md`、`apps/join` README／SSOT／DEVELOPMENT／MAINTENANCE、squad HANDOFF／LEDGER 與 `NEXT-TEAM-KICKOFF.md` 均已同步 current evidence；未修改 source／migration／test／package／workflow。
 - Wave 0 仍未關閉；Fresh re-review pending；Wave 1 維持 `BLOCKED`、未啟動；canonical staging host 維持 `UNVERIFIED`。
 
-## 2026-08-19：Fresh review blocker correction
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review blocker correction
 
 ### Fresh review result
 
@@ -2058,43 +2063,43 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - 未修改 source／test／package／migration／workflow；未執行資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup。
 - 修正後必須再次交獨立 Fresh reviewer；在取得明確 `ACCEPTED` 前，Wave 0 維持未關閉，Wave 1 維持 `BLOCKED`。
 
-## 2026-08-19：Fresh review blocker correction follow-up
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review blocker correction follow-up
 
 - 第二位獨立 fresh-context reviewer `Ampere` 確認前述修正已涵蓋舊 safepoint、decision record 與 restart guide，但指出 LEDGER 更早的 Fresh6／Fresh7／isolated-runtime attempt 區段仍可能被讀成 current `NOT_RUN`／`BLOCKED`。
 - 只在 `docs/squad/LEDGER.md` 新增歷史快照邊界，明示該段不得覆寫 current fixed point，也不得誘導重跑已完成的一次性 gate。
 - 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
 
-## 2026-08-19：Fresh review active-workboard correction
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review active-workboard correction
 
 - 第三位獨立 fresh-context reviewer `Mencius` 確認歷史區段邊界已補齊，但指出 current workboard 仍把已完成的 CI／staging／runtime read-back、舊 external blockers 與 Wave 1／Wave 2 後續工作列為 active next steps。
 - 只更新 `docs/squad/LEDGER.md` workboard：將已 supersede 的 Fresh rounds、舊 Forge／fallback／safepoint／instrumentation 標為 historical，並將 current rows 的唯一下一步統一為獨立 Fresh re-review；Wave 1／Wave 2 維持 blocked。
 - 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
 
-## 2026-08-19：Fresh review historical-boundary and gate correction
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review historical-boundary and gate correction
 
 - 第四位獨立 fresh-context reviewer `Popper` 確認 active workboard 已收斂，但指出 Fresh1–Fresh5 仍未納入歷史邊界、Wave 2 在 workboard 間狀態矛盾，且 HANDOFF current closeout gate 仍把已完成的 docs-only commit／push 當成下一步。
 - 只更新 `docs/squad/LEDGER.md` 與 `docs/squad/HANDOFF.md`：補 Fresh1–Fresh5 historical snapshot、將 Wave 2 統一為 blocked，並把 current next step 統一為獨立 Fresh reviewer。
 - 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
 
-## 2026-08-19：Fresh review historical-command hard stop
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review historical-command hard stop
 
 - 第五位獨立 fresh-context reviewer `Epicurus` 確認 current workboard、Wave 1／Wave 2 gate 與 evidence tiers 已一致，但指出歷史 HANDOFF prompt 與 control log 仍含可直接複製的 concurrency 重跑指令。
 - 只在 `docs/squad/HANDOFF.md` 與 `implementation-control-log.md` 的歷史段落就地加入 `HISTORICAL／DO NOT EXECUTE` hard-stop，並明示目前不得重跑 one-shot gate，唯一下一步為獨立 Fresh reviewer。
 - 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
 
-## 2026-08-19：Fresh review control-log hard-stop completion
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review control-log hard-stop completion
 
 - 第六位獨立 fresh-context reviewer `Banach` 確認 HANDOFF、LEDGER 與 active workboard 的 hard-stop 已通過，但指出 control log 2026-08-17 的環境阻塞／Docker 恢復段落仍保留可操作的 concurrency 重跑流程。
 - 只在上述兩個歷史 control-log 段落就地加入 `HISTORICAL／SUPERSEDED／DO NOT EXECUTE`，並將舊「下一步」改為不可執行的追溯內容；current next step 維持獨立 Fresh reviewer。
 - 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
 
-## 2026-08-19：Fresh review legacy deploy and safepoint hard-stop
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review legacy deploy and safepoint hard-stop
 
 - 第七位獨立 fresh-context reviewer `Copernicus` 確認 concurrency hard-stop 已補齊，但指出 control log 的舊 safepoint restart 段與 2026-08-06／08-07 Cloudflare secrets／deploy checklist 尚未就地封存。
 - 只在 `implementation-control-log.md` 將上述歷史段落標為 `HISTORICAL／SUPERSEDED／DO NOT EXECUTE`，並明示不得重跑 concurrency、`wrangler secret put`、`wrangler deploy`、cache purge 或其他外部操作。
 - 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
 
-## 2026-08-19：current fixed point／Supabase MCP permission audit
+## [HISTORICAL／SUPERSEDED] 2026-08-19：current fixed point／Supabase MCP permission audit
 
 ### Scope and fixed point
 
@@ -2116,9 +2121,93 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - Wave 1：**BLOCKED，未啟動**。
 - 不處理約 593 kB bundle warning；不輸出或保存 secrets、tokens、DB 密碼或個資。
 
-## 2026-08-19：Fresh review Maxwell provenance correction
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review Maxwell provenance correction
 
 - Reviewer `Maxwell` 以 fresh context 只讀審查 current docs-only HEAD=`22a9de9`、source/runtime evidence fixed point=`83a38e8`、LEDGER／HANDOFF／control log 與 workflow／staging contract；未修改檔案、未操作 DB、未重跑 concurrency、未 deploy／push。
 - Verdict=`NOT_ACCEPTED`。他確認 hard-stop、Wave 1 gate、三檔 allowlist 與 evidence boundary 正確；指出 LEDGER／HANDOFF／control log 必須明確區分目前 docs-only HEAD 與 source/runtime evidence base，且 workboard 不得把 prior remote PASS 寫成 current remote PASS。
 - 本輪已修正 provenance：`83a38e8` 僅代表 source/runtime evidence fixed point，`22a9de9` 代表未改 source 的 docs-only handoff HEAD；W0 DB／Forge rows 改標 prior remote PASS、current MCP re-read blocked。
 - Gate 不變：Wave 0 未關閉，Wave 1 `BLOCKED`／未啟動；須先恢復合法 Supabase MCP 唯讀 connector、完成 catalog／function／ACL／RLS／aggregate current read-back，再交 Fresh reviewer。不得繞過 connector 或重跑 one-shot concurrency。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-21：current closeout read-back and provenance sync
+
+### Scope and fixed point
+
+- 目標：在不開始 Wave 1、不重跑 one-shot concurrency、不做 remote write 的前提下，重新固定 current HEAD、GitHub CI、staging、公開 URL 與 Supabase remote evidence 狀態。
+- source/runtime evidence fixed point=`83a38e8`；其後至 repo HEAD=`50bb2ea` 的提交未修改 app source、migration、test、package 或 workflow；固定點 read-back 時 working tree clean、local HEAD 與 tracking ref 相同。本次同步後目前 working tree 僅有四份 allowlisted docs modified，尚未 commit。
+- 只修改 `docs/squad/LEDGER.md`、`docs/squad/HANDOFF.md`、`docs/squad/NEXT-TEAM-KICKOFF.md`、`implementation-control-log.md`；未修改 source／migration／test／package／workflow。
+
+### Verification and evidence boundary
+
+- `[GITHUB / read-only / 2026-08-21]` PR #1 為 open、draft、未 merge；head=`50bb2ea`；Gather Join Gates run `32187430242` conclusion=`success`。
+- `[REMOTE SUPABASE / read-only / 2026-08-21]` `supabase_list_migrations`、唯讀 `supabase_execute_sql`、Security／Performance advisors 均回 `MCP -32600 You do not have permission`。未繞過 connector，未執行 remote SQL／migration／data operation；既有 remote catalog／function／ACL／RLS／aggregate 記錄維持 prior evidence，不升格為 current remote PASS。
+- `[STAGING / PRODUCTION PUBLIC URL / read-only / 2026-08-21]` `gather.wedopr.com/`=`200`、`gather.wedopr.com/app/`=`200`；`gather-join-staging.hjuming.workers.dev/`=`200`；無 Access assertion 的 POST `/__dev/session`=`403`；production POST `/app/__dev/session`=`404`。這是公開端點／route behavior evidence，不等於 Pages source、同源 staging UAT 或 Wave 0 acceptance。
+- `[CANONICAL STAGING HOST]` `staging.join.gather.wedopr.com` 維持 `UNVERIFIED`；本輪未修改 DNS、route 或 custom domain。
+- `[LOCAL / ISOLATED LOCAL / prior evidence]` 既有 179 tests passed＋1 skipped、typecheck／lint／build、zero-residue 與 phase-aware concurrency one-shot PASS 均保留；本輪不重跑 concurrency verifier。
+
+### Gate decision
+
+- Wave 0：**未關閉／overall acceptance blocked**。獨立 Fresh `Hooke` 僅接受 docs-only 文件審查；Current Supabase remote evidence 仍 blocked，不能升格為 Wave 0 acceptance。
+- Wave 1：**BLOCKED，未啟動**。
+- 剩餘風險：Node local runtime=`20.20.2` 低於 package engine `>=22`；client bundle 約 `593 kB`；Pages deployment source metadata 本輪未重新取得。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-21：independent docs-only Fresh result and connector retry
+
+- `[FRESH / independent read-only]` Reviewer `Hooke` 明確回報 `ACCEPTED`，範圍僅為四份 allowlist docs-only closeout 文件、current provenance 與 evidence boundary；不包含 current Supabase remote acceptance，也不宣告 Wave 0 closure。
+- `[REMOTE SUPABASE / read-only retry]` 本輪再次呼叫 `supabase_list_migrations`、唯讀 `supabase_execute_sql`、Security advisors、Performance advisors；四者均回 `MCP -32600 You do not have permission`。未繞過 connector、未執行 remote SQL／migration／data operation。
+- `[GITHUB / read-only retry]` PR #1 仍 open、draft、未 merge；head=`50bb2ea`；Gather Join Gates run `32187430242` conclusion=`success`。
+- `[PUBLIC HTTP / read-only retry]` `gather.wedopr.com/`=`200`、`/app/`=`200`；workers.dev staging root=`200`、無 Access assertion 的 POST `/__dev/session`=`403`；production POST `/app/__dev/session`=`404`；`staging.join.gather.wedopr.com` DNS 未解析，維持 `UNVERIFIED`。
+- Gate decision：docs-only Fresh gate=`ACCEPTED`；current Supabase remote gate=`BLOCKED`；Wave 0 **未關閉**，Wave 1 **BLOCKED／未啟動**。不得重跑 one-shot concurrency、不得做 remote write 或部署。
+
+## 2026-08-24：Wave 0 current remote read-back／Fresh acceptance／closeout
+
+### Goal / non-goals
+
+- 目標：在使用者重新授權合法 Supabase MCP read-only connector 後，完成 current remote catalog、function metadata、ACL、RLS、aggregate、必要 zero-residue 與 GitHub／CI／staging／公開 URL read-back，交獨立 fresh-context reviewer，並依其明確 verdict 更新 Wave 0 closeout 文件。
+- 非目標：不修改 source、migration、test、package、workflow；不執行 remote migration、DELETE、reset、rollback、broad cleanup；不修改 Cloudflare route／DNS／custom domain；不 merge PR；不重跑 phase-aware concurrency verifier；不處理約 593 kB bundle warning。
+- 本次文件變更僅限 `docs/squad/LEDGER.md`、`docs/squad/HANDOFF.md`、`implementation-control-log.md`；保留既有 `docs/squad/NEXT-TEAM-KICKOFF.md` working-tree 修改，不覆蓋。
+
+### Verification and evidence boundary
+
+- `[LOCAL / ISOLATED LOCAL / prior]` source/runtime evidence fixed point=`83a38e8`；current HEAD／origin=`50bb2ea`。既有 one-shot concurrency 只引用 `confirmed=1 waitlisted=5`，本輪未重跑。
+- `[REMOTE / read-only]` Supabase target ref=`anklbpkyesdmsubyfcna`；catalog=`33`；指定 migrations `20260815060000`／`20260818121055` present；9/9 functions present、`SECURITY DEFINER`、固定 `search_path`；function ACL 9/9 exact；source-aligned RLS=`15/15` enabled＋forced；aggregate over-limit=`0`；non-null orphan references=`0`。19 筆 audit rows 的 `event_id` 為 NULL，另分類為非 orphan reference。
+- `[REMOTE / residual]` current advisors：security 54（INFO 4／WARN 50）、performance 21（INFO 11／WARN 10）；未修改、未隱藏，列為後續 technical debt。
+- `[GITHUB / CI]` PR #1 open、draft、未 merge；head=`50bb2ea`；Gather Join Gates run `32187430242` completed／success。PR body 對整個 PR 的 docs-only 描述與實際 99 files 變更有 provenance ambiguity，本輪未修改外部 PR。
+- `[STAGING]` `https://gather-join-staging.hjuming.workers.dev/` homepage=`200`；無 Access assertion 的 POST `/__dev/session`=`403`、`{"message":"Forbidden"}`。
+- `[PRODUCTION]` `https://gather.wedopr.com/`=`200`；`/app/`=`200`；POST `/app/__dev/session`=`404`、`{"error":"not_found"}`；未宣稱 production semantic／device UAT。
+- `[PAGES / NOT_VERIFIED]` deployment URL `https://f4febb0d.neo-rechao.pages.dev/`=`200`；Pages source／control-plane metadata 本輪未取得。Canonical `staging.join.gather.wedopr.com` DNS 未解析，維持 `UNVERIFIED`。
+- `[FRESH / independent]` fresh-context reviewer 對完整 current evidence 明確回報 `ACCEPTED`；reviewer 未修改 repo、未做 remote write、未重跑 concurrency。
+
+### Decision
+
+- 依獨立 reviewer 的完整 current evidence `ACCEPTED`，**Wave 0：CLOSED（evidence-boundary closure）**。
+- **Wave 1：BLOCKED／未啟動**；不得由本次 closeout 自動解鎖。
+- CLOSED 僅代表本輪定義的 current evidence gate 已完成，不代表 PR merge、Pages source parity、canonical staging DNS、production semantic/device UAT 或部署核准。
+
+### Rollback / recovery
+
+- 若需回復文件，僅反向撤銷本節及本輪三份文件 diff；不得觸碰 remote DB、migration、Cloudflare route／DNS 或 working-tree 中使用者既有的 `NEXT-TEAM-KICKOFF.md` 修改。
+
+## 2026-08-24：next-team handoff package preparation
+
+### Scope
+
+- 使用者要求：統整目前開發成果與完成度、更新 README／相關文件、擬定下一階段優化目標與開發啟動提示詞，並將文件交付推送至 Git remote。
+- 本次允許範圍：README、Join README、squad charter／ledger／handoff／kickoff／next-phase plan、control log；不修改 app source、migration、test、package、workflow、Cloudflare route／DNS／custom domain 或資料庫。
+
+### Delivered plan
+
+- `docs/squad/NEXT-PHASE-PLAN.md` 定義 Phase 1–6：release baseline、organizer roster closure、auth/private entry/security、notification/outbox、event_fields/privacy、Pilot/device／role UAT。
+- `docs/squad/NEXT-TEAM-KICKOFF.md` 改為 current handoff prompt：Wave 0 CLOSED、Wave 1 BLOCKED，包含 read order、固定點、禁止事項、安全本地驗證與交付格式。
+- `README.md`、`apps/join/README.md`、`docs/squad/CHARTER.md`、`docs/squad/HANDOFF.md`、`docs/squad/LEDGER.md` 同步 current evidence；舊狀態保留並標示 historical／superseded。
+
+### Evidence boundary and risks
+
+- Current evidence 仍以 `83a38e8` source/runtime fixed point、`50bb2ea` repo read-back、Supabase current read-only、CI run `32187430242`、workers.dev／public route read-back 與 Fresh `ACCEPTED` 為準。
+- Pages source metadata、canonical staging DNS、production semantic/device UAT、PR body provenance 與 advisor technical debt 仍未完成；不得因本次文件 push 升格。
+- Wave 0 保持 CLOSED（evidence-boundary closure）；Wave 1 保持 BLOCKED／未啟動。新團隊需先取得 scope／owner 決策與 fresh baseline。
+
+### Exact allowlist and rollback boundary
+
+- 本次 handoff package exact allowlist（八份）：`README.md`、`apps/join/README.md`、`docs/squad/CHARTER.md`、`docs/squad/HANDOFF.md`、`docs/squad/LEDGER.md`、`docs/squad/NEXT-TEAM-KICKOFF.md`、`docs/squad/NEXT-PHASE-PLAN.md`、`implementation-control-log.md`。
+- rollback 僅限上述八份文件的本次 docs diff；不得回復、覆蓋或刪除其他 working-tree 修改，尤其不得碰 source、migration、test、package、workflow、DB、Cloudflare route／DNS／custom domain。
+- 若 push 後需回復，使用一個可追溯的反向 docs commit，並重新執行 `git diff --check`、control-log validator、`git status -sb` 與 remote commit read-back；不使用 reset 或 broad cleanup。

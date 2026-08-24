@@ -1,24 +1,38 @@
 # 聚場台灣 Wave 0 最終交接
 
-日期：2026-08-19
+日期：2026-08-24
 來源：Codex／`codex/gather-mvp`
-交接性質：Wave 0 closeout evidence sync；current fixed point=`83a38e8`，CI／staging／Pages 已重新 read-back，Supabase MCP remote read-back 仍被 connector permission 阻擋；Fresh re-review 仍未完成，不代表 Wave 0 closure。
+交接性質：Wave 0 final current-evidence closeout；source/runtime fixed point=`83a38e8`，本輪 repo HEAD baseline=`50bb2ea`。固定點 read-back 時 working tree clean；本次 handoff package allowlist 為八份文件，尚未 commit。Supabase current read-only connector 已恢復並完成 catalog／function／ACL／RLS／aggregate／zero-residue read-back；GitHub／CI／staging／production public endpoints 亦已重核。獨立 fresh-context reviewer 對完整 current evidence 明確回報 `ACCEPTED`，故 Wave 0 CLOSED（evidence-boundary closure）；Wave 1 維持 BLOCKED／未啟動。完成本交接 package push 後，current HEAD 以 Git read-back 為準。
 
-## 下一個 session 的目標
+## 2026-08-24 current closeout evidence（authoritative）
 
-在不擴大 Wave 0 scope 的前提下，完成最新 docs-only sync 後交獨立 Fresh reviewer。只有 Fresh 明確 `ACCEPTED` 才可關閉 Wave 0；Wave 1 目前不得開始。
+本節優先於本文件下方較早日期的 `BLOCKED`／`pending` 歷史快照；歷史內容保留供追溯，不代表目前狀態。
 
-## 目前狀態
+- `[REMOTE]` Supabase target ref=`anklbpkyesdmsubyfcna`；migration catalog=`33`，指定 `20260815060000`／`20260818121055` present；9/9 functions present、`SECURITY DEFINER`、固定 `search_path`；function ACL 9/9 exact；source-aligned RLS=`15/15` enabled＋forced；aggregate over-limit=`0`；non-null orphan references=`0`。19 筆 `audit_logs` 的 `event_id` 為 NULL，非 orphan reference。
+- `[REMOTE / residual]` advisors current：security 54（INFO 4／WARN 50）、performance 21（INFO 11／WARN 10）；本輪不修改，保留為後續 technical debt。
+- `[LOCAL / CI]` source/runtime fixed point=`83a38e8`；current HEAD／origin=`50bb2ea`；PR #1 open、draft、未 merge；Gather Join Gates run `32187430242` completed／success。既有 concurrency one-shot 僅引用 `confirmed=1 waitlisted=5`，本輪未重跑。
+- `[STAGING]` workers.dev homepage=`200`；無 Access assertion 的 POST `/__dev/session`=`403`、`{"message":"Forbidden"}`。
+- `[PRODUCTION]` `https://gather.wedopr.com/`=`200`；`/app/`=`200`；POST `/app/__dev/session`=`404`、`{"error":"not_found"}`。這不是 production semantic／device UAT。
+- `[PAGES / NOT_VERIFIED]` deployment URL `https://f4febb0d.neo-rechao.pages.dev/`=`200`；Pages source／control-plane metadata 本輪未取得。Canonical `staging.join.gather.wedopr.com` DNS 未解析，維持 `UNVERIFIED`。
+- `[FRESH]` 獨立 fresh-context reviewer 對完整 current evidence 明確回報 `ACCEPTED`。因此 **Wave 0：CLOSED（evidence-boundary closure）**；**Wave 1：BLOCKED／未啟動**。
+- `[BOUNDARY]` 本輪未修改 source、migration、test、package、workflow；未執行 remote migration、DELETE、reset、rollback、broad cleanup；未修改 Cloudflare route／DNS／custom domain；未 merge PR、未宣稱 production semantic/device PASS。
+- `[NEXT]` 下一階段提案與可量化驗收目標見 [`NEXT-PHASE-PLAN.md`](./NEXT-PHASE-PLAN.md)；可直接貼上的開發啟動提示詞見 [`NEXT-TEAM-KICKOFF.md`](./NEXT-TEAM-KICKOFF.md)。兩者均不自動解除 Wave 1 BLOCKED。
+
+## 後續維護邊界
+
+Wave 0 已完成本輪 evidence-boundary closure；後續若要處理 Pages source parity、canonical staging DNS、production semantic/device UAT、advisor technical debt 或 PR body provenance，必須另開明確 scope。Wave 1 目前不得開始。
+
+## [HISTORICAL／SUPERSEDED] 目前狀態 snapshots（2026-08-18～2026-08-21）
 
 ### 已完成
 
-- Branch：`codex/gather-mvp`；source/runtime evidence base=`83a38e8`；目前 docs-only handoff HEAD=`22a9de9`。本輪 read-back 確認 working tree clean、HEAD 與 tracking ref 相同；`22a9de9` 未修改 source／runtime。
+- `[HISTORICAL SNAPSHOT]` Branch：`codex/gather-mvp`；source/runtime evidence base=`83a38e8`；repo HEAD=`50bb2ea`。當時固定點 read-back 確認 HEAD 與 tracking ref 相同、working tree clean；當時僅四份 allowlisted docs modified。current handoff package 改以八份文件 allowlist 為準，`50bb2ea` 與後續變更均未修改 source／runtime。
 - Docker daemon 已恢復；`gather-join-diag-01`、`gather-join-p1` 曾確認 running／healthy。
 - 既有 phase-aware concurrency one-shot：`PASS confirmed=1 waitlisted=5`。
 - 本輪 guest invitation verifier：token、RLS、aggregate、duplicate roster、capacity、rollback zero-residue 全 PASS。
 - `pnpm test`：179 passed、1 skipped；`pnpm typecheck` PASS；`pnpm lint` PASS；`pnpm build` PASS。
-- Remote Supabase：前次 remote read-back 記錄為 catalog=`33`、兩支 migration present、function=`9/9` conforming、ACL PASS、RLS=`8/8` enabled＋forced、aggregate=`0`；本輪 Supabase MCP `list_migrations`／唯讀 SQL 均遭 `-32600` 拒絕，未升格為 current remote evidence。
-- Cloudflare Pages current read-back：project=`gather-taiwan`、source=`83a38e8`；deployment URL `https://1b6b8047.neo-rechao.pages.dev` 與 canonical `https://gather.wedopr.com` 本輪均 HTTP `200`；docs-only auto deployment，不代表 runtime source release、Fresh acceptance 或 Wave 0 closure。
+- Remote Supabase：本輪 current read-only read-back 為 catalog=`33`、兩支指定 migration present、function／ACL=`9/9`、source-aligned RLS=`15/15` enabled＋forced、aggregate=`0`、non-null orphan refs=`0`；advisors residual lints 保留，未修改。
+- Cloudflare Pages：deployment URL `https://f4febb0d.neo-rechao.pages.dev/` current HTTP `200`；Pages source metadata 本輪 `NOT_VERIFIED`。公開 URL 200 不等於 source parity、production semantic/device UAT 或 Wave 0 closure。
 - 相關長期台帳與控制紀錄：`docs/squad/LEDGER.md`、`implementation-control-log.md`。
 
 ### 本 session 新增 read-back（2026-08-18）
@@ -41,12 +55,12 @@
 - Final isolated local read-back：catalog=`33`、RLS=`8/8`、ACL PASS、capacity envelope PASS、aggregate preflight=`0`。
 - Fresh runtime review 已完成一輪，verdict=`READY_WITH_BLOCKERS`；需在 CI／staging evidence 補齊後重新交獨立 Fresh review。本 session 不自我宣稱 Fresh acceptance，Wave 0 仍未關閉。
 
-### 進行中／未完成
+### [HISTORICAL SNAPSHOT] 進行中／未完成（2026-08-18～2026-08-19）
 
 - 本輪 synthetic member fixture 已清理完成，zero-residue read-back PASS。
 - 本輪 concurrency verifier 已依規則只執行一次並 PASS；不得再 retry。
 - RLS forward migration 已套用並 read-back 為 `8/8`；catalog／ACL／aggregate 亦 PASS。
-- CI read-back PASS：Draft PR #1／current HEAD run `32184957402` conclusion=`success`。
+- CI read-back PASS：Draft PR #1／current HEAD `50bb2ea` 的 run `32187430242` conclusion=`success`。
 - staging deployment／smoke／public URL read-back PASS：target=`gather-join-staging`、version=`82b00639-298b-4f73-aa91-d3169c75258a`、workers.dev homepage=`200`；依 POST contract 的未帶 Access assertion `/__dev/session`=`403`。GET 直接探測為 method mismatch `405`，不列為 route failure。canonical custom host 尚無 DNS/custom-domain/zone route，維持 `UNVERIFIED`。
 - Pages production read-back 已完成；不等於 Fresh acceptance。
 - remote migration／data 操作、rollback 均未在本次 docs sync 中執行；本次只做文件 sync、commit、push 與 read-back。
@@ -57,7 +71,7 @@
 - Supabase app permission 已設為 `ask_before_writes`，只允許讀取而保留寫入確認；但 connector 仍拒絕 `list_migrations` 與唯讀 SQL。未繞過 MCP、未使用 secrets／token／DB 密碼，remote catalog／function／ACL／RLS／aggregate 本輪維持未重驗證。
 - Current CI／staging／Pages read-back 已補齊；只有 independent Fresh reviewer 明確 `ACCEPTED` 才能關閉 Wave 0。Wave 1 維持 `BLOCKED`、未啟動。
 
-### Fresh review Maxwell（2026-08-19）
+### [HISTORICAL] Fresh review Maxwell（2026-08-19）
 
 - Verdict=`NOT_ACCEPTED`。Reviewer 確認三檔 allowlist、hard-stop、Wave 1 gate 與 evidence boundary 通過；未修改檔案、未操作 DB、未重跑 concurrency、未 deploy／push。
 - 兩個 blocker 已列入 current 文件：Supabase MCP 唯讀 connector 仍拒絕；以及 docs-only handoff HEAD=`22a9de9` 必須和 source/runtime evidence base=`83a38e8` 分開標示。修正後仍需再交 Fresh reviewer，Wave 0 不關閉。
@@ -134,7 +148,7 @@
 - zero-residue read-back：over-limit=`0`、所有授權範圍 orphan child counts=`0`；protected auth／public user counts 維持 `4／3`。
 - 20260815060000 尚未套用，Cloudflare deploy 尚未執行；下一步需先取得該 migration 的明確授權並重新做 remote read-back。
 
-## 2026-08-18：remote／Pages closeout read-back sync
+## [HISTORICAL／SUPERSEDED] 2026-08-18：remote／Pages closeout read-back sync
 
 - Fixed point：branch=`codex/gather-mvp`、HEAD=`a21ce2b`、origin 同步、working tree clean。
 - `[REMOTE / read-only]` Supabase catalog=`33`；`20260815060000`／`20260818121055` present；expected functions=`9/9` conforming；ACL PASS；RLS=`8/8` enabled＋forced；aggregate preflight=`0`。
@@ -143,13 +157,13 @@
 - `[CI／STAGING / read-only]` PR #1／run `32146604033` 的 `verify` 與 `local-supabase` PASS；`gather-join-staging` version=`82b00639-298b-4f73-aa91-d3169c75258a`、workers.dev homepage=`200`、protected route=`403`。Canonical custom host 仍無 DNS/custom-domain/zone route。
 - 歷史段落中的「尚未套用 migration／尚未 deploy」是當時狀態；本段為 current read-back，不得混用 evidence tier。
 
-## Current closeout gate
+## [HISTORICAL／SUPERSEDED] Current closeout gate（2026-08-21 snapshot）
 
-- Wave 0：**未關閉／Fresh pending**。
+- Wave 0：**未關閉／overall acceptance blocked**。獨立 Fresh `Hooke` 僅接受 docs-only 文件審查；Current Supabase remote evidence 仍 blocked，不能升格為 Wave 0 acceptance。
 - Wave 1：**blocked，未啟動**。
-- 下一步：只交獨立 Fresh reviewer；docs-only commit／push 與 CI／Pages read-back 已完成，不能再當作 current next step。
+- 下一步：恢復合法 Supabase 唯讀 connector，補 current remote read-back；docs-only Fresh 已 `ACCEPTED`，不能再把 docs review 當作完整 Wave 0 acceptance。
 
-## 2026-08-18：Fresh closeout re-review preparation
+## [HISTORICAL／SUPERSEDED] 2026-08-18：Fresh closeout re-review preparation
 
 - Current handoff evidence base：branch=`codex/gather-mvp`、commit=`69dab0c`；接手時重新 read-back HEAD／origin／working tree。本次仍只允許更新文件，未修改 source／migration／test／package／workflow。
 - `[CI / read-only]` Draft PR #1／run `32150304903` 的 `verify`、`local-supabase` 與 Cloudflare Pages check 均 PASS。
