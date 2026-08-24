@@ -2256,3 +2256,11 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[STATIC / ✅ 已真實驗證]` `node --check`、`git diff --check`、workflow YAML parse 與 control-log validator 均通過。
 - `[LOCAL / ⚠️ 部分驗證]` 本機 runtime=`Node 20.20.2`，package engine=`>=22`；report 已標示 `WARN_UNSUPPORTED_NODE_ENGINE`。build 的約 593 kB chunk warning 保留，未擴大 scope。
 - `[NOT_RUN / ❌ 未驗證]` 新 commit 的 GitHub Actions、獨立 Fresh reviewer、staging／production／Pages source read-back 尚未完成；本切片不宣稱 CI、deployment 或 production PASS，也不解除 Wave 1。
+
+### CI failure diagnosis / corrective patch
+
+- `[CI / ❌ FAILED]` run `32707387622` 的 local-Supabase job 完整通過並清理；verify job 六個 gate 實際完成，但 `expected-db-skip-contract` 因 GitHub Actions 的 Vitest summary 帶 ANSI escape code 而誤判失敗。
+- `[ROOT CAUSE]` `readVitestSkipCount()` 只接受未著色的 `Tests ... skipped` 行；本機非 TTY 輸出可解析，CI 著色輸出不可解析。
+- `[CORRECTION]` parser 先移除 ANSI escape sequence，再判定 expected skip；未改變六個 gate、DB suite 或外部操作邊界。
+- `[LOCAL / ✅ 已真實驗證]` `FORCE_COLOR=1 pnpm verify:release-baseline` 通過，確認彩色 Vitest summary 可被解析；六個 gate exit `0`、observed skip=`1`、verdict=`PASS_WITH_EXPECTED_SKIP`。
+- `[LOCAL / ✅ 已真實驗證]` parser 改以 `String.fromCharCode(27)` 組合 ANSI pattern，通過 `FORCE_COLOR=1 pnpm lint`；避免 `no-control-regex` 對 literal escape 的誤判。

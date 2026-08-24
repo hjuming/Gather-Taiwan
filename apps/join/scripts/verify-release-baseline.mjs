@@ -45,7 +45,12 @@ function gitDiffStatus(args) {
 }
 
 function readVitestSkipCount(output) {
-  const summary = output.split(/\r?\n/).find((line) => /^\s*Tests\s/.test(line));
+  const ansiEscape = new RegExp(
+    `${String.fromCharCode(27)}\\[[0-?]*[ -/]*[@-~]`,
+    "g",
+  );
+  const plainOutput = output.replace(ansiEscape, "");
+  const summary = plainOutput.split(/\r?\n/).find((line) => /^\s*Tests\s/.test(line));
   const match = summary?.match(/\|\s*(\d+)\s+skipped\b/);
   return match ? Number(match[1]) : 0;
 }
