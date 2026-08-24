@@ -2331,3 +2331,10 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[LOCAL / ✅ 已真實驗證]` `FORCE_COLOR=1 pnpm verify:release-baseline` 通過；skip identity read-back 為 `scripts/concurrency-harness.test.ts` count=`1`，unexpected skipped files=`[]`，verdict=`PASS_WITH_EXPECTED_SKIP`。
 - `[STATIC / ✅ 已真實驗證]` `node --check`、`FORCE_COLOR=1 pnpm lint`、workflow YAML parse、control-log validator、`git diff --check` 通過。
 - `[CI / PENDING]` correction commit 尚未取得新 CI 與第二輪 Fresh acceptance；Wave 1 維持 `BLOCKED`。
+
+## 2026-08-24：Phase 1 Fresh review round 2
+
+- `[FRESH / ❌ NOT_ACCEPTED]` 第二輪獨立 reviewer 固定 HEAD=`aa4b423`、run=`32710442549`；skip identity、staging fallback、CI job separation 均判定 CLOSED，唯一 P1 是 current 文件仍把上一個 docs/source snapshot `fd137d0`／run `32709459237` 寫死。
+- `[ROOT CAUSE]` 每次同步 current SHA／run／artifact 後又產生 docs-only commit，靜態文件再次漂移；這不是 app／workflow 行為缺陷，但會阻擋接手者的 provenance read-back。
+- `[CORRECTION]` README、Join README、LEDGER、HANDOFF 改為要求 current HEAD／run／artifact 以 Git／CI／本檔最末 current section read-back；不再把 current values 複製成永久固定值。Wave 0 維持 CLOSED；Wave 1 維持 BLOCKED。
+- `[CI / PENDING]` 本輪 docs provenance correction commit 會觸發新 PR CI；取得新 artifact read-back 後，需在本檔最末 current section 寫入 exact SHA／run／artifact，並交第三輪 Fresh reviewer。

@@ -5,19 +5,19 @@
 - 日期：2026-08-24
 - 初始 branch：`codex/gather-mvp`
 - 初始 HEAD：`83a38e8`
-- source/runtime evidence fixed point：branch=`codex/gather-mvp`、commit=`83a38e8`；Wave 0 handoff evidence snapshot HEAD=`50bb2ea` 的提交均未修改 app source、migration、test、package 或 workflow。Phase 1 baseline／docs current HEAD=`fd137d0`，固定點 read-back 時 working tree clean、local HEAD 與 tracking ref 相同。
+- source/runtime evidence fixed point：branch=`codex/gather-mvp`、commit=`83a38e8`；Wave 0 handoff evidence snapshot HEAD=`50bb2ea` 的提交均未修改 app source、migration、test、package 或 workflow。Phase 1 current HEAD、CI run 與 artifact exact values 每次以 Git／CI／control log read-back 為準，固定點時確認 working tree clean、local HEAD 與 tracking ref 相同。
 - 目前 Wave：**Wave 0｜manual roster P0（current remote evidence＋independent Fresh ACCEPTED；CLOSED）**
 - Atlas fixed point：**done／evidence closure complete**；本輪 Node runtime=`20.20.2`、pnpm=`10.33.2`，package engine 要求 Node `>=22`。
 - Atlas production evidence：**prior PRODUCTION read-back**；Worker version `e0fcc0c2-c834-480b-b9d3-424783e20b19`、route `gather.wedopr.com/app/*`、production assets／headers read-back PASS；本輪只重新核對公開 HTTP，不升格 deployment source。
-- GitHub／CI：**PASS（Phase 1 PR #1／run 32709459237，HEAD=`fd137d0`）**；baseline／provenance artifacts exact-match PASS；PR #1 目前仍 open、draft、未 merge。Remote DB：**current read-only PASS（2026-08-24）**；catalog=`33`，指定 migrations `20260815060000`／`20260818121055` present，functions／ACL=`9/9`，source-aligned RLS=`15/15` enabled＋forced，aggregate=`0`，non-null orphan refs=`0`。Advisors 保留 current residual lints（security 54、performance 21），不隱藏、不在本輪修復。
+- GitHub／CI：**PASS（Phase 1 PR #1；exact current run／HEAD／artifacts 以 control log 最末 current section 為準）**；baseline／provenance artifacts exact-match PASS；PR #1 目前仍 open、draft、未 merge。Remote DB：**current read-only PASS（2026-08-24）**；catalog=`33`，指定 migrations `20260815060000`／`20260818121055` present，functions／ACL=`9/9`，source-aligned RLS=`15/15` enabled＋forced，aggregate=`0`，non-null orphan refs=`0`。Advisors 保留 current residual lints（security 54、performance 21），不隱藏、不在本輪修復。
 - Public runtime read-back（2026-08-24）：staging homepage=`200`、無 Access assertion 的 POST `/__dev/session`=`403`；production `/`=`200`、`/app/`=`200`、`/app/__dev/session`=`404`。Canonical `staging.join.gather.wedopr.com` DNS 仍 `UNVERIFIED`；Pages deployment URL `https://f4febb0d.neo-rechao.pages.dev/`=`200`，source metadata `NOT_VERIFIED`。
 - Independent Fresh（完整 current evidence）：fresh-context reviewer 明確回報 `ACCEPTED`；Wave 0 依此完成 evidence-boundary closure。此 CLOSED 不等於 production semantic/device UAT、Pages source parity、PR merge 或部署核准。
 - Wave 0 safe diagnostic：**ACCEPTED（Fresh LOCAL-code / prior evidence）**。Fallback3 DB runtime 的 concurrency 已完成 phase-aware 根因修正，既有 one-shot 結果維持 `PASS confirmed=1 waitlisted=5`；本輪不重跑。Wave 1 維持 `BLOCKED`、未啟動。
 
 ## 2026-08-24：Phase 1 release baseline current read-back
 
-- `[CI]` current repo／origin HEAD=`fd137d0a7092742c0b3047af0512c971eb6d5185`；Gather Join Gates run `32709459237` success，PR head checkout 與 report evidenceTier=`CI` 通過。
-- `[CI / ARTIFACT]` baseline artifact ID=`9513529447`；provenance artifact ID=`9513529940`；下載 read-back manifest `exactMatch=PASS`、mismatches=`[]`；baseline verdict=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`。
+- `[CI]` current repo／origin HEAD、Gather Join Gates run、PR head checkout 與 report evidenceTier=`CI` 均須以 control log 最末 current section read-back 為準。
+- `[CI / ARTIFACT]` baseline／provenance artifact 均須下載 read-back manifest `exactMatch=PASS`、mismatches=`[]`；baseline verdict=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`。
 - `[BOUNDARY]` DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT 均為 `NOT_RUN`；既有 isolated local runtime job 是獨立 evidence tier，不得與 hermetic six-gate report 混用。
 - `[FRESH]` Phase 1 reviewer 回報 `NOT_ACCEPTED`：skip identity contract、staging smoke fallback、current provenance 文件與 CI job boundary 需修正；Wave 0 維持既有 evidence-boundary `CLOSED`，Wave 1 維持 `BLOCKED`。
 

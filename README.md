@@ -28,13 +28,13 @@
 
 ## Current engineering handoff（2026-08-24）
 
-本專案目前已完成 Wave 0 manual roster 的 evidence-boundary closure，並準備移交下一個工程團隊。source/runtime evidence fixed point 是 `83a38e8`；current repo／origin HEAD read-back 為 `fd137d0`，完成推送後以 Git read-back 為準。不能把 Git push、CI、公開 HTTP 200 或 Pages deployment URL 誤寫成 production feature acceptance。
+本專案目前已完成 Wave 0 manual roster 的 evidence-boundary closure，並準備移交下一個工程團隊。source/runtime evidence fixed point 是 `83a38e8`；current repo／origin HEAD 每次交接都必須以 Git read-back 為準，Phase 1 exact SHA／run／artifact 以 `implementation-control-log.md` 最末 current section 為準。不能把 Git push、CI、公開 HTTP 200 或 Pages deployment URL 誤寫成 production feature acceptance。
 
 | Evidence tier | Current result | Boundary |
 | --- | --- | --- |
 | `LOCAL`／`ISOLATED LOCAL` | 既有 typecheck、lint、test、build、smoke 與一次性 concurrency evidence 保留；`confirmed=1 waitlisted=5` | 本輪不重跑 concurrency；local 不代替 remote／production |
 | `REMOTE` | Supabase catalog `33`；指定 migrations present；functions／ACL `9/9`；source-aligned RLS `15/15`；aggregate `0`；non-null orphan refs `0` | advisors security `54`、performance `21` 為未處理 technical debt |
-| `CI` | Phase 1 baseline head `fd137d0`；[Gather Join Gates run `32709459237`](https://github.com/hjuming/Gather-Taiwan/actions/runs/32709459237) success；baseline／provenance artifacts exact-match PASS | PR 仍 open、draft、未 merge；CI 不等於 production acceptance |
+| `CI` | Phase 1 baseline／provenance exact-match read-back：以 control log 最末 current section 為準 | PR 仍 open、draft、未 merge；CI 不等於 production acceptance |
 | `STAGING` | workers.dev homepage `200`；無 Access assertion 的 POST `/__dev/session` `403` | canonical `staging.join.gather.wedopr.com` DNS `UNVERIFIED` |
 | `PRODUCTION` | `/`、`/app/` `200`；POST `/app/__dev/session` `404` | 未完成 production semantic／device UAT |
 | `PAGES` | deployment URL `https://f4febb0d.neo-rechao.pages.dev/` `200` | source／control-plane metadata `NOT_VERIFIED` |
@@ -44,8 +44,8 @@
 
 ### Phase 1 release baseline current read-back（2026-08-24）
 
-- CI report evidenceTier=`CI`、HEAD／PR head SHA=`fd137d0a7092742c0b3047af0512c971eb6d5185`、verdict=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`。
-- [Baseline artifact](https://github.com/hjuming/Gather-Taiwan/actions/runs/32709459237/artifacts/9513529447) 與 [provenance artifact](https://github.com/hjuming/Gather-Taiwan/actions/runs/32709459237/artifacts/9513529940) 均未過期；manifest `exactMatch=PASS`、mismatches=`[]`。
+- CI report evidenceTier=`CI`、verdict=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`；current HEAD／PR head SHA、run 與兩個 artifact URL 以 control log 最末 current section read-back 為準。
+- baseline／provenance artifacts 均須未過期，manifest `exactMatch=PASS`、mismatches=`[]`；不要將本段複製成固定的未來 HEAD。
 - DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT 均明確 `NOT_RUN`；這些不是 production／device acceptance。
 - Phase 1 Fresh reviewer 本輪回報 `NOT_ACCEPTED`，指出 skip identity、staging bundle fallback 與 current provenance 文件需修正；Wave 1 維持 `BLOCKED`。
 

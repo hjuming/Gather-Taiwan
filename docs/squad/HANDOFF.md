@@ -2,7 +2,7 @@
 
 日期：2026-08-24
 來源：Codex／`codex/gather-mvp`
-交接性質：Wave 0 final current-evidence closeout＋Phase 1 release baseline addendum；source/runtime fixed point=`83a38e8`，current repo HEAD baseline=`fd137d0`。固定點 read-back 時 working tree clean；Phase 1 已建立 app／CI／smoke／verifier provenance baseline。Supabase current read-only connector 已恢復並完成 catalog／function／ACL／RLS／aggregate／zero-residue read-back；GitHub／CI／staging／production public endpoints 亦已重核。Wave 0 維持 CLOSED（evidence-boundary closure）；Phase 1 Fresh reviewer 本輪回報 `NOT_ACCEPTED` 並已列出 correction；Wave 1 維持 BLOCKED／未啟動。current HEAD 以 Git read-back 為準。
+交接性質：Wave 0 final current-evidence closeout＋Phase 1 release baseline addendum；source/runtime fixed point=`83a38e8`，current repo HEAD／Phase 1 exact CI identity 每次以 Git／CI／control log read-back 為準。固定點 read-back 時 working tree clean；Phase 1 已建立 app／CI／smoke／verifier provenance baseline。Supabase current read-only connector 已恢復並完成 catalog／function／ACL／RLS／aggregate／zero-residue read-back；GitHub／CI／staging／production public endpoints 亦已重核。Wave 0 維持 CLOSED（evidence-boundary closure）；Phase 1 Fresh reviewer 本輪回報 `NOT_ACCEPTED` 並已列出 correction；Wave 1 維持 BLOCKED／未啟動。
 
 ## 2026-08-24 current closeout evidence（authoritative）
 
@@ -10,7 +10,7 @@
 
 - `[REMOTE]` Supabase target ref=`anklbpkyesdmsubyfcna`；migration catalog=`33`，指定 `20260815060000`／`20260818121055` present；9/9 functions present、`SECURITY DEFINER`、固定 `search_path`；function ACL 9/9 exact；source-aligned RLS=`15/15` enabled＋forced；aggregate over-limit=`0`；non-null orphan references=`0`。19 筆 `audit_logs` 的 `event_id` 為 NULL，非 orphan reference。
 - `[REMOTE / residual]` advisors current：security 54（INFO 4／WARN 50）、performance 21（INFO 11／WARN 10）；本輪不修改，保留為後續 technical debt。
-- `[LOCAL / CI]` source/runtime fixed point=`83a38e8`；current HEAD／origin=`fd137d0`；PR #1 open、draft、未 merge；Phase 1 Gather Join Gates run `32709459237` completed／success。既有 concurrency one-shot 僅引用 `confirmed=1 waitlisted=5`，本輪未重跑。
+- `[LOCAL / CI]` source/runtime fixed point=`83a38e8`；current HEAD／origin、PR #1 與 Phase 1 Gather Join Gates exact read-back 以 control log 最末 current section 為準；PR #1 open、draft、未 merge。既有 concurrency one-shot 僅引用 `confirmed=1 waitlisted=5`，本輪未重跑。
 - `[STAGING]` workers.dev homepage=`200`；無 Access assertion 的 POST `/__dev/session`=`403`、`{"message":"Forbidden"}`。
 - `[PRODUCTION]` `https://gather.wedopr.com/`=`200`；`/app/`=`200`；POST `/app/__dev/session`=`404`、`{"error":"not_found"}`。這不是 production semantic／device UAT。
 - `[PAGES / NOT_VERIFIED]` deployment URL `https://f4febb0d.neo-rechao.pages.dev/`=`200`；Pages source／control-plane metadata 本輪未取得。Canonical `staging.join.gather.wedopr.com` DNS 未解析，維持 `UNVERIFIED`。
@@ -20,8 +20,8 @@
 
 ## Phase 1 release baseline current read-back（2026-08-24）
 
-- current HEAD／origin=`fd137d0a7092742c0b3047af0512c971eb6d5185`；run `32709459237` success，baseline report 與 provenance manifest 均完成上傳。
-- baseline artifact=`9513529447`、provenance artifact=`9513529940`；manifest `exactMatch=PASS`、mismatches=`[]`；report verdict=`PASS_WITH_EXPECTED_SKIP`。
+- current HEAD／origin、run、baseline artifact、provenance artifact 以 control log 最末 current section exact read-back 為準；baseline report 與 provenance manifest 均須完成上傳。
+- manifest `exactMatch=PASS`、mismatches=`[]`；report verdict=`PASS_WITH_EXPECTED_SKIP`。
 - report 明確標示 DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT=`NOT_RUN`；isolated local Supabase job 是獨立 CI runtime gate，不是 hermetic report 的替代品。
 - Phase 1 Fresh reviewer 回報 `NOT_ACCEPTED`，待完成 skip identity、staging fallback、current provenance 文件與 CI boundary 修正後再交第二輪 Fresh；Wave 1 維持 `BLOCKED`。
 
