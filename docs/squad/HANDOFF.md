@@ -2,7 +2,7 @@
 
 日期：2026-08-24
 來源：Codex／`codex/gather-mvp`
-交接性質：Wave 0 final current-evidence closeout＋Phase 1 release baseline addendum＋Wave 2 organizer roster source slice；source/runtime fixed point=`83a38e8`，current repo HEAD／Phase 1 exact CI identity 每次以 Git／CI／control log read-back 為準。固定點 read-back 時 working tree clean；Phase 1 已建立 app／CI／smoke／verifier provenance baseline。Supabase current read-only connector 已恢復並完成 catalog／function／ACL／RLS／aggregate／zero-residue read-back；GitHub／CI／staging／production public endpoints 亦已重核。Wave 0 維持 CLOSED（evidence-boundary closure）；Wave 1 Release baseline 為 `ACCEPTED／CLOSED`；Wave 2 已啟動但目前僅完成 source／UI slice，live 12-case、strict idempotency 與 Fresh acceptance 尚待完成。
+交接性質：Wave 0 final current-evidence closeout＋Phase 1 release baseline addendum＋Wave 2 organizer roster closure；source/runtime fixed point=`83a38e8`，current repo HEAD／Phase 1 exact CI identity／本輪 local Wave 2 evidence 每次以 Git／CI／control log read-back 為準。Wave 0 維持 CLOSED（evidence-boundary closure）；Wave 1 Release baseline 為 `ACCEPTED／CLOSED`；Wave 2 source、forward-only migration 與 local 12-case acceptance 已完成，remote／production／merge／deploy 仍未授權且未執行。
 
 ## 2026-08-24 current closeout evidence（authoritative）
 
@@ -14,17 +14,18 @@
 - `[STAGING]` workers.dev homepage=`200`；無 Access assertion 的 POST `/__dev/session`=`403`、`{"message":"Forbidden"}`。
 - `[PRODUCTION]` `https://gather.wedopr.com/`=`200`；`/app/`=`200`；POST `/app/__dev/session`=`404`、`{"error":"not_found"}`。這不是 production semantic／device UAT。
 - `[PAGES / NOT_VERIFIED]` deployment URL `https://f4febb0d.neo-rechao.pages.dev/`=`200`；Pages source／control-plane metadata 本輪未取得。Canonical `staging.join.gather.wedopr.com` DNS 未解析，維持 `UNVERIFIED`。
-- `[FRESH]` 獨立 fresh-context reviewer 對完整 Wave 0／Phase 1 evidence 明確回報 `ACCEPTED`。因此 **Wave 0：CLOSED（evidence-boundary closure）**；**Wave 1：ACCEPTED／CLOSED（Release baseline）**；**Wave 2：IN PROGRESS（source／UI slice；live acceptance pending）**。
+- `[FRESH]` Wave 0／Phase 1 的既有獨立 fresh-context reviewer 明確回報 `ACCEPTED`；本輪 Wave 2 已取得 local 12-case PASS，但尚未交新的獨立 Wave 2 Fresh review。因此 **Wave 0：CLOSED（evidence-boundary closure）**；**Wave 1：ACCEPTED／CLOSED（Release baseline）**；**Wave 2：LOCAL ACCEPTED／Fresh pending（remote／production NOT_RUN）**。
 - `[BOUNDARY]` 本輪未修改 source、migration、test、package、workflow；未執行 remote migration、DELETE、reset、rollback、broad cleanup；未修改 Cloudflare route／DNS／custom domain；未 merge PR、未宣稱 production semantic/device PASS。
 - `[NEXT]` 下一階段提案與可量化驗收目標見 [`NEXT-PHASE-PLAN.md`](./NEXT-PHASE-PLAN.md)；本輪 objective 已明確啟動 Wave 2 source／UI slice。可直接貼上的開發啟動提示詞仍保留於 [`NEXT-TEAM-KICKOFF.md`](./NEXT-TEAM-KICKOFF.md)，但 live acceptance 仍須另建 current evidence。
 
-## 2026-08-24 current Wave 2 source-slice handoff
+## 2026-08-24 current Wave 2 organizer-closure handoff
 
 - `[DISCOVERY]` 原指定 `apps/join/src/components/EventPage.tsx` 不存在；實際 mount point 為 `apps/join/src/pages/EventPage.tsx`，且 `App.tsx` 已 mount `EventPage` 與 organizer-only `RosterManager`。
 - `[DELIVERED]` `apps/join/src/lib/api.ts` 已加入既有三個 organizer RPC wrappers；`RosterManager.tsx` 已將線上報名者與 manual participant 分流，支援 pending confirm／decline、active remove、錯誤後 roster reconcile。
-- `[VERIFIED]` API contract tests（含 manual registration 在 RPC 前 fail-closed）、RosterManager jsdom focused tests 與 `scripts/organizer-registration-contract.test.ts` STATIC migration contract test 已加入；本輪 `pnpm test`=`187 passed／1 skipped`、`pnpm test:security`=`14/14`、typecheck／lint／build／smoke 均 exit `0`。
-- `[NOT_VERIFIED]` 尚未有 live synthetic 12-case matrix、每 case audit actor／seat／replay／cleanup 記錄、fixture residue=`0`、獨立 Fresh reviewer verdict。既有 organizer RPC 缺少 key-based idempotency；未取得 migration-specific authorization 前不得修改 migration。
-- `[ALLOWLIST]` 本輪 source／test／docs allowlist 與 decision evidence 以 `implementation-control-log.md` EOF current section 為準；不得 broad refactor 或把 manual add／edit／remove 當成線上報名者閉環。
+- `[VERIFIED]` API contract tests、RosterManager jsdom focused tests、STATIC migration contract test 與新的 local-only verifier 已加入；本輪 12-case matrix、每 case audit actor／seat／replay、fixture cleanup 與 residue=`0` 均 PASS。完整工程 gates 需以本段後續 current control-log read-back 為準。
+- `[LOCAL / AUTHORIZED]` 使用者已授權 Wave 2 forward-only migration，僅套用至 `gather-join-diag-01`（`127.0.0.1:58332`）；migration catalog read-back=`20260824130743`，新 RPC signatures／authenticated grants／online-only guard／idempotency contract 均 read-back。CLI TLS mapping 不通，因此依 local-only fallback 以單一 transaction 手動 apply，未連 remote／production。
+- `[LOCAL / 12-CASE PASS]` `scripts/verify-organizer-registration-wave2.mjs` 結果 `caseCount=12`、`result=PASS`：anonymous/member=`42501` 且無 audit/idempotency；organizer success；same-key replay success；decline/remove seat `offered=1`；audit actor=`owner`；residue 的 organizers/events/registrations/idempotency/audit/outbox/public_member/auth_member=`0`。暫時 member 透過 local Auth Admin API 建立與刪除，未直接 DML `auth.users`。
+- `[ALLOWLIST]` 本輪 source／test／migration／verifier／package／docs allowlist 與 decision evidence 以 `implementation-control-log.md` EOF current section 為準；不得 broad refactor 或把 manual add／edit／remove 當成線上報名者閉環。
 
 ## Phase 1 release baseline current read-back（2026-08-24）
 

@@ -123,13 +123,14 @@ export default function RosterManager({ eventId, capacity }: { eventId: string; 
 
   async function handleOnlineAction(
     row: RegistrationRow,
-    action: (registrationId: string) => Promise<void>,
+    action: (registrationId: string, idempotencyKey: string) => Promise<void>,
     fallbackMessage: string,
   ) {
     setError(null);
     setBusy(true);
+    const idempotencyKey = crypto.randomUUID();
     try {
-      await action(row.id);
+      await action(row.id, idempotencyKey);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : fallbackMessage);

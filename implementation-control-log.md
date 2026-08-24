@@ -2376,6 +2376,23 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[BOUNDARY]` 本輪未重跑既有 phase-aware concurrency one-shot（僅引用既有 `confirmed=1 waitlisted=5`）；未執行 migration、DELETE、reset、rollback、Cloudflare、production write、merge 或 deploy。
 - `[WAVE]` Wave 0=`CLOSED（evidence-boundary closure）`；Wave 1=`ACCEPTED／CLOSED（Release baseline）`；Wave 2=`BLOCKED／未啟動`。Phase 2 organizer confirm／decline／remove API／UI 缺口列為下一波，未在本輪處理。
 
+## 2026-08-24：Wave 2 authorized local migration and 12-case acceptance
+
+本節為本檔 EOF 的 current Wave 2 evidence；上方較早的 Wave 2 `NOT_VERIFIED`／`BLOCKED` 內容保留為歷史快照，不覆寫本節。
+
+- `[SCOPE／OWNER]` 使用者明確授權新增 Wave 2 forward-only migration，並只在 `gather-join-diag-01`（`127.0.0.1:58332`）執行 synthetic 12-case fixture、fixture-owned cleanup 與 residue=`0` read-back。Hard stops：不操作 remote／production、不 reset、不直接 DML `auth.users`、不 merge／deploy。
+- `[MIGRATION / LOCAL]` 新增 `apps/join/supabase/migrations/20260824130743_organizer_online_registration_idempotency.sql`；local catalog read-back latest=`20260824130743`。CLI host-port TLS mapping 失敗後，依明確 local-only 授權以單一 transaction 手動 apply 並補 local migration history；未連 remote／production。
+- `[MIGRATION CONTRACT]` 舊 `organizer_confirm_registration(uuid)`、`organizer_decline_registration(uuid)`、`organizer_remove_registration(uuid,text)` overloads 已移除；新 signatures=`(uuid,text)`、`(uuid,text)`、`(uuid,text,text)`，`authenticated` execute grants read-back；三者均包含 `reg.user_id is null` fail-closed、event lock／sweep、audit／promotion、SHA-256 key hash／request fingerprint、completed replay、mismatch `23505` 與 in-progress `55P03` contract。
+- `[SOURCE / TEST]` API wrappers 改為接收並傳遞 idempotency key；RosterManager 每次 online action 產生 UUID key；API／UI／STATIC contract tests 已同步。新增 `scripts/verify-organizer-registration-wave2.mjs` 與 exact-prefix cleanup helper，package scripts 已登錄。
+- `[LOCAL / 12-CASE PASS]` target=`127.0.0.1:58332`，verifier `caseCount=12`、`result=PASS`。矩陣如下：
+  - `confirm`: anonymous `42501`／pending／audit none／occupied=1；member `42501`／pending／audit none／occupied=1；organizer success／confirmed／audit owner／occupied=1；replay success／confirmed／same-key no extra transition。
+  - `decline`: anonymous `42501`／pending／audit none／occupied=1；member `42501`／pending／audit none／occupied=1；organizer success／declined／audit owner／occupied=1 offered=1；replay success／declined／same-key no extra transition。
+  - `remove`: anonymous `42501`／confirmed／audit none／occupied=1；member `42501`／confirmed／audit none／occupied=1；organizer success／removed_by_organizer／audit owner／occupied=1 offered=1；replay success／removed_by_organizer／same-key no extra transition。
+- `[FIXTURE CLEANUP / PASS]` fixture-owned cleanup 之後 residue read-back：organizers=`0`、events=`0`、registrations=`0`、idempotency=`0`、audit=`0`、outbox=`0`、public member=`0`、auth member=`0`。temporary member 僅經 local Auth Admin API 建立／刪除；未 direct `auth.users` DML。
+- `[LOCAL GATES / PASS]` `pnpm typecheck`、`pnpm lint`、`pnpm test`=`187 passed／1 skipped`、`pnpm test:security`=`14/14`、`pnpm build`、`pnpm smoke`（83 audited files）、兩支 verifier `node --check` 均 exit `0`。Node=`20.20.2` 低於 package engine `>=22`，build 保留約 `594.64 kB` chunk warning；均為已知非阻塞風險。
+- `[NOT_RUN / BOUNDARY]` remote／production、Cloudflare、device、merge、deploy、Fresh 均未執行；本地 evidence 不升格為上述 gates。
+- `[WAVE]` Wave 0=`CLOSED`；Wave 1=`ACCEPTED／CLOSED`；Wave 2=`LOCAL ACCEPTED／Fresh pending`。local evidence 不升格為 remote／production／device acceptance。
+
 ## 2026-08-24：Wave 1 Release baseline closure after scope／owner decision
 
 - `[SCOPE／OWNER]` 使用者本輪明確授權組長代表執行、派遣獨立 Fresh reviewer，目標為打通 Wave 1 Release baseline。此授權不延伸至 Wave 2、production、Cloudflare route／DNS、migration、DELETE、reset、rollback、merge 或 production data write。
@@ -2432,3 +2449,14 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[PROVENANCE / BOUNDARY]` `.reports/release-baseline.json` 與舊 CI provenance 不是本輪 current evidence；本輪只採用當前 command read-back。local source/UI pass 不升格為 DB、staging、production、device 或 Fresh acceptance。
 - `[GIT / CURRENT CHECKPOINT]` API online-only preflight、focused test 與 Wave 2 docs correction push 前的 terminal read-back：HEAD／origin=`d9359decebcceacc9a7137eb55c7c8644ad460a8`、working tree clean、遠端差異為空、`diff --check` 通過。這是本次 provenance correction 前的 current checkpoint；correction push 後必須重新 read-back，不能把本行當成 correction commit 的 SHA。
 - `[GIT / PUSH]` source／UI／test／docs implementation commit=`687af93`、control-log cleanup commit=`2695046`、previous push read-back commit=`6e16f23`、confirmation／manual-click test 與 reviewer/provenance correction commit=`8f4c5b8`、online-only preflight 與 docs commit=`d9359de`；上述各 push 與 remote SHA read-back 均成功。最後的 provenance wording follow-up 另行 commit／push，並在 push 後重新執行 status／log／`git ls-remote`／diff read-back；其 current SHA 以該次 terminal read-back 為準。未 merge、未 deploy；未 stage `dist` 或其他未列檔案。
+
+## 2026-08-24：Wave 2 final local current evidence (EOF authoritative)
+
+本節覆蓋上方所有較早的 Wave 2 `BLOCKED`／`NOT_VERIFIED` snapshots；歷史內容保留追溯，不代表目前狀態。
+
+- `[SCOPE／OWNER]` 使用者已明確授權新增 forward-only migration，且只准在 `gather-join-diag-01`（`127.0.0.1:58332`）執行 synthetic 12-case fixture、fixture-owned cleanup 與 residue=`0` read-back；remote／production、reset、direct `auth.users` DML、merge／deploy 全部未執行。
+- `[GIT / LOCAL]` 目前 working tree 為本輪 Wave 2 implementation／verifier／docs 變更；`git diff --check` PASS。Migration history ordered read-back latest=`20260824130743|organizer_online_registration_idempotency`；三個 RPC signatures／authenticated execute／`reg.user_id is null`／`idempotency_requests` guards 均 read-back PASS。
+- `[LOCAL / 12-CASE PASS]` 最終 verifier output：target=`127.0.0.1:58332`、`caseCount=12`、`result=PASS`。confirm／decline／remove 各完成 anonymous `42501`、member `42501`、organizer success、same-key replay success；organizer audit actor=`owner`；decline／remove seat=`occupied=1;offered=1`；replay 無額外 transition。
+- `[FIXTURE CLEANUP / PASS]` final residue：organizers=`0`、events=`0`、registrations=`0`、idempotency=`0`、audit=`0`、outbox=`0`、public_member=`0`、auth_member=`0`。temporary member 僅由 local Auth Admin API 建立／刪除，未直接 DML `auth.users`。
+- `[LOCAL GATES / PASS]` `pnpm typecheck`、`pnpm lint`、`pnpm test`=`187 passed／1 skipped`、`pnpm test:security`=`14/14`、`pnpm build`、`pnpm smoke`=`83 audited files`、兩支 Wave 2 script `node --check` 均 exit `0`。已知風險：Node=`20.20.2` 低於 package `>=22`；bundle 約 `594.64 kB` chunk warning。
+- `[NOT_RUN / BOUNDARY]` remote／production、Cloudflare、device、merge、deploy、Fresh 均 `NOT_RUN`；local PASS 不升格為 remote／production／device acceptance。Wave 0=`CLOSED`；Wave 1=`ACCEPTED／CLOSED`；Wave 2=`LOCAL ACCEPTED／Fresh pending`。

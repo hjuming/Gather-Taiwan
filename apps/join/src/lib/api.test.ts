@@ -159,18 +159,21 @@ describe("organizer online registration actions", () => {
     mockRegistrationIdentity("member-1");
     mocks.rpc.mockResolvedValue({ data: null, error: null });
 
-    await organizerConfirmRegistration("registration-confirm");
-    await organizerDeclineRegistration("registration-decline");
-    await organizerRemoveRegistration("registration-remove");
+    await organizerConfirmRegistration("registration-confirm", "confirm-key");
+    await organizerDeclineRegistration("registration-decline", "decline-key");
+    await organizerRemoveRegistration("registration-remove", "remove-key");
 
     expect(mocks.rpc).toHaveBeenNthCalledWith(1, "organizer_confirm_registration", {
       p_registration_id: "registration-confirm",
+      p_idempotency_key: "confirm-key",
     });
     expect(mocks.rpc).toHaveBeenNthCalledWith(2, "organizer_decline_registration", {
       p_registration_id: "registration-decline",
+      p_idempotency_key: "decline-key",
     });
     expect(mocks.rpc).toHaveBeenNthCalledWith(3, "organizer_remove_registration", {
       p_registration_id: "registration-remove",
+      p_idempotency_key: "remove-key",
     });
     expect(mocks.rpc.mock.calls.map(([name]) => name)).not.toContain("organizer_edit_manual_participant");
   });
@@ -180,13 +183,13 @@ describe("organizer online registration actions", () => {
     const error = new Error("registration is not pending confirmation");
     mocks.rpc.mockResolvedValue({ data: null, error });
 
-    await expect(organizerConfirmRegistration("registration-stale")).rejects.toThrow(error);
+    await expect(organizerConfirmRegistration("registration-stale", "stale-key")).rejects.toThrow(error);
   });
 
   it("fails closed before the organizer RPC for a manual registration", async () => {
     mockRegistrationIdentity(null);
 
-    await expect(organizerRemoveRegistration("manual-registration")).rejects.toThrow(
+    await expect(organizerRemoveRegistration("manual-registration", "manual-key")).rejects.toThrow(
       "registration is not an online registration",
     );
     expect(mocks.rpc).not.toHaveBeenCalled();

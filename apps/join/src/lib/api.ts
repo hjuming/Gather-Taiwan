@@ -206,26 +206,29 @@ async function assertOnlineRegistration(registrationId: string): Promise<void> {
   if (!data || data.user_id === null) throw new Error("registration is not an online registration");
 }
 
-export async function organizerConfirmRegistration(registrationId: string): Promise<void> {
+export async function organizerConfirmRegistration(registrationId: string, idempotencyKey: string): Promise<void> {
   await assertOnlineRegistration(registrationId);
   const { error } = await supabase.rpc("organizer_confirm_registration", {
     p_registration_id: registrationId,
+    p_idempotency_key: idempotencyKey,
   });
   if (error) throw error;
 }
 
-export async function organizerDeclineRegistration(registrationId: string): Promise<void> {
+export async function organizerDeclineRegistration(registrationId: string, idempotencyKey: string): Promise<void> {
   await assertOnlineRegistration(registrationId);
   const { error } = await supabase.rpc("organizer_decline_registration", {
     p_registration_id: registrationId,
+    p_idempotency_key: idempotencyKey,
   });
   if (error) throw error;
 }
 
-export async function organizerRemoveRegistration(registrationId: string): Promise<void> {
+export async function organizerRemoveRegistration(registrationId: string, idempotencyKey: string): Promise<void> {
   await assertOnlineRegistration(registrationId);
   const { error } = await supabase.rpc("organizer_remove_registration", {
     p_registration_id: registrationId,
+    p_idempotency_key: idempotencyKey,
   });
   if (error) throw error;
 }
