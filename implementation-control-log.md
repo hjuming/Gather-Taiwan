@@ -2348,3 +2348,15 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[CI / SKIP CONTRACT ✅]` expected／observed skip count=`1`；expected／observed file=`scripts/concurrency-harness.test.ts` count=`1`；unexpected skipped files=`[]`；reason、alternative evidence 與 separate isolated runtime boundary 均在 report。
 - `[CI / BOUNDARY]` databaseRuntime、stagingSmoke、cloudflareAccess、productionSemantic、deviceUAT 均=`NOT_RUN`；本輪未執行 migration、reset、DB write、Cloudflare、production、device UAT 或 merge。
 - `[FRESH / PENDING]` 第三輪 Fresh reviewer 尚待確認 generic current-doc rule 與上述 exact read-back；Wave 0 維持 CLOSED（evidence-boundary closure），Wave 1 維持 BLOCKED。
+
+## 2026-08-24：Phase 1 final current read-back and independent Fresh acceptance
+
+- `[GIT / CURRENT]` branch=`codex/gather-mvp`；source／CI baseline commit=`f3b66e2691b8cdab0eae2e3d8fa601e993185587`（`f3b66e2`）；後續 control-log-only commit 不改變 app／workflow／verifier 行為，current repo HEAD 仍以 Git read-back 為準。
+- `[CI / ✅ 已真實驗證]` run `32712453729` completed／success；head SHA=`f3b66e2691b8cdab0eae2e3d8fa601e993185587`；verify job 與 `Isolated local Supabase runtime gate (separate evidence tier)` 均 success。verify job 的 release baseline、provenance manifest 與兩個 upload steps 均 success。
+- `[CI / ARTIFACT ✅]` baseline artifact=`gather-join-release-baseline-32712453729`、ID=`9514610842`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32712453729/artifacts/9514610842`；provenance artifact=`gather-join-release-provenance-32712453729`、ID=`9514611594`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32712453729/artifacts/9514611594`；兩者均已下載並解析。
+- `[CI / REPORT ✅]` report evidenceTier=`CI`、report repository=`hjuming/Gather-Taiwan`、PR head／CI commit SHA=`f3b66e2691b8cdab0eae2e3d8fa601e993185587`、run ID=`32712453729`、overall=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`。
+- `[CI / PROVENANCE ✅]` manifest `exactMatch=PASS`、mismatches=`[]`；manifest commit／run 與 baseline artifact name／ID／URL 均 exact-match current run。
+- `[CI / SKIP CONTRACT ✅]` expected／observed skip count=`1`；唯一 expected／observed file=`scripts/concurrency-harness.test.ts` count=`1`；unexpected skipped files=`[]`；database suite、alternative isolated runtime evidence 與其 evidence boundary 均明確分開。
+- `[CI / BOUNDARY]` databaseRuntime、stagingSmoke、cloudflareAccess、productionSemantic、deviceUAT 均=`NOT_RUN`；本輪未執行 migration、remote DB write、Cloudflare route／DNS、production deploy、device UAT 或 merge。既有 isolated local runtime job 的成功不升格為 hermetic report 或 production acceptance。
+- `[FRESH / ✅ ACCEPTED]` 獨立 fresh-context reviewer 以 current working tree、最末 control-log rule 與已下載 baseline／provenance JSON 完成 read-only review：P0=`0`、P1=`0`、P2=`0`；確認 skip identity、staging fail-closed、CI job boundary、current-doc provenance 與 Wave boundary 均符合。此 acceptance 不把歷史 artifact `32711417527` 誤當本次 current CI；本段 current exact read-back 以 `32712453729` 為準。
+- `[WAVE]` Wave 0 維持 `CLOSED（evidence-boundary closure）`；Wave 1 維持 `BLOCKED／未啟動`，未因 Phase 1 baseline 完成而自動解鎖。
