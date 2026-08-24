@@ -28,19 +28,26 @@
 
 ## Current engineering handoff（2026-08-24）
 
-本專案目前已完成 Wave 0 manual roster 的 evidence-boundary closure，並準備移交下一個工程團隊。source/runtime evidence fixed point 是 `83a38e8`；本交接 package 的 baseline repo／origin HEAD read-back 為 `50bb2ea`，完成推送後以 Git read-back 為準。不能把 Git push、CI、公開 HTTP 200 或 Pages deployment URL 誤寫成 production feature acceptance。
+本專案目前已完成 Wave 0 manual roster 的 evidence-boundary closure，並準備移交下一個工程團隊。source/runtime evidence fixed point 是 `83a38e8`；current repo／origin HEAD read-back 為 `fd137d0`，完成推送後以 Git read-back 為準。不能把 Git push、CI、公開 HTTP 200 或 Pages deployment URL 誤寫成 production feature acceptance。
 
 | Evidence tier | Current result | Boundary |
 | --- | --- | --- |
 | `LOCAL`／`ISOLATED LOCAL` | 既有 typecheck、lint、test、build、smoke 與一次性 concurrency evidence 保留；`confirmed=1 waitlisted=5` | 本輪不重跑 concurrency；local 不代替 remote／production |
 | `REMOTE` | Supabase catalog `33`；指定 migrations present；functions／ACL `9/9`；source-aligned RLS `15/15`；aggregate `0`；non-null orphan refs `0` | advisors security `54`、performance `21` 為未處理 technical debt |
-| `CI` | 本輪 evidence snapshot head `50bb2ea`；Gather Join Gates run `32187430242` success | PR 仍 open、draft、未 merge；後續 docs-only package HEAD 以 Git read-back 為準 |
+| `CI` | Phase 1 baseline head `fd137d0`；[Gather Join Gates run `32709459237`](https://github.com/hjuming/Gather-Taiwan/actions/runs/32709459237) success；baseline／provenance artifacts exact-match PASS | PR 仍 open、draft、未 merge；CI 不等於 production acceptance |
 | `STAGING` | workers.dev homepage `200`；無 Access assertion 的 POST `/__dev/session` `403` | canonical `staging.join.gather.wedopr.com` DNS `UNVERIFIED` |
 | `PRODUCTION` | `/`、`/app/` `200`；POST `/app/__dev/session` `404` | 未完成 production semantic／device UAT |
 | `PAGES` | deployment URL `https://f4febb0d.neo-rechao.pages.dev/` `200` | source／control-plane metadata `NOT_VERIFIED` |
 | `FRESH` | 完整 current evidence 明確 `ACCEPTED` | Wave 0 CLOSED 不等於 merge、deploy 或 production feature PASS |
 
 目前波次：**Wave 0：CLOSED（evidence-boundary closure）**；**Wave 1：BLOCKED／未啟動**。下一階段提案見 [`docs/squad/NEXT-PHASE-PLAN.md`](./docs/squad/NEXT-PHASE-PLAN.md)，可直接貼上的開發啟動提示詞見 [`docs/squad/NEXT-TEAM-KICKOFF.md`](./docs/squad/NEXT-TEAM-KICKOFF.md)。
+
+### Phase 1 release baseline current read-back（2026-08-24）
+
+- CI report evidenceTier=`CI`、HEAD／PR head SHA=`fd137d0a7092742c0b3047af0512c971eb6d5185`、verdict=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`。
+- [Baseline artifact](https://github.com/hjuming/Gather-Taiwan/actions/runs/32709459237/artifacts/9513529447) 與 [provenance artifact](https://github.com/hjuming/Gather-Taiwan/actions/runs/32709459237/artifacts/9513529940) 均未過期；manifest `exactMatch=PASS`、mismatches=`[]`。
+- DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT 均明確 `NOT_RUN`；這些不是 production／device acceptance。
+- Phase 1 Fresh reviewer 本輪回報 `NOT_ACCEPTED`，指出 skip identity、staging bundle fallback 與 current provenance 文件需修正；Wave 1 維持 `BLOCKED`。
 
 接手順序：先讀 `NEXT-TEAM-KICKOFF.md`、`NEXT-PHASE-PLAN.md`、`LEDGER.md`、`HANDOFF.md`、`implementation-control-log.md`，再讀 `apps/join/docs/SSOT.md`、`DEVELOPMENT.md`、`MAINTENANCE.md`，最後重新固定 Git 狀態。未取得新的 action-specific authorization 前，不執行 migration、DELETE、reset、rollback、broad cleanup、Cloudflare route／DNS／custom domain 變更或 production data 操作。
 

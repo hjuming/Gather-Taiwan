@@ -2,16 +2,22 @@
 
 ## Current engineering handoff（2026-08-24）
 
-`apps/join` 的 Wave 0 manual roster evidence-boundary closure 已完成，準備移交下一工程團隊。source/runtime fixed point=`83a38e8`；本輪 evidence snapshot HEAD=`50bb2ea`，docs-only package 推送後以 Git read-back 為準；Wave 0=`CLOSED`、Wave 1=`BLOCKED／未啟動`。
+`apps/join` 的 Wave 0 manual roster evidence-boundary closure 已完成，準備移交下一工程團隊。source/runtime fixed point=`83a38e8`；current HEAD／origin=`fd137d0`，docs-only package 推送後以 Git read-back 為準；Wave 0=`CLOSED`、Wave 1=`BLOCKED／未啟動`。
 
 - `[REMOTE]` Supabase catalog=`33`；指定 migrations present；functions／ACL=`9/9`；source-aligned RLS=`15/15` enabled＋forced；aggregate=`0`；non-null orphan refs=`0`。
-- `[CI]` PR #1 仍 open、draft、未 merge；evidence snapshot HEAD `50bb2ea` 的 Gather Join Gates run `32187430242` success；package push 後以 Git read-back 為準。
+- `[CI]` PR #1 仍 open、draft、未 merge；Phase 1 baseline HEAD `fd137d0` 的 [Gather Join Gates run `32709459237`](https://github.com/hjuming/Gather-Taiwan/actions/runs/32709459237) success；baseline／provenance artifact exact-match PASS。
 - `[STAGING]` workers.dev homepage=`200`；無 Access assertion 的 POST `/__dev/session`=`403`。Canonical staging host `staging.join.gather.wedopr.com` 維持 `UNVERIFIED`。
 - `[PRODUCTION]` `/`、`/app/`=`200`；POST `/app/__dev/session`=`404`。這不是 production semantic／device UAT。
 - `[PAGES]` deployment URL `https://f4febb0d.neo-rechao.pages.dev`=`200`；source／control-plane metadata=`NOT_VERIFIED`。
 - `[FRESH]` 完整 current evidence 明確 `ACCEPTED`；不等於 PR merge、部署核准或 production feature PASS。
 
 下一階段規劃見 [`../../docs/squad/NEXT-PHASE-PLAN.md`](../../docs/squad/NEXT-PHASE-PLAN.md)，啟動提示詞見 [`../../docs/squad/NEXT-TEAM-KICKOFF.md`](../../docs/squad/NEXT-TEAM-KICKOFF.md)。既有一次性 concurrency evidence 僅引用 `confirmed=1 waitlisted=5`，本輪不重跑。
+
+### Phase 1 release baseline current read-back（2026-08-24）
+
+- `verify-release-baseline` 在 CI report 中標記 evidenceTier=`CI`，六 gate verdict=`PASS_WITH_EXPECTED_SKIP`，DB skip identity contract 預期為 `scripts/concurrency-harness.test.ts`。
+- [Baseline artifact](https://github.com/hjuming/Gather-Taiwan/actions/runs/32709459237/artifacts/9513529447) 與 [provenance manifest](https://github.com/hjuming/Gather-Taiwan/actions/runs/32709459237/artifacts/9513529940) 的 commit／run／artifact URL exact-match=`PASS`。
+- DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT 均維持 `NOT_RUN`；本輪 Fresh reviewer 回報 `NOT_ACCEPTED`，修正完成前不得解除 Wave 1。
 
 ## [HISTORICAL／SUPERSEDED] Current engineering handoff（2026-08-18）
 

@@ -2299,3 +2299,35 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[CI / ✅ 已真實驗證]` baseline artifact read-back：evidenceTier=`CI`、report HEAD／CI commit SHA 均為 `a5ec0c278db97417fd32b9185048234db08617a0`、run ID=`32709041460`、verdict=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`、expected skip contract=`PASS`。
 - `[CI / ⚠️ 邊界]` `GITHUB_SHA` 保留 PR merge trigger SHA=`ea90d1691d2565e105d668bb9840d49676c23ed5`；release identity 明確使用 PR head SHA，兩者差異已保留於 report，不混用。
 - `[FRESH / NOT_RUN]` 獨立 Fresh reviewer 尚未執行；因此本 correction 完成 baseline／CI provenance，但不解除 Wave 1。
+
+## 2026-08-24：Phase 1 Fresh review correction round
+
+### Independent Fresh finding
+
+- `[FRESH / ❌ NOT_ACCEPTED]` 獨立 read-only reviewer 固定 current HEAD=`fd137d0`，P0=`0`；P1 指出 current provenance 文件仍引用 `50bb2ea`／run `32187430242`，以及 skip contract 只驗總數、未驗 skipped test identity。P2 指出 `smoke-staging.mjs` 找不到 staging bundle 時會 fallback production Worker，以及 CI 的 isolated local-Supabase job 與 hermetic six-gate report 邊界不夠清楚。
+- `[CI / READ-BACK]` reviewer 另確認 current HEAD run `32709459237` success；baseline artifact ID=`9513529447`、provenance artifact ID=`9513529940`，report／manifest exact-match=`PASS`。這只證明既有機制，不能抵銷上述文件與 contract 缺口。
+
+### Exact allowlist
+
+- `apps/join/scripts/verify-release-baseline.mjs`
+- `apps/join/scripts/smoke-staging.mjs`
+- `.github/workflows/join-gates.yml`
+- `README.md`
+- `apps/join/README.md`
+- `docs/squad/LEDGER.md`
+- `docs/squad/HANDOFF.md`
+- `implementation-control-log.md`
+
+### Correction
+
+- skip policy 現在同時驗 expected count=`1` 與 expected file=`scripts/concurrency-harness.test.ts`，並輸出 observed／unexpected skipped files、reason 與 separate CI runtime alternative evidence。
+- staging smoke 移除 production Worker fallback；缺少 `dist/gather_join_staging` 時直接 fail closed。
+- CI `local-supabase` job 標示為獨立 isolated runtime evidence tier；不改變既有 workflow 的 runtime gate，不把它併入 hermetic six-gate report。
+- README／Join README／LEDGER／HANDOFF current sections 已更新至 HEAD=`fd137d0`、run=`32709459237`、artifact IDs=`9513529447`／`9513529940`，舊 `50bb2ea`／`32187430242` 只保留在 historical context。
+
+### Verification
+
+- `[LOCAL / ✅ 已真實驗證]` `pnpm build:staging && pnpm smoke:staging` 通過，實際 imported bundle=`dist/gather_join_staging/index.js`；缺少 staging bundle 的 fallback 已從 source 移除。
+- `[LOCAL / ✅ 已真實驗證]` `FORCE_COLOR=1 pnpm verify:release-baseline` 通過；skip identity read-back 為 `scripts/concurrency-harness.test.ts` count=`1`，unexpected skipped files=`[]`，verdict=`PASS_WITH_EXPECTED_SKIP`。
+- `[STATIC / ✅ 已真實驗證]` `node --check`、`FORCE_COLOR=1 pnpm lint`、workflow YAML parse、control-log validator、`git diff --check` 通過。
+- `[CI / PENDING]` correction commit 尚未取得新 CI 與第二輪 Fresh acceptance；Wave 1 維持 `BLOCKED`。

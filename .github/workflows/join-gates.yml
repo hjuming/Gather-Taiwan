@@ -59,6 +59,7 @@ jobs:
           path: apps/join/.reports/release-baseline-provenance.json
           if-no-files-found: warn
   local-supabase:
+    name: Isolated local Supabase runtime gate (separate evidence tier)
     runs-on: ubuntu-latest
     defaults:
       run:

@@ -54,6 +54,10 @@ function gitDiffStatus(args) {
 }
 
 function readVitestSkipCount(output) {
+  return readVitestSkipData(output).count;
+}
+
+function readVitestSkipData(output) {
   const ansiEscape = new RegExp(
     `${String.fromCharCode(27)}\\[[0-?]*[ -/]*[@-~]`,
     "g",
@@ -61,7 +65,16 @@ function readVitestSkipCount(output) {
   const plainOutput = output.replace(ansiEscape, "");
   const summary = plainOutput.split(/\r?\n/).find((line) => /^\s*Tests\s/.test(line));
   const match = summary?.match(/\|\s*(\d+)\s+skipped\b/);
-  return match ? Number(match[1]) : 0;
+  const skippedFiles = plainOutput
+    .split(/\r?\n/)
+    .flatMap((line) => {
+      const skipped = line.match(/^\s*↓\s+(.+?)\s+\([^|]*\|\s*(\d+)\s+skipped\b/);
+      return skipped ? [{ file: skipped[1], count: Number(skipped[2]) }] : [];
+    });
+  return {
+    count: match ? Number(match[1]) : 0,
+    skippedFiles,
+  };
 }
 
 function runGate(gate) {
@@ -84,7 +97,12 @@ function runGate(gate) {
     exitCode: result.status,
     signal: result.signal ?? null,
     durationMs: Date.now() - startedAt,
-    ...(gate.id === "test" ? { observedSkipCount: readVitestSkipCount(result.stdout ?? "") } : {}),
+    ...(gate.id === "test"
+      ? {
+          observedSkipCount: readVitestSkipCount(result.stdout ?? ""),
+          observedSkippedFiles: readVitestSkipData(result.stdout ?? "").skippedFiles,
+        }
+      : {}),
   };
 }
 
@@ -92,9 +110,18 @@ const gateResults = gates.map(runGate);
 const failedGates = gateResults.filter((gate) => gate.status !== "PASS");
 const testGate = gateResults.find((gate) => gate.id === "test");
 const observedSkipCount = testGate?.observedSkipCount ?? null;
+const observedSkippedFiles = testGate?.observedSkippedFiles ?? [];
 const expectedSkipCount = 1;
-const skipContract = observedSkipCount === expectedSkipCount ? "PASS" : "FAIL";
-if (skipContract !== "PASS") failedGates.push({ id: "expected-db-skip-contract" });
+const expectedSkippedFiles = ["scripts/concurrency-harness.test.ts"];
+const skipCountContract = observedSkipCount === expectedSkipCount;
+const skipIdentityContract =
+  observedSkippedFiles.length === expectedSkippedFiles.length &&
+  observedSkippedFiles.every(
+    (entry) => expectedSkippedFiles.includes(entry.file) && entry.count === 1,
+  );
+const skipContract = skipCountContract && skipIdentityContract ? "PASS" : "FAIL";
+if (!skipCountContract) failedGates.push({ id: "expected-db-skip-count-contract" });
+if (!skipIdentityContract) failedGates.push({ id: "expected-db-skip-identity-contract" });
 const pnpmVersion = spawnSync("pnpm", ["--version"], { encoding: "utf8" });
 const nodeMajor = Number(process.versions.node.split(".")[0]);
 const report = {
@@ -107,8 +134,14 @@ const report = {
     reason: "GATHER_JOIN_TEST_DATABASE_URL is removed for this hermetic baseline; DB runtime evidence requires a separately authorized local fixture gate.",
     expectedSkipCount,
     observedSkipCount,
+    expectedSkippedFiles,
+    observedSkippedFiles,
     contract: skipContract,
     unexpectedSkips: observedSkipCount === null ? "NOT_VERIFIED" : Math.max(0, observedSkipCount - expectedSkipCount),
+    unexpectedSkippedFiles: observedSkippedFiles.filter(
+      (entry) => !expectedSkippedFiles.includes(entry.file),
+    ),
+    alternativeEvidence: "CI local-supabase is a separate isolated runtime job; it is not substituted for this hermetic report.",
   },
   evidenceBoundaries: {
     databaseRuntime: {
