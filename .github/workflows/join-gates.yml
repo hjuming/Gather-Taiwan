@@ -29,14 +29,15 @@ jobs:
           cache: pnpm
           cache-dependency-path: apps/join/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm lint
-      - name: Full test suite
-        run: pnpm test
-      - name: Security suite only
-        run: pnpm test:security
-      - run: pnpm build
-      - run: pnpm smoke
+      - name: Release baseline gates
+        run: pnpm verify:release-baseline
+      - name: Upload release baseline report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gather-join-release-baseline-${{ github.run_id }}
+          path: apps/join/.reports/release-baseline.json
+          if-no-files-found: warn
   local-supabase:
     runs-on: ubuntu-latest
     defaults:

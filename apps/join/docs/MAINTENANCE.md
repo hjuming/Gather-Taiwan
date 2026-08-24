@@ -1,6 +1,13 @@
 # 來聚一場：維護注意事項
 
-## Wave 0 handoff boundary（2026-08-18）
+## Current maintenance boundary（2026-08-24）
+
+- Wave 0：`CLOSED（evidence-boundary closure）`；Wave 1：`BLOCKED／未啟動`。
+- 本地 release baseline 使用 `pnpm verify:release-baseline`；報告中的 DB suite `NOT_RUN` 不得升格為 remote／production evidence。
+- `apps/join/.reports/` 是 ignored 的本地／CI artifact 目錄；不得提交 secrets、database URL、service-role key 或個資。
+- Pages source metadata、canonical staging DNS、production semantic/device UAT、PR merge 與 Cloudflare route／DNS 仍需各自 read-back；未查證即維持 `NOT_VERIFIED`。
+
+## [HISTORICAL／SUPERSEDED] Wave 0 handoff boundary（2026-08-18）
 
 - Current handoff evidence base：`codex/gather-mvp@69dab0c`；接手時先重新 read-back Git；本輪文件 sync 不涉及 runtime source、migration 或資料寫入。
 - Remote Supabase read-back：catalog `33`、指定 migrations present、function `9/9`、ACL PASS、RLS `8/8` enabled＋forced、aggregate `0`。

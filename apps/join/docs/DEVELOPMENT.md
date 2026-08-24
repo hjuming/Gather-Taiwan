@@ -1,6 +1,13 @@
 # 來聚一場：開發手冊
 
-## Wave 0 closeout handoff（2026-08-18）
+## Phase 1 release baseline（2026-08-24）
+
+- Current Wave 0：`CLOSED（evidence-boundary closure）`；Wave 1：`BLOCKED／未啟動`。
+- `pnpm verify:release-baseline` 依序執行 `typecheck`、`lint`、`test`、`test:security`、`build`、`smoke`，寫出 `.reports/release-baseline.json`。
+- 這個 hermetic baseline 會移除 `GATHER_JOIN_TEST_DATABASE_URL`，因此 DB suite 是預期的 `NOT_RUN`，不代表 migration、Supabase 或 concurrency PASS。
+- 報告同時記錄 branch、HEAD、upstream、working tree、diff check、CI metadata 與 deployment/source metadata；缺少外部資料時維持 `NOT_VERIFIED`。
+
+## [HISTORICAL／SUPERSEDED] Wave 0 closeout handoff（2026-08-18）
 
 本次 handoff evidence base：`codex/gather-mvp@69dab0c`；接手時先重新 read-back branch／HEAD／working tree。這次 handoff 只整理文件，
 不代表 Wave 0 已關閉；Wave 1 仍 blocked。

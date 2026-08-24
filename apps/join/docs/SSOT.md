@@ -1,8 +1,15 @@
 # 來聚一場：產品與技術 SSOT
 
-最後更新：2026-08-18
+最後更新：2026-08-24
 
-## Wave 0 closeout snapshot
+## Current evidence boundary（2026-08-24）
+
+- Wave 0：`CLOSED（evidence-boundary closure）`；Wave 1：`BLOCKED／未啟動`。
+- Source/runtime evidence fixed point：`83a38e8`；current repo／origin HEAD 以 Git read-back 為準。
+- Phase 1 的 `pnpm verify:release-baseline` 是 LOCAL gate report；DB suite、Cloudflare Access、Pages source、production semantic/device UAT 仍分層驗證，不可互相替代。
+- 下方 2026-08-18 snapshot 保留作歷史契約與追溯，不覆寫 current handoff；current wave status 以 `docs/squad/LEDGER.md`、`HANDOFF.md` 與 `NEXT-PHASE-PLAN.md` 為準。
+
+## [HISTORICAL／SUPERSEDED] Wave 0 closeout snapshot
 
 本 SSOT 的產品決策與技術契約仍有效；以下是交接時的 current evidence snapshot，不取代
 `docs/squad/LEDGER.md` 的長期台帳或 `implementation-control-log.md` 的逐次控制紀錄。

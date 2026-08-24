@@ -76,7 +76,10 @@ function filesIn(directory) {
 
 if (!existsSync(distDirectory)) throw new Error("Build output is missing: run pnpm build first.");
 
-const buildFiles = filesIn(distDirectory);
+const buildFiles = [
+  ...filesIn(join(distDirectory, "client")),
+  ...filesIn(join(distDirectory, "gather_join")),
+];
 if (!buildFiles.some((path) => path.endsWith("index.html"))) {
   throw new Error("Built index.html is missing.");
 }
@@ -100,8 +103,8 @@ for (const path of [...sourceFiles, ...privilegedWorkerSourceFiles]) {
   if (match) throw new Error(`Forbidden hygiene text ${match} found in ${path}`);
 }
 
-const workerBundle = buildFiles.find((path) => path.endsWith("gather_join/index.js"));
-if (!workerBundle) throw new Error("Built Worker bundle is missing.");
+const workerBundle = join(distDirectory, "gather_join/index.js");
+if (!existsSync(workerBundle)) throw new Error("Built Worker bundle is missing.");
 
 const { default: worker } = await import(pathToFileURL(workerBundle).href);
 const response = await worker.fetch(new Request("https://gather.wedopr.com/app/"), {

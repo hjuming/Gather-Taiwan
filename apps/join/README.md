@@ -68,6 +68,7 @@ canonical staging host `staging.join.gather.wedopr.com` 仍無 DNS／custom doma
 - 本地驗證已建立：
 
 ```sh
+pnpm verify:release-baseline
 pnpm test
 pnpm test:security
 pnpm typecheck
@@ -75,6 +76,8 @@ pnpm lint
 pnpm build
 pnpm smoke
 ```
+
+`pnpm verify:release-baseline` 會先移除 `GATHER_JOIN_TEST_DATABASE_URL`，依序執行六個本地 gate，並輸出 ignored 的 `.reports/release-baseline.json`。報告中的 DB suite `NOT_RUN` 是預期邊界，不代表 migration、Supabase 或 concurrency PASS。
 
 若缺 `GATHER_JOIN_TEST_DATABASE_URL`，`pnpm test` 只會 skip 本機 DB suite；
 這不能代替 migration / concurrency pass。

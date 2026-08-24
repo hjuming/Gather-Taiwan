@@ -2217,3 +2217,42 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[GIT / PUSH]` docs-only handoff package commit=`07325da88181e74894bcb6007a4ddd848ada3eec`，由 `50bb2ea` 推送至 `origin/codex/gather-mvp` 成功。
 - `[REMOTE / READ-BACK]` `git ls-remote origin refs/heads/codex/gather-mvp` 回傳同一 SHA=`07325da88181e74894bcb6007a4ddd848ada3eec`。
 - `[LOCAL]` push 後 `git status -sb`：`codex/gather-mvp...origin/codex/gather-mvp`，working tree clean；未 merge PR、未 deploy、未修改 source／migration／test／package／workflow。
+
+## 2026-08-24：Phase 1 release baseline kickoff
+
+### Scope / decision
+
+- 使用者已授權由 Codex 擔任組長，代為執行一般 scope／技術裁決；高風險外部操作仍採 fail-closed，遇 production data、secrets、migration、Cloudflare route／DNS、merge 或不可逆操作停下確認。
+- 本階段選定 Phase 1／Wave 1 的最小切片：建立六個本地 app gate 的可重跑 report、Git／CI／deployment provenance snapshot，並修正既有 production smoke 將 staging bundle 誤納入掃描的 baseline blocker。
+- 非目標：不執行 migration、DELETE、reset、manual-roster concurrency one-shot、Supabase remote write、Cloudflare route／DNS／custom domain、production deploy、PR merge 或 secrets 操作。
+
+### Exact allowlist
+
+- `apps/join/scripts/smoke.mjs`
+- `apps/join/scripts/verify-release-baseline.mjs`
+- `apps/join/package.json`
+- `apps/join/.gitignore`
+- `apps/join/README.md`
+- `.github/workflows/join-gates.yml`
+- `apps/join/docs/SSOT.md`
+- `apps/join/docs/DEVELOPMENT.md`
+- `apps/join/docs/MAINTENANCE.md`
+- `implementation-control-log.md`
+
+### Initial evidence
+
+- `[LOCAL / before change]` `typecheck`、`lint`、`test`（179 passed／1 skipped）、`test:security`（14 passed）與 `build` exit `0`；Node=`20.20.2` 低於 package engine `>=22`，並有約 593 kB bundle warning。
+- `[LOCAL / before change]` `pnpm smoke` reproducibly failed because `smoke.mjs` scanned `dist/gather_join_staging/index.js` with the production `dev-auth` forbidden-text rule。
+- `[LOCAL / focused fix]` 將 production smoke scope 限定為 `dist/client` 與 `dist/gather_join`；後續 `pnpm smoke` exit `0`，回報 82 audited files。
+
+### Rollback
+
+- 只回復上述 allowlist 的本次 diff；不使用 reset、clean、broad cleanup，不觸碰已套用 migration、remote data、Cloudflare 或其他 working-tree 變更。
+
+### Local verification / remaining gates
+
+- `[LOCAL / ✅ 已真實驗證]` `pnpm verify:release-baseline`：六個 gate 全部 exit `0`；`test` observed skip=`1`、expected skip contract=`PASS`、unexpected skips=`0`；verdict=`PASS_WITH_EXPECTED_SKIP`。
+- `[LOCAL / ✅ 已真實驗證]` `pnpm smoke` 修正後通過，production scope 審計 `dist/client` 與 `dist/gather_join`，回報 82 audited files；不再把 staging bundle 當 production artifact。
+- `[STATIC / ✅ 已真實驗證]` `node --check`、`git diff --check`、workflow YAML parse 與 control-log validator 均通過。
+- `[LOCAL / ⚠️ 部分驗證]` 本機 runtime=`Node 20.20.2`，package engine=`>=22`；report 已標示 `WARN_UNSUPPORTED_NODE_ENGINE`。build 的約 593 kB chunk warning 保留，未擴大 scope。
+- `[NOT_RUN / ❌ 未驗證]` 新 commit 的 GitHub Actions、獨立 Fresh reviewer、staging／production／Pages source read-back 尚未完成；本切片不宣稱 CI、deployment 或 production PASS，也不解除 Wave 1。
