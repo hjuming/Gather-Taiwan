@@ -2338,3 +2338,13 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[ROOT CAUSE]` 每次同步 current SHA／run／artifact 後又產生 docs-only commit，靜態文件再次漂移；這不是 app／workflow 行為缺陷，但會阻擋接手者的 provenance read-back。
 - `[CORRECTION]` README、Join README、LEDGER、HANDOFF 改為要求 current HEAD／run／artifact 以 Git／CI／本檔最末 current section read-back；不再把 current values 複製成永久固定值。Wave 0 維持 CLOSED；Wave 1 維持 BLOCKED。
 - `[CI / PENDING]` 本輪 docs provenance correction commit 會觸發新 PR CI；取得新 artifact read-back 後，需在本檔最末 current section 寫入 exact SHA／run／artifact，並交第三輪 Fresh reviewer。
+
+## 2026-08-24：Phase 1 current exact read-back after provenance drift correction
+
+- `[GIT / CURRENT]` source／CI baseline commit=`92e63669f88c3c88ecc96d029d3f5731765b8f12`；其後若有 control-log-only commit，不改變 app／workflow／verifier 行為，current repo HEAD 仍須以 Git read-back 為準。
+- `[CI / ✅ 已真實驗證]` run `32711417527` completed／success；verify job=`35s`、isolated local Supabase runtime gate=`3m10s`，兩者均 success；isolated job 名稱明確標示 separate evidence tier。
+- `[CI / ARTIFACT ✅]` baseline artifact=`gather-join-release-baseline-32711417527`、ID=`9514222609`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32711417527/artifacts/9514222609`；provenance artifact=`gather-join-release-provenance-32711417527`、ID=`9514223170`；下載 read-back manifest `exactMatch=PASS`、mismatches=`[]`。
+- `[CI / REPORT ✅]` report evidenceTier=`CI`、repository／PR head／CI commit SHA=`92e63669f88c3c88ecc96d029d3f5731765b8f12`、run ID=`32711417527`、verdict=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`。
+- `[CI / SKIP CONTRACT ✅]` expected／observed skip count=`1`；expected／observed file=`scripts/concurrency-harness.test.ts` count=`1`；unexpected skipped files=`[]`；reason、alternative evidence 與 separate isolated runtime boundary 均在 report。
+- `[CI / BOUNDARY]` databaseRuntime、stagingSmoke、cloudflareAccess、productionSemantic、deviceUAT 均=`NOT_RUN`；本輪未執行 migration、reset、DB write、Cloudflare、production、device UAT 或 merge。
+- `[FRESH / PENDING]` 第三輪 Fresh reviewer 尚待確認 generic current-doc rule 與上述 exact read-back；Wave 0 維持 CLOSED（evidence-boundary closure），Wave 1 維持 BLOCKED。
