@@ -53,7 +53,7 @@
 
 - 已完成：Wave 0 manual roster evidence-boundary closure；Wave 1 hermetic app／CI／smoke／verifier baseline、skip identity contract、staging fail-closed、CI provenance exact-match 與 Fresh acceptance。
 - 已保留但不重跑：既有 phase-aware concurrency one-shot `confirmed=1 waitlisted=5`；本輪沒有新增 migration、DB write、Cloudflare route／DNS 或 production deploy。
-- 下一個開發缺口：Wave 2 organizer 對線上報名者的 confirm／decline／remove。既有 Supabase RPC／RLS／audit 基礎已存在，但 app 端 `apps/join/src/lib/api.ts` wrappers、`apps/join/src/components/RosterManager.tsx` 操作 UI 與 focused frontend tests 尚未閉環。
+- 下一個開發缺口：Wave 2 organizer 對線上報名者的 confirm／decline／remove。第一個 discovery slice 的 exact read-only allowlist 已限縮為 `apps/join/src/lib/api.ts`、`apps/join/src/components/RosterManager.tsx`、`apps/join/src/components/EventPage.tsx` 與既有 seat-engine migration；施工 source／test／docs allowlist 尚待 owner 在 discovery 後凍結。
 - 尚未驗收：canonical staging DNS／Access、Pages source parity、production semantic、device／role UAT、PR merge，以及 advisors security `54`／performance `21` triage。
 
 接手順序：先讀 `NEXT-TEAM-KICKOFF.md`、`NEXT-PHASE-PLAN.md`、`LEDGER.md`、`HANDOFF.md`、`implementation-control-log.md`，再讀 `apps/join/docs/SSOT.md`、`DEVELOPMENT.md`、`MAINTENANCE.md`，最後重新固定 Git 狀態。Wave 2 施工前先做 read-only code discovery，取得明確 scope／owner 與 exact allowlist；未取得新的 action-specific authorization 前，不執行 migration、DELETE、reset、rollback、broad cleanup、Cloudflare route／DNS／custom domain 變更或 production data 操作。

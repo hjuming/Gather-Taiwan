@@ -39,7 +39,7 @@
 ## 下一階段建議順序
 
 1. Phase 1／Wave 1：已完成 hermetic app／CI／smoke／verifier baseline 與 provenance report，Fresh 已接受。
-2. Phase 2／Wave 2：先做 read-only code discovery，再完成 organizer 對線上報名者的 confirm／decline／remove API、UI、RLS、ACL、audit 與 idempotency 閉環。已知 app 缺口為 `apps/join/src/lib/api.ts` wrappers、`apps/join/src/components/RosterManager.tsx` 操作 UI 與 focused frontend tests；migration／Cloudflare／production data 不預先列入 allowlist。
+2. Phase 2／Wave 2：先做 read-only code discovery，再完成 organizer 對線上報名者的 confirm／decline／remove API、UI、RLS、ACL、audit 與 idempotency 閉環。第一個 discovery slice 的 exact read-only allowlist 為：`apps/join/src/lib/api.ts`、`apps/join/src/components/RosterManager.tsx`、`apps/join/src/components/EventPage.tsx`、`apps/join/supabase/migrations/20260805210000_p1_06_08_seat_engine.sql`。已知 app 缺口是 wrappers、操作 UI 與 focused frontend tests；施工 allowlist 必須在 discovery 後由 owner 凍結，migration／Cloudflare／production data 不預先授權。
 3. Phase 3／Wave 3：完成 LINE failure matrix、private entry、Cloudflare Access staging／AUTH_RATE_LIMITER 與依賴安全 triage。
 4. Phase 4–6：依 `docs/squad/NEXT-PHASE-PLAN.md` 依序處理通知/outbox、event_fields／隱私、Pilot／device／role UAT。
 

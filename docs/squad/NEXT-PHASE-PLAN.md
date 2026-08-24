@@ -31,7 +31,7 @@ source/runtime evidence fixed point：`83a38e8`
 
 目標：完成主辦人對線上報名者的 confirm／decline／remove 閉環，與既有 manual roster capacity／FIFO 不變量一致。
 
-目前 read-only 技術盤點：既有 migration 已有 `organizer_confirm_registration`、`organizer_decline_registration`、`organizer_remove_registration` RPC 與其 RLS／ACL／audit 基礎；目前 app 缺口集中在 `apps/join/src/lib/api.ts` wrappers、`apps/join/src/components/RosterManager.tsx` 線上報名者操作 UI 與 focused frontend tests。這只是 discovery evidence，不是 Wave 2 開工授權。
+目前 read-only 技術盤點：既有 migration 已有 `organizer_confirm_registration`、`organizer_decline_registration`、`organizer_remove_registration` RPC 與其 RLS／ACL／audit 基礎；目前 app 缺口集中在 `apps/join/src/lib/api.ts` wrappers、`apps/join/src/components/RosterManager.tsx` 線上報名者操作 UI 與 focused frontend tests。第一個 discovery slice 的 exact read-only allowlist 為：上述兩個 app 檔、`apps/join/src/components/EventPage.tsx` 與 `apps/join/supabase/migrations/20260805210000_p1_06_08_seat_engine.sql`；施工 source／test／docs allowlist 仍須由 owner 在 discovery 後另行凍結，這不是 Wave 2 開工授權。
 
 驗收目標：
 
