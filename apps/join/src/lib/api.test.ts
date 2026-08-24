@@ -86,6 +86,14 @@ function mockReadBack(row: EventRow) {
   return { chain: { select }, select, eq, single };
 }
 
+function mockRegistrationIdentity(userId: string | null) {
+  const maybeSingle = vi.fn().mockResolvedValue({ data: { user_id: userId }, error: null });
+  const eq = vi.fn().mockReturnValue({ maybeSingle });
+  const select = vi.fn().mockReturnValue({ eq });
+  mocks.from.mockReturnValue({ select });
+  return { select, eq, maybeSingle };
+}
+
 beforeEach(() => {
   mocks.from.mockReset();
   mocks.rpc.mockReset();
@@ -148,6 +156,7 @@ describe("event update persistence", () => {
 
 describe("organizer online registration actions", () => {
   it("calls the existing organizer RPC contract without using manual-participant RPCs", async () => {
+    mockRegistrationIdentity("member-1");
     mocks.rpc.mockResolvedValue({ data: null, error: null });
 
     await organizerConfirmRegistration("registration-confirm");
@@ -167,9 +176,19 @@ describe("organizer online registration actions", () => {
   });
 
   it("propagates organizer RPC errors so stale or unauthorized actions remain visible", async () => {
+    mockRegistrationIdentity("member-1");
     const error = new Error("registration is not pending confirmation");
     mocks.rpc.mockResolvedValue({ data: null, error });
 
     await expect(organizerConfirmRegistration("registration-stale")).rejects.toThrow(error);
+  });
+
+  it("fails closed before the organizer RPC for a manual registration", async () => {
+    mockRegistrationIdentity(null);
+
+    await expect(organizerRemoveRegistration("manual-registration")).rejects.toThrow(
+      "registration is not an online registration",
+    );
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
 });

@@ -33,7 +33,7 @@ source/runtime evidence fixed point：`83a38e8`
 
 目前 read-only 技術盤點：既有 migration 已有 `organizer_confirm_registration`、`organizer_decline_registration`、`organizer_remove_registration` RPC 與其 RLS／ACL／audit 基礎；目前 app 缺口集中在 `apps/join/src/lib/api.ts` wrappers、`apps/join/src/components/RosterManager.tsx` 線上報名者操作 UI 與 focused frontend tests。實際 page mount point 是 `apps/join/src/pages/EventPage.tsx`（原 discovery prompt 的 `src/components/EventPage.tsx` 不存在）；施工 source／test／docs allowlist 與 current evidence 以 control log 為準。
 
-Wave 2 current source slice：三個 API wrapper、RosterManager 線上報名者 confirm／decline／remove UI、API contract tests、RosterManager focused UI tests 與 STATIC migration contract test 已完成。既有 RPC 的 replay 是 state-machine boundary（remove 已非 active 時 no-op；confirm／decline 已處理時 fail-closed），但沒有 `p_idempotency_key`／`idempotency_requests` 參數；strict key-based idempotency、12-case local fixture read-back 與 Fresh verdict 仍未完成／未驗證。migration-specific authorization 未取得，因此 migration 不在本輪 allowlist。
+Wave 2 current source slice：三個 API wrapper、online-only API preflight、RosterManager 線上報名者 confirm／decline／remove UI、API contract tests、RosterManager focused UI tests 與 STATIC migration contract test 已完成。既有 RPC 的 replay 是 state-machine boundary（remove 已非 active 時 no-op；confirm／decline 已處理時 fail-closed），但沒有 `p_idempotency_key`／`idempotency_requests` 參數；strict key-based idempotency、12-case local fixture read-back 與 Fresh verdict 仍未完成／未驗證。migration-specific authorization 未取得，因此 migration 不在本輪 allowlist；client preflight 不取代 DB guard。
 
 驗收目標：
 

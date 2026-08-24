@@ -18,8 +18,8 @@
 
 - `[SCOPE／OWNER]` 本輪 objective 明確授權 Phase 2／Wave 2，目標為 organizer 對線上報名者完成 confirm／decline／remove；不延伸至 migration、remote／production data、Cloudflare、secrets、reset、DELETE、rollback、broad cleanup 或 merge。
 - `[DISCOVERY]` 指定的 `apps/join/src/components/EventPage.tsx` 不存在；實際 mount point 是 `apps/join/src/pages/EventPage.tsx`，由 `apps/join/src/App.tsx` mount。既有 seat-engine RPC、organizer admin ACL、event lock、audit actor／before-after 與席次 promotion contract 均已 read-only 確認。
-- `[SOURCE]` 已完成 `api.ts` 三個 organizer wrapper；`RosterManager.tsx` 對線上 pending row 顯示 confirm／decline／remove，對其他 active online row 顯示 remove，manual row 仍走 manual RPC；stale／replay error 後會重新載入名單。
-- `[TEST]` focused API／UI tests 與 `scripts/organizer-registration-contract.test.ts` STATIC migration contract test 已加入；目前只證明 wrapper／mount／action routing、錯誤回傳與 source contract，尚未證明 live 12 cases、fixture residue=`0` 或 Fresh acceptance。
+- `[SOURCE]` 已完成 `api.ts` 三個 organizer wrapper 與 online-only `user_id` preflight；`RosterManager.tsx` 對線上 pending row 顯示 confirm／decline／remove，對其他 active online row 顯示 remove，manual row 仍走 manual RPC；stale／replay error 後會重新載入名單。
+- `[TEST]` focused API／UI tests 與 `scripts/organizer-registration-contract.test.ts` STATIC migration contract test 已加入；API test 另確認 manual registration 在 RPC 前 fail-closed。目前只證明 wrapper／mount／action routing、錯誤回傳與 source contract，尚未證明 live 12 cases、fixture residue=`0` 或 Fresh acceptance。
 - `[IDEMPOTENCY / NOT_VERIFIED]` 既有 organizer RPC 沒有 `p_idempotency_key`／`idempotency_requests` contract；現階段僅保留 remove no-op 與 confirm／decline fail-closed replay 語意。migration-specific authorization 未取得，禁止自行修改 migration。
 
 ## 2026-08-24：Phase 1 release baseline current read-back

@@ -196,7 +196,18 @@ export async function getEventRoster(eventId: string): Promise<RegistrationRow[]
   return (data as RegistrationRow[]) ?? [];
 }
 
+async function assertOnlineRegistration(registrationId: string): Promise<void> {
+  const { data, error } = await supabase
+    .from("registrations")
+    .select("user_id")
+    .eq("id", registrationId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data || data.user_id === null) throw new Error("registration is not an online registration");
+}
+
 export async function organizerConfirmRegistration(registrationId: string): Promise<void> {
+  await assertOnlineRegistration(registrationId);
   const { error } = await supabase.rpc("organizer_confirm_registration", {
     p_registration_id: registrationId,
   });
@@ -204,6 +215,7 @@ export async function organizerConfirmRegistration(registrationId: string): Prom
 }
 
 export async function organizerDeclineRegistration(registrationId: string): Promise<void> {
+  await assertOnlineRegistration(registrationId);
   const { error } = await supabase.rpc("organizer_decline_registration", {
     p_registration_id: registrationId,
   });
@@ -211,6 +223,7 @@ export async function organizerDeclineRegistration(registrationId: string): Prom
 }
 
 export async function organizerRemoveRegistration(registrationId: string): Promise<void> {
+  await assertOnlineRegistration(registrationId);
   const { error } = await supabase.rpc("organizer_remove_registration", {
     p_registration_id: registrationId,
   });

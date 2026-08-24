@@ -22,7 +22,7 @@
 
 - `[DISCOVERY]` 原指定 `apps/join/src/components/EventPage.tsx` 不存在；實際 mount point 為 `apps/join/src/pages/EventPage.tsx`，且 `App.tsx` 已 mount `EventPage` 與 organizer-only `RosterManager`。
 - `[DELIVERED]` `apps/join/src/lib/api.ts` 已加入既有三個 organizer RPC wrappers；`RosterManager.tsx` 已將線上報名者與 manual participant 分流，支援 pending confirm／decline、active remove、錯誤後 roster reconcile。
-- `[VERIFIED]` API contract tests、RosterManager jsdom focused tests 與 `scripts/organizer-registration-contract.test.ts` STATIC migration contract test 已加入；本輪 `pnpm test`=`186 passed／1 skipped`、`pnpm test:security`=`14/14`、typecheck／lint／build／smoke 均 exit `0`。
+- `[VERIFIED]` API contract tests（含 manual registration 在 RPC 前 fail-closed）、RosterManager jsdom focused tests 與 `scripts/organizer-registration-contract.test.ts` STATIC migration contract test 已加入；本輪 `pnpm test`=`187 passed／1 skipped`、`pnpm test:security`=`14/14`、typecheck／lint／build／smoke 均 exit `0`。
 - `[NOT_VERIFIED]` 尚未有 live synthetic 12-case matrix、每 case audit actor／seat／replay／cleanup 記錄、fixture residue=`0`、獨立 Fresh reviewer verdict。既有 organizer RPC 缺少 key-based idempotency；未取得 migration-specific authorization 前不得修改 migration。
 - `[ALLOWLIST]` 本輪 source／test／docs allowlist 與 decision evidence 以 `implementation-control-log.md` EOF current section 為準；不得 broad refactor 或把 manual add／edit／remove 當成線上報名者閉環。
 
