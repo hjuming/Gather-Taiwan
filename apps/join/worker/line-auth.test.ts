@@ -6,7 +6,7 @@ const env: LineAuthEnv = {
   SUPABASE_SERVICE_ROLE_KEY: "service-role-test-key",
   LINE_CHANNEL_ID: "2010930927",
   LINE_CHANNEL_SECRET: "channel-secret-test-value",
-  LINE_CALLBACK_URL: "https://gather.wedopr.com/app/auth/line/callback",
+  LINE_CALLBACK_URL: "https://gather.wedopr.com/app/line/callback",
   APP_BASE_URL: "https://gather.wedopr.com/app",
 };
 
@@ -21,7 +21,7 @@ function cookieValue(headers: Headers, name: string): string | undefined {
 }
 
 describe("handleLineAuthStart", () => {
-  it("redirects to LINE's authorize endpoint with state/nonce and sets both as HttpOnly cookies", async () => {
+  it("redirects to LINE's authorize endpoint with state/nonce and sets both as 600-second HttpOnly cookies", async () => {
     const request = new Request("https://gather.wedopr.com/app/auth/line/start");
     const response = await handleLineAuthStart(request, env);
 
@@ -38,7 +38,18 @@ describe("handleLineAuthStart", () => {
       true,
     );
     expect(setCookies.every((c) => c.includes("Path=/;"))).toBe(true);
+    expect(setCookies.every((c) => c.includes("Max-Age=600"))).toBe(true);
     expect(location.searchParams.get("state")).toBe(cookieValue(response.headers, "__Host-gather-line-oauth-state"));
+  });
+
+  it("stores only an internal redirect when the caller supplies an external URL", async () => {
+    const request = new Request(
+      "https://gather.wedopr.com/app/auth/line/start?redirect=https%3A%2F%2Fevil.example%2Fphish",
+    );
+    const response = await handleLineAuthStart(request, env);
+    const nonceCookie = response.headers.getSetCookie().find((cookie) => cookie.startsWith("__Host-gather-line-oauth-nonce="));
+    expect(nonceCookie).toContain("%2F");
+    expect(nonceCookie).not.toContain("evil.example");
   });
 });
 
@@ -79,6 +90,28 @@ describe("handleLineAuthCallback", () => {
     expect(location.searchParams.get("line_error")).toBe("missing_code_or_state");
   });
 
+  it.each([
+    {
+      expiredCookie: "state",
+      cookies: "__Host-gather-line-oauth-nonce=real-nonce|%2Fapp%2F",
+    },
+    {
+      expiredCookie: "nonce",
+      cookies: "__Host-gather-line-oauth-state=real-state",
+    },
+  ])("fails closed when browser expiry removes the $expiredCookie cookie", async ({ cookies }) => {
+    const response = await handleLineAuthCallback(
+      callbackRequest({ code: "abc", state: "real-state" }, cookies),
+      env,
+    );
+
+    expect(response.status).toBe(302);
+    const location = new URL(response.headers.get("Location")!);
+    expect(location.searchParams.get("line_error")).toBe("state_mismatch");
+    expect(response.headers.getSetCookie().filter((cookie) => cookie.includes("Max-Age=0"))).toHaveLength(2);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("fails closed when the returned state does not match the cookie (CSRF)", async () => {
     const response = await handleLineAuthCallback(
       callbackRequest(
@@ -93,18 +126,22 @@ describe("handleLineAuthCallback", () => {
   });
 
   function mockLineAndSupabase(overrides?: {
+    tokenStatus?: number;
+    verifyStatus?: number;
     verifyBody?: Partial<Record<string, unknown>>;
     userLookup?: unknown[];
     userLookupStatus?: number;
     adminUserStatuses?: number[];
     adminUsers?: SupabaseAdminUserFixture[];
+    upsertStatus?: number;
+    generateLinkStatus?: number;
   }) {
     let adminUserCall = 0;
     fetchMock.mockImplementation(async (input: string | URL) => {
       const url = typeof input === "string" ? input : input.toString();
       if (url === "https://api.line.me/oauth2/v2.1/token") {
         return new Response(JSON.stringify({ access_token: "at", id_token: "idtok", token_type: "Bearer", expires_in: 3600 }), {
-          status: 200,
+          status: overrides?.tokenStatus ?? 200,
         });
       }
       if (url === "https://api.line.me/oauth2/v2.1/verify") {
@@ -120,7 +157,7 @@ describe("handleLineAuthCallback", () => {
             email: "tester@line.example",
             ...overrides?.verifyBody,
           }),
-          { status: 200 },
+          { status: overrides?.verifyStatus ?? 200 },
         );
       }
       if (url.startsWith(`${env.SUPABASE_URL}/rest/v1/users?`)) {
@@ -145,10 +182,12 @@ describe("handleLineAuthCallback", () => {
         return new Response(JSON.stringify({ id: "existing-user-uuid", email: "tester@line.example" }), { status: 200 });
       }
       if (url === `${env.SUPABASE_URL}/rest/v1/users`) {
-        return new Response(null, { status: 201 });
+        return new Response(null, { status: overrides?.upsertStatus ?? 201 });
       }
       if (url === `${env.SUPABASE_URL}/auth/v1/admin/generate_link`) {
-        return new Response(JSON.stringify({ properties: { hashed_token: "the-hashed-token" } }), { status: 200 });
+        return new Response(JSON.stringify({ properties: { hashed_token: "the-hashed-token" } }), {
+          status: overrides?.generateLinkStatus ?? 200,
+        });
       }
       throw new Error(`unexpected fetch: ${url}`);
     });
@@ -167,6 +206,22 @@ describe("handleLineAuthCallback", () => {
     );
     const location = new URL(response.headers.get("Location")!);
     expect(location.searchParams.get("line_error")).toBe("nonce_mismatch");
+  });
+
+  it.each([
+    ["LINE token exchange", { tokenStatus: 401 }],
+    ["LINE ID token verification", { verifyStatus: 401 }],
+  ])("fails closed when %s fails", async (_label, overrides) => {
+    mockLineAndSupabase(overrides);
+    const response = await handleLineAuthCallback(
+      callbackRequest(
+        { code: "abc", state: "real-state" },
+        "__Host-gather-line-oauth-state=real-state; __Host-gather-line-oauth-nonce=real-nonce|%2Fapp%2F",
+      ),
+      env,
+    );
+    const location = new URL(response.headers.get("Location")!);
+    expect(location.searchParams.get("line_error")).toBe("token_exchange_failed");
   });
 
   it("fails closed on audience mismatch (token minted for a different channel)", async () => {
@@ -255,6 +310,7 @@ describe("handleLineAuthCallback", () => {
     expect(createCalls).toHaveLength(2);
     const fallbackBody = JSON.parse((createCalls[1][1] as RequestInit).body as string);
     expect(fallbackBody.email).toBe("line+line-user-123@users.noreply.gather.wedopr.com");
+    expect(fallbackBody.email_confirm).toBe(false);
     const location = new URL(response.headers.get("Location")!);
     expect(location.searchParams.get("token_hash")).toBe("the-hashed-token");
   });
@@ -312,5 +368,21 @@ describe("handleLineAuthCallback", () => {
       status: 403,
     });
     expect(JSON.stringify(consoleErrorMock.mock.calls)).not.toContain("service-role-test-key");
+  });
+
+  it.each([
+    ["public profile upsert", { upsertStatus: 500 }],
+    ["magic-link generation", { generateLinkStatus: 500 }],
+  ])("fails closed when %s fails", async (_label, overrides) => {
+    mockLineAndSupabase(overrides);
+    const response = await handleLineAuthCallback(
+      callbackRequest(
+        { code: "abc", state: "real-state" },
+        "__Host-gather-line-oauth-state=real-state; __Host-gather-line-oauth-nonce=real-nonce|%2Fapp%2F",
+      ),
+      env,
+    );
+    const location = new URL(response.headers.get("Location")!);
+    expect(location.searchParams.get("line_error")).toBe("account_provisioning_failed");
   });
 });

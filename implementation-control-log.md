@@ -8,6 +8,11 @@
 - 讀者：Gather Taiwan / 聚場台灣專案決策者、WEDO 團隊、後續接手工程與內容協作者。
 - 本文件用途：記錄本輪 Implementation Draft Gate 的需求、AI 決策、觸及檔案、驗證結果與回滾方式。
 
+## Current authoritative index（2026-08-24）
+
+- Current handoff／next-phase evidence 以本檔最末的 `2026-08-24` sections 為準；更早日期的 entries 是 historical record，不覆寫 current Wave 0 CLOSED、Wave 1 BLOCKED／未啟動，也不構成可執行指令。
+- Current handoff exact allowlist：`README.md`、`apps/join/README.md`、`docs/squad/CHARTER.md`、`docs/squad/HANDOFF.md`、`docs/squad/LEDGER.md`、`docs/squad/NEXT-TEAM-KICKOFF.md`、`docs/squad/NEXT-PHASE-PLAN.md`、`implementation-control-log.md`。
+
 ## 1. 任務目標
 
 - 將 `/`、`/moonlight-bbq`、`/neo-rechao` 整理為同一個 `聚場台灣 / Gather Taiwan` Culture Platform 產品。
@@ -258,6 +263,26 @@
 
 - 本段只完成 P1-02 schema 與 default-deny surface，不提前宣稱 P1-03 dev JWT、P1-04
   RLS policies、P1-06/P1-08 冪等 replay／席次引擎完成。
+
+---
+
+## 2026-08-17：Wave 0 續接（環境阻塞）
+
+> **HISTORICAL／SUPERSEDED／DO NOT EXECUTE**：本段只保留當時環境阻塞與重啟流程；其中的 one-shot concurrency 指令已被 current fixed point supersede，不得照做。目前唯一下一步是獨立 Fresh reviewer。
+
+- 目標：沿用前段節奏先處理「未完成／未處理」與「剩餘風險」，將 concurrency runtime 從
+  phase-aware phase 回收點重新打開。
+- 當下阻塞：`docker` 指令存在但 daemon socket `~/.docker/run/docker.sock` 缺失，`supabase status` 與 `supabase start` 都無法連線執行。`open -a Docker` 回報找不到應用，表示此環境無可直接啟動 Docker GUI。
+- 釋出結果：
+  - 未完成／未處理：Wave 0 仍未關閉、runtime acceptance pending，Wave 1～6 維持 blocked。
+  - 剩餘風險：`concurrency` 仍無法進 phase-aware 取 `phase`，`concurrency` fail 類型依舊未分流；同時保留 client bundle 593 kB warning 與既有工具 trace 邊界風險為待補。
+- [HISTORICAL／SUPERSEDED／DO NOT EXECUTE] 下一步只做一次：
+  1) 恢復可用 Docker daemon；
+  2) 跑 `pnpm start` 啟動 `apps/join` isolated local；
+  3) 跑一次 `GATHER_JOIN_TEST_OWNER_USER_ID=[REDACTED] GATHER_JOIN_TEST_DATABASE_URL=[REDACTED] pnpm verify:manual-roster:concurrency`；
+  4) 若有失敗，先讀取一行 JSON 診斷 `phase/pg_code/pg_class`，再做 root-cause；
+  5) 再交 Fresh runtime 接受。
+  每輪只可 one-shot，不重複 retry。
 - 時間採 `timestamptz` 絕對時間＋IANA timezone；報名最晚於開始關閉，開始後安全關鍵
   設定不可變，文案修正仍允許。
 - Master Backlog 優先於 construction contract：check-in 延至 P3-01；正式預設活動等
@@ -290,6 +315,20 @@
 - GitHub Actions：branch push 不會觸發現行 workflow；PR 尚未建立時為 `NOT_RUN`。
 - 本機 Supabase：Docker daemon 未啟動；local reset 未執行。雲端 dedicated project
   transaction read-back 已通過，但不冒充 local CI。
+
+## 2026-08-17（續）：隔離環境已恢復並補 one-shot PASS
+
+- 現場狀態：`docker` 已恢復，`gather-join-diag-01` 及 `gather-join-p1` 皆為 running；診斷 DB `127.0.0.1:58332` 可用。
+- 執行結果：使用 `GATHER_JOIN_TEST_OWNER_USER_ID=[REDACTED]` 與
+  `GATHER_JOIN_TEST_DATABASE_URL=[REDACTED]`，以
+  `node apps/join/scripts/verify-manual-roster-concurrency.mjs` 跑出
+  `manual roster concurrency verifier: PASS confirmed=1 waitlisted=5`（one-shot）。
+- 清理/殘留：同一階段補做 zero-residue 查核；`public.organizers` 先前遺留 `manual-race-org-*` 已補清，並已以 `psql` 查核 `organizer_race_left=0`、`outbox_left=0`、`regs_left=0`。
+- 未完成／未處理：仍未完成 `full isolated runtime acceptance`（capacity、guest、catalog、ACL、RLS 的單次整合）；
+  remote DB migration 與 runtime read-back 仍 `NOT_RUN`；GitHub 動態 pipeline 仍 `BLOCKED`（auth invalid）。
+- 剩餘風險：未同步證據的 `client bundle 593kB warning`、線上 `Docker`/工具 trace 邊界，及未完成的
+  remote 套用前提（migration ledger、function definitions 仍需正式 read-back）。
+- 附註：本段僅更新剩餘風險與未完成項；原 WIP safepoint、Wave 0 工程主軸未變更。
 
 # 2026-08-05：文件化交接與 icon/測試環境收斂
 
@@ -831,7 +870,9 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
   仍需使用者明確確認後才執行。
 - 一旦部署完成，才能用真實 LINE 帳號跑一次端對端登入驗收。
 
-# 2026-08-06：設定 Cloudflare Worker secrets
+# 歷史快照（2026-08-06）：設定 Cloudflare Worker secrets／deploy checklist
+
+> **HISTORICAL／SUPERSEDED／DO NOT EXECUTE**：本段只記錄已完成的 secrets／placeholder／deploy 前後狀態；其中的 `wrangler secret put`、`wrangler deploy` 與舊待處理清單不得複製執行。現行 Cloudflare／Pages 狀態以最新 read-back 文件為準。
 
 ## 完成項目
 
@@ -875,7 +916,9 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - 部署完成後才能對真實 LINE 帳號做端對端登入測試。
 - Staging 頻道的對應 secrets／vars 尚未設定（staging 網域架構未定案）。
 
-# 2026-08-07：join app 正式部署至 gather.wedopr.com/app/*
+# 歷史快照（2026-08-07）：join app 正式部署至 gather.wedopr.com/app/*
+
+> **HISTORICAL／SUPERSEDED／DO NOT EXECUTE**：本段是既有部署與 bug 修正紀錄，不是 current deploy checklist；不得依本段重新執行 `wrangler deploy`、cache purge 或其他外部操作。
 
 ## 使用者已明確授權的部署決策
 
@@ -1509,3 +1552,935 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - ✅ Cloudflare Pages production deployment `22527b61-ce76-4ca9-9225-ec8365bd43a2`（source `a67d38d`）已部署；`/`、`/gatherings/` 正式 HTML 回讀 `navigator.maxTouchPoints` 與 `html[data-touch-nav]`；`/app/` 回讀 `index-s6CRvfvH.css`。
 - ✅ 驗證：typecheck、lint、Vitest `71 passed / 1 skipped`、build、static touch-nav contract、`git diff --check` PASS。
 - ⚠️ 尚未取得實體 iPad screenshot E2E；請在正式網域強制重新整理一次，並分別驗證直式／橫式右上角漢堡可見、可開啟、可關閉。若仍看到舊版，先使用無痕視窗再回報當下 URL 與 Safari 是否開啟「要求桌面版網站」。
+
+## 2026-08-15：canonical seat-engine B 與社群 metadata hardening
+
+- ✅ 依已取得授權套用 forward-only migration
+  `20260815040000_canonical_seat_engine_direct_update_revoke_b`；正式 ledger 已含
+  `20260814175513`、`20260815030000` 與 B migration。
+- ✅ 遠端 read-back：`events.capacity`、`invite_reserved_seats`、`invite_pool_deadline`、
+  `invite_pool_released_at` 對 `anon`／`authenticated` 均無 direct UPDATE；
+  `update_event_capacity_settings(uuid,text,integer,integer,timestamptz)` 僅 authenticated
+  可執行，anonymous direct DML 回傳 `permission denied for table events`。
+- ✅ Worker／前端 version `e0fcc0c2-c834-480b-b9d3-424783e20b19` 已部署至
+  `gather.wedopr.com/app/*`；活動頁 GET HTTP 200、`X-Robots-Tag: noindex, nofollow`，
+  OG／Twitter 活動事實一致。
+- ✅ 活動自訂代表圖可能不是 1200×630，Worker 已移除未量測的固定 `og:image:width`／height
+  宣告；新增 Worker regression test。正式活動頁 read-back 未再出現錯誤尺寸 metadata。
+- ✅ Node 22 gates：typecheck、lint、Vitest `119 passed / 1 skipped`、build、smoke 全部通過；
+  skip 為缺少測試 DB URL 的真實 concurrency suite，不列為 PASS。
+- ✅ commit `314f6bf`（canonical hardening）與 `19b9101`（social metadata hardening）已
+  推送至 `origin/codex/gather-mvp`，目前工作樹乾淨。
+- ⚠️ 文化主站首頁仍由獨立 Cloudflare Pages 提供；本輪已透過 Git integration 發布 metadata
+  修正並完成正式 read-back。LINE failure matrix、第二獨立帳號與 Cloudflare Access staging
+  仍未完成；event_fields 依本輪裁決不納入。
+
+## 2026-08-15：文化主站首頁社群 metadata read-back
+
+- ✅ `index.html` 的一般 description、`og:description`、`twitter:description` 已統一。
+- ✅ Git integration Pages deployment source `b3c1bf7` 已建立；正式 `https://gather.wedopr.com/`
+  HTML read-back 三組 description 完全一致。
+
+## 2026-08-15：Orion Closure Squad／Wave 0 啟動
+
+### Goal
+
+- 以 `聚場台灣 Orion Closure Squad`、T1 orchestrator-workers 與目標模式，建立 Wave 0–6 的可重啟控制面。
+- Wave 0 先收束 manual roster P0：固定 app／DB／Worker／Git／CI 證據層級，確認既有 wrapper／RPC 契約，並為 Wave 1 Release baseline 與 Wave 2 線上報名者管理留出最小 allowlist。
+
+### Non-goals
+
+- 本段不施工 event_fields、不新增登入／通知／金流／名單政策、不改真實 DB、不直接改 `auth.users`，不執行 deploy、rollback、commit 或 push。
+- 不把文件、local build、Worker read-back 或既有 production evidence 擴寫成 remote DB、GitHub CI、staging、device 或 Pilot PASS。
+
+### Explicit authorization and hard-risk gate
+
+- MING 已由本次提示詞明確授權：唯讀／測試／瀏覽器 QA；本 repo code／test／docs／migration；相容 dependency patch；隔離 worktree；明確 allowlist commit／push／PR；CI＋Fresh 通過後 merge；合格 forward-only migration；既有 Worker／Pages deploy／rollback；以上不需重問，仍須留下 evidence。
+- hard-risk gate confirmation 已由本提示詞提供。六類 MING hard stop 逐字收錄於 `docs/squad/CHARTER.md`：刪覆／不可逆正式資料、破壞性 DB 操作、產品定位、法律／隱私／費用／品牌、新 secret／2FA／LINE／Cloudflare／Supabase Console owner 操作、真實資料損壞且修復影響使用者。
+
+### Affected candidates and absolute boundaries
+
+- 候選檔案／系統：`docs/squad/CHARTER.md`、`docs/squad/LEDGER.md`、`implementation-control-log.md`；Wave 1 候選為 `apps/join/scripts/smoke.mjs`、`smoke-staging.mjs`、CI gate 與最小 mutation test；Wave 2 候選為 manual／online registration RPC、API wrapper、主辦名單 UI 與 verifier。
+- 絕不觸碰：本段以外的程式／SQL／資產、event_fields、付款模型、LINE／Cloudflare／Supabase Console owner 設定、secrets／2FA、真實資料與 `auth.users`；不得 `git add -A`。
+
+### Wave 0 acceptance and evidence
+
+- Acceptance：Atlas fixed point done／acceptance pending；LOCAL Git clean、local refs `50 ahead / 0 behind`、Node `24.15`、pnpm `10.33.2`；production Worker version `e0fcc0c2-c834-480b-b9d3-424783e20b19`、route `gather.wedopr.com/app/*`、assets／headers read-back PASS；GitHub `BLOCKED`、remote DB `NOT_RUN`。
+- DB discovery done／acceptance pending：三個 Wave 2 RPC 缺口為主辦人對線上報名者 confirm、decline、remove；最小 allowlist 為 forward-only migration（狀態／ACL／RLS／audit／席次／通知不變量）＋API wrapper／UI／測試／rollback verifier。
+- APP discovery done／acceptance pending：manual roster 為前端 Supabase wrapper，Worker 無 roster API；Wave 0 app 不改。manual `user_id is null` 沒有 recipient，不造 outbox。
+- Evidence labels：`STATIC`、`LOCAL`、`CI`、`STAGING`、`PRODUCTION`、`DEVICE`、`NOT_RUN`；Fresh Reviewer 尚未驗收，pending 不得改寫成 PASS。
+
+### Rollback and decisions
+
+- Rollback：後續 corrective migration＋既有 Worker version 回退；本段尚未執行 rollback。
+- AI decisions：Wave 0 app 不改；event_fields 排除；manual null recipient 不造 outbox；Wave 1 先修 hermetic smoke／Release baseline，再進 Wave 2 三個 online-registration RPC 缺口。
+- Blockers：GitHub workflow／CI read-back `BLOCKED`；remote DB read-back `NOT_RUN`；W0-FRESH pending。Echo 已由 needs-correction 修正為 done，Forge-DB implementation in-progress。
+
+## 2026-08-15：Wave 0 Fresh decision — REJECT
+
+### Decision
+
+- Fresh 結論：**needs-correction／REJECT（P0=0、P1=6）**。普通 LOCAL typecheck／lint／test／security／build／smoke 即使全綠，也只能證明一般 gate，不能抵銷 manual roster semantic REJECT。
+- Wave 0 不得關閉、不得進 Wave 1；Forge-DB correction 維持 `in-progress`，完成後須由 fresh context 重驗。
+
+### P1 findings
+
+1. **state transition**：狀態轉移語意尚未形成可接受的 fail-closed contract。
+2. **confirmed insert**：confirmed insert 路徑尚未證明受同一席次不變量保護。
+3. **total＋pool capacity**：總容量與 pool 容量必須同時約束，現有證據不足。
+4. **FIFO 插隊**：manual roster 不得繞過既有候補 FIFO 順序。
+5. **鎖序 deadlock**：鎖取得順序仍有 deadlock 風險，需固定鎖序並補 concurrency evidence。
+6. **negative verifier aborted transaction**：預期錯誤令 transaction aborted，後續斷言失效；負向 verifier 必須以 savepoint／rollback 隔離。
+
+### P2 follow-up
+
+- **concurrency zero-residue**：併發 verifier 結束後必須讀回 synthetic fixture 零殘留。
+- **audit snapshot**：補 before／after audit snapshot，證明狀態、席次與 actor 記錄一致。
+
+### Corrective plan and evidence boundary
+
+- Forge-DB 依最小 allowlist 修正 migration／verifier／package wiring；先跑 focused semantic／mutation cases，再跑普通 LOCAL gates，最後交 Fresh 重驗。
+- DB runtime、remote DB、production 均為 `NOT_RUN`；GitHub／CI 為 `BLOCKED`。不得用 LOCAL green、歷史 Worker production evidence 或文件 read-back 代替。
+- rollback 尚未執行。本輪沒有套用 remote migration 或部署 Worker；若後續已套用 migration 才發現問題，只能新增 corrective forward-only migration，Worker 則回退至既有已驗證版本。
+
+## 2026-08-15：Wave 0 Fresh2 decision — REJECT／correction round 3
+
+### Decision
+
+- Fresh2 結論：**needs-correction／REJECT（P0=0、P1=3、P2=2）**。Wave 0 維持開啟，Forge-DB correction round 3 為 `in-progress`。
+- 普通 LOCAL gates 綠燈仍不能抵銷 semantic REJECT；DB runtime／remote／production 維持 `NOT_RUN`，GitHub／CI 維持 `BLOCKED`。
+
+### P1 findings
+
+1. **deadlock retry**：retry 契約仍未形成可接受的可重跑證據。
+2. **managed `auth.users` DML**：correction／verifier 仍碰到 managed `auth.users` 直接 DML 邊界。
+3. **trim／audit 不實**：trim 與 audit snapshot 未如實反映實際持久化的 before／after 值。
+
+### P2 follow-up
+
+- **concurrency params**：concurrency verifier 的參數與預期結果仍需完整斷言。
+- **台帳未同步**：correction round、驗證狀態與台帳 evidence 尚未同步；本段與 LEDGER 已開始修正，但仍待 Fresh3 驗收。
+
+### Correction round 3 and stop rule
+
+- Forge-DB round 3 僅修正上述 P1×3、P2×2，完成 focused semantic／mutation evidence 與普通 LOCAL gates 後交 Fresh3。
+- 若 Fresh3 再出現同類 P1，立即停止疊加 patch，回到 Orion 架構裁決；未裁決前不得以更多局部 migration／verifier patch 推進。
+- rollback 尚未執行；本輪沒有 remote DB、production 或 CI 執行證據。
+
+## 2026-08-15：Wave 0 Fresh3 decision — REJECT／Orion architecture replacement
+
+### Decision
+
+- Fresh3 結論：**needs-correction／REJECT（P0=0、P1=2）**。Fresh、Fresh2、Fresh3 前三輪普通 LOCAL gates 即使全綠，也不能抵銷 semantic REJECT。
+- Forge-DB correction round 3 停止疊加局部 patch，改由 Orion 已裁決的 architecture replacement 推進，狀態為 `in-progress`。
+
+### P1 findings
+
+1. **invite pool bypass**：manual／invite 路徑仍可繞過 invite pool 的共用容量邊界。
+2. **promotion audit actor／usage**：promotion audit 尚未同時保存正確 actor 與實際 capacity usage。
+
+### Orion architecture decision
+
+- 採 backward-compatible capacity envelope：`event_capacity_usage` 保留既有 keys，新增 `limits`、`available`、`within_limits`、`merged`，避免破壞既有 caller。
+- manual／invite 保留各自狀態機，但統一使用同一 capacity envelope；token verifier 必須讀回 after-state 並驗證 rollback；promotion 改用 actor-aware core，另保留 2-arg wrapper 作為相容入口。
+- 選擇理由：繼續增加局部 `if` 會讓容量規則跨路徑漂移；萬能 candidate helper 則過度抽象，帶來較高相容風險。
+
+### Migration branch and evidence boundary
+
+- 若 `20260815060000_manual_roster_capacity_seat_engine_fix.sql` 尚未套用，直接在原檔收斂；若 remote migration ledger 讀回顯示已套用，改新增下一支 forward-only corrective migration。Remote ledger 尚未讀回，不預先宣稱任何分支成立。
+- DB runtime、remote DB、production 仍為 `NOT_RUN`；GitHub／CI 仍為 `BLOCKED`。本段未執行 DB、migration、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Migration-list false alarm 解除
+
+### Evidence correction
+
+- `supabase migration list --local` 的 `Local` 欄代表 filesystem migration 是否存在；只有 `Remote` 欄代表目標 DB 的 applied 狀態。`Local` 欄不得作為 remote apply 放行證據。
+- 直接唯讀查詢目標 DB catalog `supabase_migrations.schema_migrations`，`20260815060000` 結果為 `MISSING`；因此該 migration 尚未套用，可繼續修改原 untracked `20260815060000_manual_roster_capacity_seat_engine_fix.sql`。
+- 這只解除 migration-list false alarm，不代表 DB runtime／remote migration／production PASS。正式 remote 套用前仍必須重新取得 remote migration ledger 與目標 function definitions read-back。
+
+### Work status
+
+- Forge-DB architecture replacement 恢復 `in-progress`，依 Orion backward-compatible capacity envelope 裁決繼續收斂原 migration。
+- GitHub／CI 仍為 `BLOCKED`；DB runtime／remote migration／production 仍為 `NOT_RUN`。本段沒有寫入敏感值，也未執行 migration、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Wave 0 Fresh4 decision — REJECT／Orion conservative identity
+
+### Decision and P1 findings
+
+- Fresh4 結論：**needs-correction／REJECT（P1=2）**；普通 LOCAL gates 不能抵銷 identity／cardinality semantic REJECT。
+
+1. **manual／invite mutable `display_name` dedupe**：可變姓名不得作為 identity 或 capacity 去重鍵，rename 不得改變 usage。
+2. **多重同名 cardinality**：不同人的同名資料不得被折成單一 seat；`registration` 與 `attending` invite 必須各自計席。
+
+### Orion conservative identity decision
+
+- MING 原計畫在 Wave 3 才建立 explicit linkage，且不得只靠 `display_name`；Wave 0 不提前引入推測性身份關聯。
+- Wave 0 移除姓名去重，讓 registration 與 attending invite 各自計席，並保證 rename 不改 usage；保守高估優先於 oversell。
+- Forge-DB 維持 `in-progress`，依此裁決修正原未套用 migration 與 verifier，完成後交 fresh-context 重驗。
+
+### Pre-apply hard stop and evidence boundary
+
+- 正式 apply 前只執行 aggregate-only preflight，不讀出或保存個人明細。若任何既有 event 在保守計量下超額，或後續修復將影響真實使用者，命中 MING hard stop，必須停止並回報裁決。
+- DB runtime／remote migration／production 仍為 `NOT_RUN`；GitHub／CI 仍為 `BLOCKED`。本段未執行 DB、migration、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Wave 0 Fresh5 decision — REJECT／reader consistency
+
+### Decision and P1 finding
+
+- Fresh5 結論：**needs-correction／REJECT（P1 reader consistency）**。RSVP canonical total 與 private invitation reader 的 reload 容量數字不一致。
+- 根因是 private invitation reader 仍沿用舊 `display_name` dedupe；舊 guest verifier 又固化舊數值，因此未能偵測 reader 與 canonical total 的漂移。
+
+### Correction boundary
+
+- Correction 只讓 private invitation reader 的容量 facts 讀取 capacity envelope，並將最小 guest verifier assertion 改為驗證 canonical total 與 reload reader 一致。
+- 名單呈現、公開／私密政策與其他產品行為不改；不得藉 reader consistency 擴大 Wave 0 scope。
+- Forge-DB 維持 `in-progress`，完成 correction 後交 fresh-context 重驗。
+
+### Evidence boundary
+
+- DB runtime／remote migration／CI／production 仍為 `NOT_RUN`；GitHub 仍為 `BLOCKED`。本段未執行程式／migration 修改、DB、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Wave 0 Fresh6 decision — REJECT／verifier evidence
+
+### Decision and P1 findings
+
+- Fresh6 結論：**needs-correction／REJECT（P1×2）**。
+
+1. **capacity verifier actor fixture**：random UUID 被誤標為 staff，實際只證明 non-member；correction 改用 explicit member ID，並將案例正名為 non-organizer。
+2. **guest verifier rollback residue**：rollback 後缺少逐表 zero-residue read-back；correction 必須逐表證明 synthetic fixture 無殘留。
+
+### Evidence boundary
+
+- Migration source 其餘 semantic checks 為 PASS，但只代表局部 source evidence，不等於 Fresh acceptance、Wave 0 closure、DB runtime 或 remote evidence。
+- Forge-DB 維持 `in-progress`；DB runtime／remote migration／CI／production 均為 `NOT_RUN`，GitHub 仍為 `BLOCKED`。本段未執行程式／migration 修改、DB、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Wave 0 Fresh7 acceptance／isolated runtime in-progress
+
+### Acceptance
+
+- Fresh7 結論：**ACCEPTED（STATIC／LOCAL-code，P0=0、P1=0）**。
+- Node 24 evidence：`51/51`、`173 passed / 1 skipped`、`14/14`、build PASS。Skipped case 不得視為 DB runtime 證據。
+- 此 acceptance 不包含 DB runtime、CI、remote DB 或 production；各層仍為 `NOT_RUN`，GitHub 仍為 `BLOCKED`，Wave 0 尚未關閉。
+
+### Isolated runtime plan
+
+- Forge-DB 維持 `in-progress`。runtime 使用獨立 `project_id`、專用 port range 與 temporary root，不啟停、重設、重用或污染 existing stack。
+- Synthetic identities 只透過 Admin API 建立與清理，不直接對 managed `auth.users` 執行 DML。
+- Runtime gates：capacity、concurrency、guest 三個 verifiers；migration catalog read-back；function／table ACL；RLS；aggregate-only preflight；最後逐項 cleanup 與 zero-residue read-back。
+- 任一 gate 未完成或 cleanup 有殘留即不得宣稱 runtime acceptance。本段只記錄方案，未執行 DB、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Isolated runtime hard stop／Atlas fallback in-progress
+
+### Runtime attempt result
+
+- 兩次 temporary Supabase start 均在 pull／health／timeout 階段失敗；兩次過程 Wave0 resources 始終為 `0`，因此沒有可執行的 isolated DB runtime。
+- Migrations、migration catalog read-back、aggregate-only preflight，以及 capacity／concurrency／guest 三個 verifiers 全部 `NOT_RUN`。
+- 不做第三次同路線 retry；此路線已 hard stop。Atlas single-DB fallback 只做唯讀調查，狀態為 `in-progress`。
+
+### Cleanup and existing-stack evidence
+
+- 兩個 temporary targets 均已對 exact target cleanup；cleanup 後 Wave0 resources=`0`。
+- Existing baseline 的 13 IDs／ports、2 volumes、1 network 均 unchanged。Strict health snapshot mismatch 來自 existing edge-runtime 的既有 exited 狀態，非本輪建立、改動或殘留。
+
+### Acceptance boundary
+
+- Fresh7 `ACCEPTED（STATIC／LOCAL-code，P0=0、P1=0）` 保留，但不包含 DB runtime、CI、remote DB 或 production；Wave 0 尚未關閉。
+- DB runtime／remote／CI／production 維持 `NOT_RUN`，GitHub 維持 `BLOCKED`。本段沒有 migration apply、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Fallback3 partial runtime／Fresh diagnosis in-progress
+
+### Runtime evidence
+
+- PASS：isolated DB 啟動；32 migrations 套至 latest `20260815060000`；migration catalog、SECURITY DEFINER／`search_path`／reader、ACL、5 項 RLS 與 aggregate-only preflight=`0` 通過。
+- PASS：GoTrue health；透過允許的管理介面建立 2 個 synthetic identities，profiles read-back 通過；guest 與 capacity verifiers 通過，rollback residue=`0`。
+- FAIL：concurrency verifier 回報 sanitized `database_connection`。此為 one-shot，依邊界不 retry；runtime overall 不合格、Fresh not ready，Fresh diagnosis 為 `in-progress`。
+
+### Cleanup and evidence boundary
+
+- Cleanup read-back：synthetic identities=`0`、Wave0 resources=`0`、temporary target 已刪除、existing stack unchanged。
+- Fresh7 STATIC／LOCAL-code acceptance 保留，但 Fallback3 的局部 runtime PASS 不等於 runtime overall acceptance；remote DB、CI、production 仍為 `NOT_RUN`／`BLOCKED`，Wave 0 未關閉。
+- 本段不記錄 secrets 或 IDs，未執行 retry、remote migration、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Concurrency root-cause diagnosis／safe instrumentation
+
+### Diagnosis boundary
+
+- Sanitized `database_connection` 不能唯一判定根因。H1 是 connection slots；H2 是 business `53300`／class `53` collision；兩者維持待 DB diagnostic 區分的競爭假說。
+- 已確定的 observable bug 是 concurrency verifier 在 error rewrap 時丟失原始 `phase`／`code`，導致 infrastructure 與 business failure 無法安全分類。
+
+### Orion decision and work status
+
+- 先做 safe fixed-field diagnostic，只補定位所需固定 `phase`／`code`；禁止輸出 message、stack、query、params、address、port、DSN 或 IDs。
+- DB diagnostic 前禁止先改 retry、pool 或 SQLSTATE 語意。Forge-DB instrumentation 後續已完成並獲 Fresh LOCAL-code acceptance；DB diagnostic 仍為 `pending`，runtime overall 不合格、Wave 0 未關閉。
+- 本段未執行 DB diagnostic、retry、remote migration、deploy、rollback、commit 或 push。
+
+## 2026-08-15：Wave 0 blocker final sync／local WIP safepoint candidate
+
+> **HISTORICAL／DO NOT EXECUTE**：本段只保留 2026-08-15 的追溯證據。其「下一步執行一次 concurrency diagnostic」與舊 external blockers 已被 current fixed point supersede，不得照做；目前只交獨立 Fresh reviewer，不重跑 one-shot gate。
+
+### Acceptance and runtime evidence
+
+- Safe diagnostic 已由 Fresh **ACCEPTED（LOCAL-code）**；此 acceptance 只涵蓋 fixed-field instrumentation，不是 DB runtime acceptance。
+- Fallback3 DB runtime partial PASS：32 migrations（latest `20260815060000`）、catalog、ACL、RLS、aggregate preflight=`0`、guest 與 capacity verifier；concurrency verifier `FAIL`，runtime overall 不合格。
+- 後續 phase-aware one-shot 在 bootstrap 階段失敗，所有 safe diagnostic fixed fields=`null`／`NOT_RUN`；未取得 phase，不能進行 root-cause 判定。
+- Cleanup read-back：Wave0 resources=`0`、temporary target deleted、existing stack unchanged。
+
+### External blockers and gate
+
+- External blockers：isolated runtime 不穩定；GitHub auth invalid；remote DB credential unavailable。
+- Wave 0 未關閉，Wave 1 不得開；本輪沒有 remote migration、deploy 或 push。
+- [HISTORICAL／DO NOT EXECUTE] 下一步僅在 Docker／db-start 穩定後執行一次 concurrency diagnostic；此步驟已被 current fixed point supersede，不得照做；目前只交獨立 Fresh reviewer。
+
+### Safepoint boundary
+
+- 目前本機 dirty WIP 可作 safepoint candidate，供後續在同一 fixed point 重啟；明確不是 release、DB acceptance、remote apply 或 deployment readiness。
+
+## 2026-08-15：Local WIP safepoint established
+
+### Commit evidence
+
+- Local commit：`669f42d9efb4b7ccdb239bd3a561ffcbb8e9bdf0`；message：`wip(join): checkpoint wave 0 capacity hardening`。
+- Exact 9-file allowlist：`apps/join/package.json`、`apps/join/scripts/migration-contract.test.ts`、`apps/join/scripts/verify-guest-invitations.mjs`、`apps/join/scripts/verify-manual-roster-capacity.mjs`、`apps/join/scripts/verify-manual-roster-concurrency.mjs`、`apps/join/supabase/migrations/20260815060000_manual_roster_capacity_seat_engine_fix.sql`、`docs/squad/CHARTER.md`、`docs/squad/LEDGER.md`、`implementation-control-log.md`。
+- Post-commit read-back：working tree clean；未 push、tag 或建立 PR。此證據只成立於 commit 建立當下；本次 Echo 兩份 docs sync 是後續未提交差異，不在 `669f42d` 內。
+
+### Boundary and restart concept
+
+> **HISTORICAL／SUPERSEDED／DO NOT EXECUTE**：本段 safepoint restart 流程只供追溯；其中的 Docker／DB 恢復後 concurrency diagnostic 已被 current fixed point supersede，不得照做。目前唯一下一步是獨立 Fresh reviewer。
+
+- `669f42d` 只是一個 local WIP safepoint，不是 release、DB runtime acceptance 或 Wave 0 closure；Wave 1 不得開。
+- External blockers 保持：isolated runtime 不穩、GitHub auth invalid、remote DB credential unavailable；未執行 remote migration、deploy 或 push。
+- [HISTORICAL／SUPERSEDED／DO NOT EXECUTE] 重啟時先讀回 branch／HEAD／dirty baseline；Docker／db-start 穩定後只跑一次 phase-aware concurrency diagnostic，若取得 phase 再做 root-cause 判定，之後交 Fresh runtime 驗收。此流程已被 current fixed point supersede，不得照做；目前只交獨立 Fresh reviewer。
+
+## 2026-08-17：Docker 恢復後續作／runtime gate 再驗證（未關閉）
+
+> **HISTORICAL／SUPERSEDED／DO NOT EXECUTE**：本段只保留當時 isolated runtime 嘗試；其中的 fixture cleanup／concurrency 重跑流程已完成或被 current fixed point supersede，不得照做。目前唯一下一步是獨立 Fresh reviewer。
+
+### 已完成
+
+- Docker daemon 已恢復；`gather-join-diag-01`（`127.0.0.1:58332`）與 `gather-join-p1` 均為 running／healthy。
+- 既有 phase-aware concurrency one-shot 證據保留：`manual roster concurrency verifier: PASS confirmed=1 waitlisted=5`；本輪不以相同測試重跑結果覆寫該證據。
+- 本輪 guest verifier 完整 PASS：token、RLS、aggregate count、duplicate roster、capacity contract，以及 rollback zero-residue 均通過。
+- `apps/join` `pnpm build` PASS；產物讀回 client bundle `593.15 kB`，Vite `>500 kB` warning 仍存在。
+
+### 未完成／硬停止原因
+
+- 本輪為 capacity／guest gate 建立的一次性 member fixture 尚未刪除；cleanup 與本輪 concurrency 重跑需要本地 DB escalation，但執行環境回覆 usage limit，依規則停止，不改用繞路執行。
+- 因 fixture 尚未清除，不能宣稱本輪 full isolated runtime acceptance，也不能交 Fresh runtime acceptance；catalog／ACL／RLS 的既有證據仍是前輪 read-back，未在本輪重新宣稱為新證據。
+- Remote DB migration／runtime、CI、production、deploy、rollback、commit、push 均未執行；GitHub auth 仍 `BLOCKED`。
+
+### 安全與邊界
+
+- 測試只使用本地隔離 DB 與 synthetic identities；未回傳、落檔或重用任何 service-role key、密碼或正式 secrets，既有其他 Docker stacks 未操作。
+- [HISTORICAL／SUPERSEDED／DO NOT EXECUTE] Wave 0 維持開啟，Wave 1 維持 blocked；待 execution escalation 恢復後，先 cleanup fixture，再做一次 phase-aware concurrency 與 catalog／ACL／RLS read-back，最後才交 Fresh runtime。此流程已被 current fixed point supersede，不得照做；目前只交獨立 Fresh reviewer。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-18：最終 handoff 與 Git publish 邊界
+
+- 新增 `docs/squad/HANDOFF.md` 作為短期 session 交接文件，引用 LEDGER／control log，不取代長期台帳。
+- 本 session 的交付範圍：handoff、runtime 未完成項、續接 prompt、驗證命令與 evidence boundary；不宣稱 Wave 0 closure、Fresh acceptance、remote migration 或 production deploy。
+- Git publish 需只 stage 明確的本次檔案；`gh auth status` 顯示目前 token invalid，因此若 Git remote push 認證失敗，必須在 push 前停止並回報，不得繞過認證。
+- 實際結果：`git push -u origin codex/gather-mvp` 成功，remote branch 已讀回 `e2cdeb9e4dddcd95d30bd3e5cf34ab2d74ce438b`；此為 Git remote publish，不是 production deploy 或 Wave 0 acceptance。
+
+## [HISTORICAL／SUPERSEDED／DO NOT EXECUTE] 2026-08-18：Wave 0 runtime closeout attempt（blocked，isolated local only）
+
+### Fixed point and scope
+
+- 實際 fixed point：branch `codex/gather-mvp`、`HEAD=7a55d9a`；`c483248` 是較早 checkpoint。working tree 初始為 clean；`git -c core.fsmonitor=false` read-back clean，原始 Git fsmonitor query 曾回報 environment error。
+- 僅處理 `/private/tmp/gather-join-runtime` 的 `gather-join-diag-01` local target、DB port `58332` 與其 synthetic fixture；未做 reset、broad cleanup、remote migration、production deploy、rollback 或 push。
+
+### Cleanup result
+
+- 唯讀 cardinality safety check：owner `auth.users/public.users` 各 1，non-owner member fixture 各 1；未輸出或保存 member UUID、email、token 或 key。
+- 透過 local Auth Admin API 的精確 cleanup 呼叫先因 raw quoted key 回 `403`，修正為正確 local env parsing 後回 `504`；自然等待後 zero-residue cardinality 仍為 owner 1、non-owner 1。未改用 managed `auth.users` direct DML，未再 retry。
+- Cleanup gate：**FAIL／未完成**。synthetic member fixture 仍有 residue；不可進入 full isolated runtime acceptance。
+
+### Fresh isolated local read-back
+
+- Migration catalog：`applied_count=32`、`20260815060000` present、latest=`20260815060000`，**PASS（isolated local）**。
+- ACL：token-only invitation RPC 的 anon/authenticated execute、manual roster authenticated execute、PUBLIC 不可 execute，**PASS（isolated local）**。
+- Capacity function envelope definition，**PASS（isolated local）**；aggregate-only conservative preflight=`0`，**PASS（isolated local）**。
+- RLS：8 張 Wave 0 相關表中 7 張同時 enabled＋forced；`public.event_invitation_targets` 為 enabled 但未 forced，**FAIL（isolated local read-back）**。本輪不自行修 migration。
+
+### Gate and evidence boundary
+
+- 因 cleanup zero-residue 未成立，本輪 phase-aware concurrency verifier **NOT_RUN**；沒有新增 concurrency PASS，也沒有 retry。Fresh runtime review **NOT_READY**。
+- Wave 0 維持未關閉；Wave 1 維持 blocked。以上 local/static/isolated evidence 不轉譯為 remote DB、CI、staging 或 production evidence。
+- 未處理 593 kB bundle warning；未擴大 scope。上述「後續須先處理 fixture cleanup／zero-residue 與 RLS gate，再決定是否可跑唯一一次 concurrency verifier」僅為歷史追溯，已被 current fixed point supersede，禁止照做；目前不得重跑 one-shot concurrency，唯一下一步依 current handoff 為合法 remote read-only connector 恢復後的 current read-back 與 Fresh review。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-18：authorized continuation／RLS correction and managed-auth blocker
+
+### RLS correction
+
+- 新增 repo migration：`apps/join/supabase/migrations/20260818121055_event_invitation_targets_force_rls.sql`，內容僅為 `alter table public.event_invitation_targets force row level security`。
+- `supabase db push --local --yes` 受 host port `58332` timeout 阻塞；未連 remote。改由明確的 `supabase_db_gather-join-diag-01` local DB container 內執行同一 migration SQL 並記錄 version，非 production／remote 操作。
+- Read-back：migration catalog `33`、`20260818121055` present、RLS `8/8` enabled＋forced、ACL PASS、capacity envelope PASS、aggregate preflight `0`；以上均為 isolated local。
+
+### Cleanup follow-up
+
+- 先完成唯一 non-owner fixture 的 domain reference read-back：profile=`1`，organizer／event／registration／manual-added／invitation／audit／idempotency／notification／outbox references 全為 `0`。
+- 依 exact allowlist 精確刪除該 local `public.users` profile，成功；未刪其他資料。
+- local Auth Admin DELETE 與 GET 對 residual auth identity 均回 `404`；DB read-back 顯示 owner auth=`1`、non-owner auth=`1`、owner profile=`1`、non-owner profile=`0`。`auth.instances=0`，non-owner `instance_id` unmatched。
+- 這是 managed `auth.users` orphan fixture；本輪不自行改用 direct `auth.users` DML。Cleanup／zero-residue 仍 **FAIL**，concurrency verifier **NOT_RUN**，Fresh runtime **NOT_READY**。
+
+### Next gate
+
+- 需要對「唯一 local orphan auth fixture 是否可採 direct local cleanup」取得明確 action-specific authorization；在此之前不得碰 `auth.users`，也不得跑 concurrency。
+- Wave 0 維持未關閉；Wave 1 維持 blocked；不處理 593 kB bundle warning，不做 remote migration／deploy／push。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-18：authorized orphan cleanup／concurrency one-shot complete
+
+### Exact local cleanup
+
+- 使用者明確授權只在 `/private/tmp/gather-join-runtime` 的 `gather-join-diag-01` isolated local DB，刪除唯一 synthetic orphan `auth.users` row；不得碰其他資料、remote／production、reset 或 broad cleanup。
+- 依既有 cardinality 與 domain-reference safety check，執行一筆 direct local `auth.users` delete；未輸出或保存 UUID、email、token、key。
+- Zero-residue read-back：owner auth/profile=`1/1`；non-owner auth/profile/session=`0/0/0`；domain references=`0`。
+
+### Concurrency and final local read-back
+
+- 只跑一次 `verify-manual-roster-concurrency.mjs`：`PASS confirmed=1 waitlisted=5`；未 retry。
+- Post-verifier independent read-back：race organizers/events/audit=`0/0/0`；catalog=`33`、`20260818121055` present、RLS=`8/8`、ACL PASS、capacity envelope PASS、aggregate preflight=`0`。
+- Static regression：`179 passed / 1 skipped`；Node `20.20.2` engine warning 仍存在，但測試通過。
+
+### Fresh review boundary
+
+- Isolated local runtime gate evidence 已備妥，可交獨立 Fresh reviewer；本 session 不自我宣稱 Fresh acceptance 或 Wave 0 closure。
+- 目前工具沒有可派 fresh-context reviewer 的 subagent 能力，因此 Fresh reviewer status=`READY_TO_REVIEW`，不是 `ACCEPTED`。
+- Wave 0 維持未關閉；Wave 1 維持 blocked；未做 remote migration／CI／production／deploy／rollback／push，593 kB bundle warning 未處理。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-18：independent Fresh runtime review
+
+- User requested an independent external reviewer. Reviewer `Faraday` ran a fresh-context, read-only review of the repo evidence and isolated local DB; no file mutation, DB write, concurrency rerun, migration apply, DELETE, reset, broad cleanup, remote/production action, commit, or push occurred.
+- Verdict：`READY_WITH_BLOCKERS`。
+- `[ISOLATED LOCAL / reviewer read-only]` catalog=`33`、target migration present、RLS=`8/8` enabled＋forced、ACL=`9/9 exact match`、capacity envelope PASS、aggregate preflight=`0`。
+- `[ISOLATED LOCAL / prior recorded evidence—not rerun]` concurrency=`PASS confirmed=1 waitlisted=5`；本案 one-shot boundary preserved。Zero-residue 亦為既有 isolated local evidence，非本次 fresh 行為測試。
+- Fresh conclusion：isolated local runtime gate `ACCEPTED`，但 Wave 0 overall `NOT_ACCEPTED for closure`；remote DB／CI／staging／production 未驗收，migration 尚未 commit；Wave 1 維持 `BLOCKED`。
+- Required follow-up：owner 另行 exact-allowlist commit 必要檔案，取得 remote／CI／staging／production read-back 後，再重新評估 Wave 0 closure。Local／isolated evidence 不得宣稱為 release-ready。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-18：authorized remote test-event cleanup
+
+- `[REMOTE / read-only preflight]` 唯一 over-limit event=`1`；registrations=`7`、event_invitation_targets=`9`、audit_logs=`82`；其他明確 domain child rows=`0`；auth.users=`4`、public.users=`3`。
+- `[REMOTE / authorized destructive scope]` 單一 transaction 只刪除該 event 與其明確關聯 domain child rows；delete result：events=`1`、registrations=`7`、event_invitation_targets=`9`、audit_logs=`82`，其餘 allowlisted child rows=`0`。未碰 auth.users／public.users／其他 events，未做 reset／rollback／broad cleanup。
+- `[REMOTE / independent zero-residue read-back]` over-limit event=`0`；orphan registrations／registration_answers／event_invitation_targets／event_fields／event_invitees／event_blocklist／event_password_grants／audit_logs／notifications／outbox_events／idempotency_requests 全為 `0`；auth.users=`4`、public.users=`3` unchanged。
+- Gate：缺少的 `20260815060000_manual_roster_capacity_seat_engine_fix.sql` 尚未套用；`gather-taiwan` deploy 尚未執行。需另取得該 migration 明確授權後，才可重新完成 remote catalog／function／ACL／RLS／aggregate read-back。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-18：Wave 0 closeout evidence sync／CI-staging-Fresh pending
+
+### Fixed point and allowlist
+
+- Current fixed point：branch=`codex/gather-mvp`、HEAD=`a21ce2b`、origin 同步、working tree clean；本次只允許更新 `docs/squad/LEDGER.md`、`docs/squad/HANDOFF.md`、`implementation-control-log.md`。
+- 不修改 migration、source、test、package、workflow；不執行 remote migration、DELETE、reset、rollback、broad cleanup 或 concurrency retry。
+
+### Current external read-back
+
+- `[REMOTE / read-only]` Supabase migration catalog=`33`；`20260815060000_manual_roster_capacity_seat_engine_fix.sql` 與 `20260818121055_event_invitation_targets_force_rls.sql` 均 present。
+- `[REMOTE / read-only]` expected function definitions=`9/9` conforming（SECURITY DEFINER＋search_path）；ACL matrix PASS；8 張 Wave 0 RLS tables=`8/8` enabled＋forced；aggregate preflight=`0`。
+- `[REMOTE / prior authorized operation]` 唯一 over-limit test event 與明確 domain child rows 已清除；zero-residue read-back PASS；auth.users=`4`、public.users=`3` unchanged。
+- `[PRODUCTION / read-only]` Cloudflare Pages `gather-taiwan` production source=`a21ce2b`；deployment URL `https://1ba56fa0.neo-rechao.pages.dev` 與 canonical `https://gather.wedopr.com` 均 HTTP `200`，title read-back 正確。
+
+### Remaining gates
+
+- `[CI / read-only]` PR #1／run `32146604033` 的 `verify` 與 `local-supabase` 均 PASS；Node 20 deprecation annotation 不影響結果。
+- `[STAGING / read-only]` target=`gather-join-staging` version=`82b00639-298b-4f73-aa91-d3169c75258a` 100% traffic；build／local smoke PASS；workers.dev homepage=`200`、未帶 Access assertion 的 `/__dev/session`=`403`。Canonical `staging.join.gather.wedopr.com` 無 DNS answer、Workers custom domain 或 `wedopr.com` zone route，未宣稱 custom host 已驗收。
+- Independent Fresh reviewer 既有 verdict=`READY_WITH_BLOCKERS`；CI／staging evidence 已補齊，必須重新交 reviewer。
+- Wave 0 維持未關閉；Wave 1 維持 blocked。只有 Fresh reviewer 明確 `ACCEPTED`，才可更新為 Wave 0 CLOSED。
+
+### Evidence boundary
+
+- isolated local、remote、production、CI、staging、Fresh 各自標註，不互相替代。
+- 不處理約 593 kB bundle warning；不輸出或保存 secrets、tokens、密碼、個資。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-18：staging route diagnosis／propagation read-back
+
+- `[READ-ONLY]` Cloudflare Workers routes：`gather.wedopr.com/app/* → gather-join`；沒有 `gather-join-staging` zone route。Workers custom domains 清單沒有 `staging.join.gather.wedopr.com`；公開 DNS-over-HTTPS 對該 hostname 的 A/CNAME 查詢均無答案。
+- `[READ-ONLY]` `gather-join-staging` script subdomain binding：enabled；deployment version=`82b00639-298b-4f73-aa91-d3169c75258a` traffic=`100%`。
+- `[READ-ONLY]` deployment propagation 後 `https://gather-join-staging.hjuming.workers.dev/` 回 HTTP `200`，title=`來聚一場｜報名系統`；未帶 Access assertion 的 `/__dev/session` 回 HTTP `403`。
+- 結論：staging deployment public URL gate PASS；canonical custom host route 未配置，保留為未驗收風險，不做 route／DNS 修正。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-18：Fresh closeout re-review preparation
+
+- `[FIXED POINT / read-only]` branch=`codex/gather-mvp`、HEAD=`364d61b`、origin 同步、working tree clean；本次 docs-only sync 未修改 migration、source、test、package 或 workflow。
+- `[CI / read-only]` Draft PR #1／run `32147680323`：`verify` PASS、`local-supabase` PASS、Cloudflare Pages check PASS；Node 20 deprecation annotations 不影響結果。
+- `[STAGING / read-only]` target=`gather-join-staging`、version=`82b00639-298b-4f73-aa91-d3169c75258a`、traffic=`100%`；workers.dev homepage=`200`、未帶 Access assertion 的 `/__dev/session`=`403`。Canonical `staging.join.gather.wedopr.com` 仍無 DNS answer／Workers custom domain／zone route，故 canonical custom-host 子 gate 維持 `UNVERIFIED`，不宣稱為 PASS，也不視為 workers.dev deployment gate 失敗。
+- `[PRODUCTION / read-only]` Pages project=`gather-taiwan` source=`364d61b`；deployment=`https://82fca586.neo-rechao.pages.dev` 與 canonical=`https://gather.wedopr.com` 均 HTTP `200`。
+- 獨立 Fresh Reviewer `Russell` 完成只讀複核，verdict=`READY_WITH_BLOCKERS`；最小 blocker 是先前三份 closeout 文件未同步 current HEAD／CI／Pages evidence。本段完成同步後，仍須重新交獨立 Fresh reviewer，只有明確 `ACCEPTED` 才可將 Wave 0 標記 CLOSED。
+- Wave 0 維持未關閉；Wave 1 維持 `BLOCKED`、未啟動。約 593 kB bundle warning 與 Node engine warning 保留為非阻擋剩餘風險，未擴大處理。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-18：下一工程團隊交接文件包同步
+
+### Task / scope
+
+- 目標：整理 Wave 0 manual roster 的目前進度、成果、證據層級、未完成項與下一工程團隊啟動方式。
+- 只修改文件：root `README.md`、`apps/join/README.md`、`apps/join/docs/DEVELOPMENT.md`、`apps/join/docs/SSOT.md`、`apps/join/docs/MAINTENANCE.md`、`docs/squad/HANDOFF.md`、`docs/squad/LEDGER.md`、本 control log，以及新增 `docs/squad/NEXT-TEAM-KICKOFF.md`。
+- Non-goals：不修改 source／test／package／migration／workflow；不新增資料庫；不執行 migration、DELETE、reset、rollback、route／DNS 變更或 deploy。
+
+### Current evidence sync
+
+- Fixed point：`codex/gather-mvp@fd5a3d3`、origin 同步、working tree clean（施工前）；文件 sync 後需以最新 commit 與 `git status -sb` 為準。
+- `[LOCAL / isolated]` fixture zero-residue；phase-aware concurrency one-shot `PASS confirmed=1 waitlisted=5`；既有 regression `179 passed / 1 skipped`、typecheck／lint／build PASS。
+- `[REMOTE / read-only]` catalog=`33`；兩支指定 migration present；function=`9/9` conforming；ACL PASS；RLS=`8/8` enabled＋forced；aggregate=`0`。
+- `[CI / read-only]` PR #1／run `32148850377` 的 `verify`、`local-supabase`、Cloudflare Pages check 均 PASS；Node 20 deprecation annotations 為 warning，不改 scope。
+- `[STAGING / read-only]` `gather-join-staging` version=`82b00639-298b-4f73-aa91-d3169c75258a` 100% traffic；workers.dev homepage=`200`；未帶 Access assertion 的 `/__dev/session`=`403`。Canonical custom host 維持 `UNVERIFIED`。
+- `[PRODUCTION / read-only]` Pages source=`fd5a3d3`；deployment=`https://bb3f7583.neo-rechao.pages.dev` 與 `https://gather.wedopr.com` 均 `200`。
+
+### Decisions and handoff gate
+
+- 建立獨立 `NEXT-TEAM-KICKOFF.md` 作為下一團隊的 canonical 開工提示詞；handoff 保留歷史 prompt 但明確指向新檔案。
+- Wave 0 仍未關閉：文件 sync 後尚待 independent Fresh re-review；只有 Fresh 明確 `ACCEPTED` 才可更新為 CLOSED。
+- Wave 1 維持 `BLOCKED`、未啟動。Canonical staging host／同源瀏覽器 UAT 不得寫成 PASS；不為了收尾新增 route／DNS。
+- 本次文件更新不含 secrets、token、DB 密碼、service-role key 或個資。
+
+### Verification labels
+
+- `✅ 已真實驗證`：文件 read-back、`git diff --check`、allowlist diff、最新 CI run `32148850377`、Pages source／deployment／公開 URL read-back。
+- `⚠️ 部分驗證`：Fresh reviewer 尚未對本次文件 sync 後的狀態重新給 verdict；canonical staging host／同源 staging UAT 未驗證。
+- `❌ 未驗證`：任何新的 route／DNS 修正、Wave 1 工作、完整 LINE failure matrix、device UAT。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-18：final handoff metadata read-back
+
+- `[FIXED POINT / read-only]` branch=`codex/gather-mvp`、HEAD=`6622f72`、origin 同步、working tree clean。
+- `[CI / read-only]` Draft PR #1／run `32149787655`：`verify`、`local-supabase`、Cloudflare Pages check 均 PASS；Node 20 deprecation annotations 仍為 warning。
+- `[PRODUCTION / read-only]` Pages project=`gather-taiwan` active deployment source=`6622f72`；deployment=`https://2625040c.neo-rechao.pages.dev`；canonical `https://gather.wedopr.com` 仍 HTTP `200`。
+- Handoff docs、README、Join SSOT／DEVELOPMENT／MAINTENANCE 與 `NEXT-TEAM-KICKOFF.md` 已同步至本 fixed point；未修改 source／migration／test／package／workflow。
+- Wave 0 仍未關閉：文件已具備 current metadata，但 Fresh re-review 尚未完成；Wave 1 維持 `BLOCKED`、未啟動。Canonical staging host 維持 `UNVERIFIED`。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-18：handoff package final current read-back
+
+- `[FIXED POINT / read-only]` branch=`codex/gather-mvp`、HEAD/origin=`69dab0c`、working tree clean。
+- `[CI / read-only]` Draft PR #1／run `32150304903`：`verify`、`local-supabase`、Cloudflare Pages check 均 PASS；Node 20 deprecation annotations 仍為 warning。
+- `[PRODUCTION / read-only]` Pages active deployment source=`69dab0c`、deployment=`https://f4febb0d.neo-rechao.pages.dev`；canonical `https://gather.wedopr.com` HTTP `200`。這是 docs-only handoff auto deployment，不代表 runtime source release、Fresh acceptance 或 Wave 0 closure。
+- `README.md`、`apps/join` README／SSOT／DEVELOPMENT／MAINTENANCE、squad HANDOFF／LEDGER 與 `NEXT-TEAM-KICKOFF.md` 均已同步 current evidence；未修改 source／migration／test／package／workflow。
+- Wave 0 仍未關閉；Fresh re-review pending；Wave 1 維持 `BLOCKED`、未啟動；canonical staging host 維持 `UNVERIFIED`。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review blocker correction
+
+### Fresh review result
+
+- 獨立 fresh-context reviewer `Raman` 以只讀方式檢查 current branch、文件、既有 evidence tiers、CI、staging 與 Pages read-back；未修改檔案、未操作 DB、未執行 migration／deploy／push、未重跑 concurrency verifier。
+- Verdict：`NOT_ACCEPTED`。程式、isolated local、remote read-back、CI、staging workers.dev 與 Pages evidence 均未被判定為失敗；唯一最小 blocker 是 `docs/squad/LEDGER.md` 的歷史 decision／restart 段落未明確標示為歷史，可能被誤讀為目前仍需完成 full isolated runtime、GitHub auth 或 remote DB blocker。
+
+### Exact correction
+
+- 只更新 `docs/squad/LEDGER.md`：將 blocker final sync、local safepoint、decision record 與 restart guide 明確標為歷史快照，並註明不得覆寫 current fixed point 或直接照做。
+- 未修改 source／test／package／migration／workflow；未執行資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup。
+- 修正後必須再次交獨立 Fresh reviewer；在取得明確 `ACCEPTED` 前，Wave 0 維持未關閉，Wave 1 維持 `BLOCKED`。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review blocker correction follow-up
+
+- 第二位獨立 fresh-context reviewer `Ampere` 確認前述修正已涵蓋舊 safepoint、decision record 與 restart guide，但指出 LEDGER 更早的 Fresh6／Fresh7／isolated-runtime attempt 區段仍可能被讀成 current `NOT_RUN`／`BLOCKED`。
+- 只在 `docs/squad/LEDGER.md` 新增歷史快照邊界，明示該段不得覆寫 current fixed point，也不得誘導重跑已完成的一次性 gate。
+- 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review active-workboard correction
+
+- 第三位獨立 fresh-context reviewer `Mencius` 確認歷史區段邊界已補齊，但指出 current workboard 仍把已完成的 CI／staging／runtime read-back、舊 external blockers 與 Wave 1／Wave 2 後續工作列為 active next steps。
+- 只更新 `docs/squad/LEDGER.md` workboard：將已 supersede 的 Fresh rounds、舊 Forge／fallback／safepoint／instrumentation 標為 historical，並將 current rows 的唯一下一步統一為獨立 Fresh re-review；Wave 1／Wave 2 維持 blocked。
+- 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review historical-boundary and gate correction
+
+- 第四位獨立 fresh-context reviewer `Popper` 確認 active workboard 已收斂，但指出 Fresh1–Fresh5 仍未納入歷史邊界、Wave 2 在 workboard 間狀態矛盾，且 HANDOFF current closeout gate 仍把已完成的 docs-only commit／push 當成下一步。
+- 只更新 `docs/squad/LEDGER.md` 與 `docs/squad/HANDOFF.md`：補 Fresh1–Fresh5 historical snapshot、將 Wave 2 統一為 blocked，並把 current next step 統一為獨立 Fresh reviewer。
+- 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review historical-command hard stop
+
+- 第五位獨立 fresh-context reviewer `Epicurus` 確認 current workboard、Wave 1／Wave 2 gate 與 evidence tiers 已一致，但指出歷史 HANDOFF prompt 與 control log 仍含可直接複製的 concurrency 重跑指令。
+- 只在 `docs/squad/HANDOFF.md` 與 `implementation-control-log.md` 的歷史段落就地加入 `HISTORICAL／DO NOT EXECUTE` hard-stop，並明示目前不得重跑 one-shot gate，唯一下一步為獨立 Fresh reviewer。
+- 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review control-log hard-stop completion
+
+- 第六位獨立 fresh-context reviewer `Banach` 確認 HANDOFF、LEDGER 與 active workboard 的 hard-stop 已通過，但指出 control log 2026-08-17 的環境阻塞／Docker 恢復段落仍保留可操作的 concurrency 重跑流程。
+- 只在上述兩個歷史 control-log 段落就地加入 `HISTORICAL／SUPERSEDED／DO NOT EXECUTE`，並將舊「下一步」改為不可執行的追溯內容；current next step 維持獨立 Fresh reviewer。
+- 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review legacy deploy and safepoint hard-stop
+
+- 第七位獨立 fresh-context reviewer `Copernicus` 確認 concurrency hard-stop 已補齊，但指出 control log 的舊 safepoint restart 段與 2026-08-06／08-07 Cloudflare secrets／deploy checklist 尚未就地封存。
+- 只在 `implementation-control-log.md` 將上述歷史段落標為 `HISTORICAL／SUPERSEDED／DO NOT EXECUTE`，並明示不得重跑 concurrency、`wrangler secret put`、`wrangler deploy`、cache purge 或其他外部操作。
+- 本次仍未修改 source／test／package／migration／workflow，未操作資料庫、Cloudflare route／DNS、migration、DELETE、reset、rollback 或 broad cleanup；修正後再次交獨立 Fresh reviewer。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-19：current fixed point／Supabase MCP permission audit
+
+### Scope and fixed point
+
+- 使用者明確確認以乾淨 `codex/gather-mvp@83a38e8` 作為 source/runtime evidence fixed point；本輪 docs-only sync 後 current HEAD=`22a9de9`，read-back 為 working tree clean、local HEAD 與 tracking ref 相同。
+- 只允許更新 `docs/squad/LEDGER.md`、`docs/squad/HANDOFF.md`、`implementation-control-log.md`；未修改 source／migration／test／package／workflow。
+- 不執行 remote migration、SQL write、DELETE、reset、rollback、broad cleanup、Cloudflare route／DNS 變更或 deploy。
+
+### Verification and evidence boundary
+
+- `[GITHUB / read-only]` Draft PR #1 head=`83a38e8`；Gather Join Gates run `32184957402` conclusion=`success`。
+- `[STAGING / read-only]` `gather-join-staging.hjuming.workers.dev/` HTTP=`200`；依 `apps/join/scripts/smoke-staging.mjs` 的 POST contract，無 Access assertion 的 `/__dev/session` HTTP=`403`。GET 直接探測回 `405 Method not allowed`，屬 method mismatch，不列為 protected-route failure。Canonical `staging.join.gather.wedopr.com` 維持 `UNVERIFIED`。
+- `[PAGES / read-only]` Cloudflare Pages bot 回報 current source=`83a38e8` deploy successful；deployment preview 與 canonical URL 本輪 HTTP=`200`。這是 Pages／公開 URL read-back，不等於 runtime source release 或 Wave 0 acceptance。
+- `[SUPABASE MCP / read-only]` 已把 Supabase app permission 改為 `ask_before_writes`，保留所有寫入需確認；`supabase_list_migrations` 與 read-only `supabase_execute_sql` 仍回 `MCP -32600 You do not have permission`。未繞過 connector，未執行任何 remote SQL／migration／data operation；前次 remote catalog／function／ACL／RLS／aggregate 記錄不升格為本輪 fresh read-back。
+- `[LOCAL / isolated / prior evidence]` fixture zero-residue、phase-aware concurrency one-shot `PASS confirmed=1 waitlisted=5`、guest verifier PASS、179 tests passed＋1 skipped、typecheck／lint／build PASS 均為既有 evidence；本輪不重跑 concurrency verifier。
+
+### Gate decision
+
+- Wave 0：**未關閉／Fresh re-review pending**。Remote MCP read-only access 仍是外部 connector blocker；取得可讀權限並完成 catalog／function／ACL／RLS／aggregate read-back後，才交獨立 Fresh reviewer。
+- Wave 1：**BLOCKED，未啟動**。
+- 不處理約 593 kB bundle warning；不輸出或保存 secrets、tokens、DB 密碼或個資。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-19：Fresh review Maxwell provenance correction
+
+- Reviewer `Maxwell` 以 fresh context 只讀審查 current docs-only HEAD=`22a9de9`、source/runtime evidence fixed point=`83a38e8`、LEDGER／HANDOFF／control log 與 workflow／staging contract；未修改檔案、未操作 DB、未重跑 concurrency、未 deploy／push。
+- Verdict=`NOT_ACCEPTED`。他確認 hard-stop、Wave 1 gate、三檔 allowlist 與 evidence boundary 正確；指出 LEDGER／HANDOFF／control log 必須明確區分目前 docs-only HEAD 與 source/runtime evidence base，且 workboard 不得把 prior remote PASS 寫成 current remote PASS。
+- 本輪已修正 provenance：`83a38e8` 僅代表 source/runtime evidence fixed point，`22a9de9` 代表未改 source 的 docs-only handoff HEAD；W0 DB／Forge rows 改標 prior remote PASS、current MCP re-read blocked。
+- Gate 不變：Wave 0 未關閉，Wave 1 `BLOCKED`／未啟動；須先恢復合法 Supabase MCP 唯讀 connector、完成 catalog／function／ACL／RLS／aggregate current read-back，再交 Fresh reviewer。不得繞過 connector 或重跑 one-shot concurrency。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-21：current closeout read-back and provenance sync
+
+### Scope and fixed point
+
+- 目標：在不開始 Wave 1、不重跑 one-shot concurrency、不做 remote write 的前提下，重新固定 current HEAD、GitHub CI、staging、公開 URL 與 Supabase remote evidence 狀態。
+- source/runtime evidence fixed point=`83a38e8`；其後至 repo HEAD=`50bb2ea` 的提交未修改 app source、migration、test、package 或 workflow；固定點 read-back 時 working tree clean、local HEAD 與 tracking ref 相同。本次同步後目前 working tree 僅有四份 allowlisted docs modified，尚未 commit。
+- 只修改 `docs/squad/LEDGER.md`、`docs/squad/HANDOFF.md`、`docs/squad/NEXT-TEAM-KICKOFF.md`、`implementation-control-log.md`；未修改 source／migration／test／package／workflow。
+
+### Verification and evidence boundary
+
+- `[GITHUB / read-only / 2026-08-21]` PR #1 為 open、draft、未 merge；head=`50bb2ea`；Gather Join Gates run `32187430242` conclusion=`success`。
+- `[REMOTE SUPABASE / read-only / 2026-08-21]` `supabase_list_migrations`、唯讀 `supabase_execute_sql`、Security／Performance advisors 均回 `MCP -32600 You do not have permission`。未繞過 connector，未執行 remote SQL／migration／data operation；既有 remote catalog／function／ACL／RLS／aggregate 記錄維持 prior evidence，不升格為 current remote PASS。
+- `[STAGING / PRODUCTION PUBLIC URL / read-only / 2026-08-21]` `gather.wedopr.com/`=`200`、`gather.wedopr.com/app/`=`200`；`gather-join-staging.hjuming.workers.dev/`=`200`；無 Access assertion 的 POST `/__dev/session`=`403`；production POST `/app/__dev/session`=`404`。這是公開端點／route behavior evidence，不等於 Pages source、同源 staging UAT 或 Wave 0 acceptance。
+- `[CANONICAL STAGING HOST]` `staging.join.gather.wedopr.com` 維持 `UNVERIFIED`；本輪未修改 DNS、route 或 custom domain。
+- `[LOCAL / ISOLATED LOCAL / prior evidence]` 既有 179 tests passed＋1 skipped、typecheck／lint／build、zero-residue 與 phase-aware concurrency one-shot PASS 均保留；本輪不重跑 concurrency verifier。
+
+### Gate decision
+
+- Wave 0：**未關閉／overall acceptance blocked**。獨立 Fresh `Hooke` 僅接受 docs-only 文件審查；Current Supabase remote evidence 仍 blocked，不能升格為 Wave 0 acceptance。
+- Wave 1：**BLOCKED，未啟動**。
+- 剩餘風險：Node local runtime=`20.20.2` 低於 package engine `>=22`；client bundle 約 `593 kB`；Pages deployment source metadata 本輪未重新取得。
+
+## [HISTORICAL／SUPERSEDED] 2026-08-21：independent docs-only Fresh result and connector retry
+
+- `[FRESH / independent read-only]` Reviewer `Hooke` 明確回報 `ACCEPTED`，範圍僅為四份 allowlist docs-only closeout 文件、current provenance 與 evidence boundary；不包含 current Supabase remote acceptance，也不宣告 Wave 0 closure。
+- `[REMOTE SUPABASE / read-only retry]` 本輪再次呼叫 `supabase_list_migrations`、唯讀 `supabase_execute_sql`、Security advisors、Performance advisors；四者均回 `MCP -32600 You do not have permission`。未繞過 connector、未執行 remote SQL／migration／data operation。
+- `[GITHUB / read-only retry]` PR #1 仍 open、draft、未 merge；head=`50bb2ea`；Gather Join Gates run `32187430242` conclusion=`success`。
+- `[PUBLIC HTTP / read-only retry]` `gather.wedopr.com/`=`200`、`/app/`=`200`；workers.dev staging root=`200`、無 Access assertion 的 POST `/__dev/session`=`403`；production POST `/app/__dev/session`=`404`；`staging.join.gather.wedopr.com` DNS 未解析，維持 `UNVERIFIED`。
+- Gate decision：docs-only Fresh gate=`ACCEPTED`；current Supabase remote gate=`BLOCKED`；Wave 0 **未關閉**，Wave 1 **BLOCKED／未啟動**。不得重跑 one-shot concurrency、不得做 remote write 或部署。
+
+## 2026-08-24：Wave 0 current remote read-back／Fresh acceptance／closeout
+
+### Goal / non-goals
+
+- 目標：在使用者重新授權合法 Supabase MCP read-only connector 後，完成 current remote catalog、function metadata、ACL、RLS、aggregate、必要 zero-residue 與 GitHub／CI／staging／公開 URL read-back，交獨立 fresh-context reviewer，並依其明確 verdict 更新 Wave 0 closeout 文件。
+- 非目標：不修改 source、migration、test、package、workflow；不執行 remote migration、DELETE、reset、rollback、broad cleanup；不修改 Cloudflare route／DNS／custom domain；不 merge PR；不重跑 phase-aware concurrency verifier；不處理約 593 kB bundle warning。
+- 本次文件變更僅限 `docs/squad/LEDGER.md`、`docs/squad/HANDOFF.md`、`implementation-control-log.md`；保留既有 `docs/squad/NEXT-TEAM-KICKOFF.md` working-tree 修改，不覆蓋。
+
+### Verification and evidence boundary
+
+- `[LOCAL / ISOLATED LOCAL / prior]` source/runtime evidence fixed point=`83a38e8`；current HEAD／origin=`50bb2ea`。既有 one-shot concurrency 只引用 `confirmed=1 waitlisted=5`，本輪未重跑。
+- `[REMOTE / read-only]` Supabase target ref=`anklbpkyesdmsubyfcna`；catalog=`33`；指定 migrations `20260815060000`／`20260818121055` present；9/9 functions present、`SECURITY DEFINER`、固定 `search_path`；function ACL 9/9 exact；source-aligned RLS=`15/15` enabled＋forced；aggregate over-limit=`0`；non-null orphan references=`0`。19 筆 audit rows 的 `event_id` 為 NULL，另分類為非 orphan reference。
+- `[REMOTE / residual]` current advisors：security 54（INFO 4／WARN 50）、performance 21（INFO 11／WARN 10）；未修改、未隱藏，列為後續 technical debt。
+- `[GITHUB / CI]` PR #1 open、draft、未 merge；head=`50bb2ea`；Gather Join Gates run `32187430242` completed／success。PR body 對整個 PR 的 docs-only 描述與實際 99 files 變更有 provenance ambiguity，本輪未修改外部 PR。
+- `[STAGING]` `https://gather-join-staging.hjuming.workers.dev/` homepage=`200`；無 Access assertion 的 POST `/__dev/session`=`403`、`{"message":"Forbidden"}`。
+- `[PRODUCTION]` `https://gather.wedopr.com/`=`200`；`/app/`=`200`；POST `/app/__dev/session`=`404`、`{"error":"not_found"}`；未宣稱 production semantic／device UAT。
+- `[PAGES / NOT_VERIFIED]` deployment URL `https://f4febb0d.neo-rechao.pages.dev/`=`200`；Pages source／control-plane metadata 本輪未取得。Canonical `staging.join.gather.wedopr.com` DNS 未解析，維持 `UNVERIFIED`。
+- `[FRESH / independent]` fresh-context reviewer 對完整 current evidence 明確回報 `ACCEPTED`；reviewer 未修改 repo、未做 remote write、未重跑 concurrency。
+
+### Decision
+
+- 依獨立 reviewer 的完整 current evidence `ACCEPTED`，**Wave 0：CLOSED（evidence-boundary closure）**。
+- **Wave 1：BLOCKED／未啟動**；不得由本次 closeout 自動解鎖。
+- CLOSED 僅代表本輪定義的 current evidence gate 已完成，不代表 PR merge、Pages source parity、canonical staging DNS、production semantic/device UAT 或部署核准。
+
+### Rollback / recovery
+
+- 若需回復文件，僅反向撤銷本節及本輪三份文件 diff；不得觸碰 remote DB、migration、Cloudflare route／DNS 或 working-tree 中使用者既有的 `NEXT-TEAM-KICKOFF.md` 修改。
+
+## 2026-08-24：next-team handoff package preparation
+
+### Scope
+
+- 使用者要求：統整目前開發成果與完成度、更新 README／相關文件、擬定下一階段優化目標與開發啟動提示詞，並將文件交付推送至 Git remote。
+- 本次允許範圍：README、Join README、squad charter／ledger／handoff／kickoff／next-phase plan、control log；不修改 app source、migration、test、package、workflow、Cloudflare route／DNS／custom domain 或資料庫。
+
+### Delivered plan
+
+- `docs/squad/NEXT-PHASE-PLAN.md` 定義 Phase 1–6：release baseline、organizer roster closure、auth/private entry/security、notification/outbox、event_fields/privacy、Pilot/device／role UAT。
+- `docs/squad/NEXT-TEAM-KICKOFF.md` 改為 current handoff prompt：Wave 0 CLOSED、Wave 1 BLOCKED，包含 read order、固定點、禁止事項、安全本地驗證與交付格式。
+- `README.md`、`apps/join/README.md`、`docs/squad/CHARTER.md`、`docs/squad/HANDOFF.md`、`docs/squad/LEDGER.md` 同步 current evidence；舊狀態保留並標示 historical／superseded。
+
+### Evidence boundary and risks
+
+- Current evidence 仍以 `83a38e8` source/runtime fixed point、`50bb2ea` repo read-back、Supabase current read-only、CI run `32187430242`、workers.dev／public route read-back 與 Fresh `ACCEPTED` 為準。
+- Pages source metadata、canonical staging DNS、production semantic/device UAT、PR body provenance 與 advisor technical debt 仍未完成；不得因本次文件 push 升格。
+- Wave 0 保持 CLOSED（evidence-boundary closure）；Wave 1 保持 BLOCKED／未啟動。新團隊需先取得 scope／owner 決策與 fresh baseline。
+
+### Exact allowlist and rollback boundary
+
+- 本次 handoff package exact allowlist（八份）：`README.md`、`apps/join/README.md`、`docs/squad/CHARTER.md`、`docs/squad/HANDOFF.md`、`docs/squad/LEDGER.md`、`docs/squad/NEXT-TEAM-KICKOFF.md`、`docs/squad/NEXT-PHASE-PLAN.md`、`implementation-control-log.md`。
+- rollback 僅限上述八份文件的本次 docs diff；不得回復、覆蓋或刪除其他 working-tree 修改，尤其不得碰 source、migration、test、package、workflow、DB、Cloudflare route／DNS／custom domain。
+- 若 push 後需回復，使用一個可追溯的反向 docs commit，並重新執行 `git diff --check`、control-log validator、`git status -sb` 與 remote commit read-back；不使用 reset 或 broad cleanup。
+
+## 2026-08-24：handoff package push read-back
+
+- `[GIT / PUSH]` docs-only handoff package commit=`07325da88181e74894bcb6007a4ddd848ada3eec`，由 `50bb2ea` 推送至 `origin/codex/gather-mvp` 成功。
+- `[REMOTE / READ-BACK]` `git ls-remote origin refs/heads/codex/gather-mvp` 回傳同一 SHA=`07325da88181e74894bcb6007a4ddd848ada3eec`。
+- `[LOCAL]` push 後 `git status -sb`：`codex/gather-mvp...origin/codex/gather-mvp`，working tree clean；未 merge PR、未 deploy、未修改 source／migration／test／package／workflow。
+
+## 2026-08-24：Phase 1 release baseline kickoff
+
+### Scope / decision
+
+- 使用者已授權由 Codex 擔任組長，代為執行一般 scope／技術裁決；高風險外部操作仍採 fail-closed，遇 production data、secrets、migration、Cloudflare route／DNS、merge 或不可逆操作停下確認。
+- 本階段選定 Phase 1／Wave 1 的最小切片：建立六個本地 app gate 的可重跑 report、Git／CI／deployment provenance snapshot，並修正既有 production smoke 將 staging bundle 誤納入掃描的 baseline blocker。
+- 非目標：不執行 migration、DELETE、reset、manual-roster concurrency one-shot、Supabase remote write、Cloudflare route／DNS／custom domain、production deploy、PR merge 或 secrets 操作。
+
+### Exact allowlist
+
+- `apps/join/scripts/smoke.mjs`
+- `apps/join/scripts/verify-release-baseline.mjs`
+- `apps/join/package.json`
+- `apps/join/.gitignore`
+- `apps/join/README.md`
+- `.github/workflows/join-gates.yml`
+- `apps/join/docs/SSOT.md`
+- `apps/join/docs/DEVELOPMENT.md`
+- `apps/join/docs/MAINTENANCE.md`
+- `implementation-control-log.md`
+
+### Initial evidence
+
+- `[LOCAL / before change]` `typecheck`、`lint`、`test`（179 passed／1 skipped）、`test:security`（14 passed）與 `build` exit `0`；Node=`20.20.2` 低於 package engine `>=22`，並有約 593 kB bundle warning。
+- `[LOCAL / before change]` `pnpm smoke` reproducibly failed because `smoke.mjs` scanned `dist/gather_join_staging/index.js` with the production `dev-auth` forbidden-text rule。
+- `[LOCAL / focused fix]` 將 production smoke scope 限定為 `dist/client` 與 `dist/gather_join`；後續 `pnpm smoke` exit `0`，回報 82 audited files。
+
+### Rollback
+
+- 只回復上述 allowlist 的本次 diff；不使用 reset、clean、broad cleanup，不觸碰已套用 migration、remote data、Cloudflare 或其他 working-tree 變更。
+
+### Local verification / remaining gates
+
+- `[LOCAL / ✅ 已真實驗證]` `pnpm verify:release-baseline`：六個 gate 全部 exit `0`；`test` observed skip=`1`、expected skip contract=`PASS`、unexpected skips=`0`；verdict=`PASS_WITH_EXPECTED_SKIP`。
+- `[LOCAL / ✅ 已真實驗證]` `pnpm smoke` 修正後通過，production scope 審計 `dist/client` 與 `dist/gather_join`，回報 82 audited files；不再把 staging bundle 當 production artifact。
+- `[STATIC / ✅ 已真實驗證]` `node --check`、`git diff --check`、workflow YAML parse 與 control-log validator 均通過。
+- `[LOCAL / ⚠️ 部分驗證]` 本機 runtime=`Node 20.20.2`，package engine=`>=22`；report 已標示 `WARN_UNSUPPORTED_NODE_ENGINE`。build 的約 593 kB chunk warning 保留，未擴大 scope。
+- `[NOT_RUN / ❌ 未驗證]` 新 commit 的 GitHub Actions、獨立 Fresh reviewer、staging／production／Pages source read-back 尚未完成；本切片不宣稱 CI、deployment 或 production PASS，也不解除 Wave 1。
+
+### CI failure diagnosis / corrective patch
+
+- `[CI / ❌ FAILED]` run `32707387622` 的 local-Supabase job 完整通過並清理；verify job 六個 gate 實際完成，但 `expected-db-skip-contract` 因 GitHub Actions 的 Vitest summary 帶 ANSI escape code 而誤判失敗。
+- `[ROOT CAUSE]` `readVitestSkipCount()` 只接受未著色的 `Tests ... skipped` 行；本機非 TTY 輸出可解析，CI 著色輸出不可解析。
+- `[CORRECTION]` parser 先移除 ANSI escape sequence，再判定 expected skip；未改變六個 gate、DB suite 或外部操作邊界。
+- `[LOCAL / ✅ 已真實驗證]` `FORCE_COLOR=1 pnpm verify:release-baseline` 通過，確認彩色 Vitest summary 可被解析；六個 gate exit `0`、observed skip=`1`、verdict=`PASS_WITH_EXPECTED_SKIP`。
+- `[LOCAL / ✅ 已真實驗證]` parser 改以 `String.fromCharCode(27)` 組合 ANSI pattern，通過 `FORCE_COLOR=1 pnpm lint`；避免 `no-control-regex` 對 literal escape 的誤判。
+- `[CI / ✅ 已真實驗證]` 修正後 run `32707975139`、head SHA=`086842ba75c6b9cd4c1ffd1bd1ea180993c07302`：`verify` success（36s，release baseline gates 與 report artifact 均完成）；`local-supabase` success（3m29s，isolated local project、既有 reset probe／PostgreSQL concurrency harness 與 finally stop 均完成）。
+- `[CI / ⚠️ 邊界]` GitHub Actions annotation 顯示 action runtime 的 Node.js 20 deprecation warning；未影響本輪 job success。此 CI 結果仍不等於 staging、production、device 或 Fresh acceptance。
+
+## 2026-08-24：Phase 1 completion-audit correction
+
+### Audit finding
+
+- 重新依 `NEXT-PHASE-PLAN.md` 的 Phase 1 acceptance audit 後，發現前一輪 baseline 雖已通過 gates，仍有三個 provenance 缺口：report 在 CI 固定標成 `LOCAL`、PR workflow 預設 checkout merge ref、以及未產生可機讀的 baseline artifact URL exact-match manifest。
+- 同一 acceptance 也要求明確標示 DB suite skip、Cloudflare Access 未接、staging／production semantic 與 device UAT 的邊界；原 report 只有 DB skip policy，未完整呈現其餘狀態。
+
+### Exact allowlist
+
+- `apps/join/scripts/verify-release-baseline.mjs`
+- `apps/join/scripts/write-ci-provenance.mjs`
+- `apps/join/package.json`
+- `.github/workflows/join-gates.yml`
+- `apps/join/README.md`
+- `apps/join/docs/DEVELOPMENT.md`
+- `apps/join/docs/SSOT.md`
+- `implementation-control-log.md`
+
+### Correction and boundary
+
+- runner 依執行環境標記 `LOCAL`／`CI`，新增 `evidenceBoundaries` 與 CI commit／trigger SHA／run URL metadata。
+- workflow 兩個 job 均固定 checkout `${{ github.event.pull_request.head.sha || github.sha }}`；verify job 以 head SHA 作為 baseline commit identity。
+- baseline report upload 後，`write-ci-provenance.mjs` 產生並上傳第二個 provenance artifact，將 baseline artifact name／id／URL、commit SHA、CI run 與 report HEAD 做 exact-match；mismatch 時 manifest 失敗。
+- 本 correction 仍不執行 migration、DB write、Cloudflare route／DNS、production deploy、merge、device UAT 或 Fresh acceptance；rollback 僅限本 allowlist 的本次 diff。
+
+### Verification read-back
+
+- `[LOCAL / ✅ 已真實驗證]` local runner 的六個 gate、boundary 欄位、`node --check`、lint、workflow YAML parse 與 control-log validator 通過；CI manifest 以 synthetic artifact metadata 模擬時 `exactMatch=PASS`。
+- `[CI / ✅ 已真實驗證]` run `32709041460`、head SHA=`a5ec0c278db97417fd32b9185048234db08617a0`：PR head checkout 成功；baseline artifact=`gather-join-release-baseline-32709041460`、artifact ID=`9513384371`；provenance manifest artifact=`gather-join-release-provenance-32709041460`、artifact ID=`9513385191`；下載 read-back 的 manifest `exactMatch=PASS`、mismatches=`[]`。
+- `[CI / ✅ 已真實驗證]` baseline artifact read-back：evidenceTier=`CI`、report HEAD／CI commit SHA 均為 `a5ec0c278db97417fd32b9185048234db08617a0`、run ID=`32709041460`、verdict=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`、expected skip contract=`PASS`。
+- `[CI / ⚠️ 邊界]` `GITHUB_SHA` 保留 PR merge trigger SHA=`ea90d1691d2565e105d668bb9840d49676c23ed5`；release identity 明確使用 PR head SHA，兩者差異已保留於 report，不混用。
+- `[FRESH / NOT_RUN]` 獨立 Fresh reviewer 尚未執行；因此本 correction 完成 baseline／CI provenance，但不解除 Wave 1。
+
+## 2026-08-24：Phase 1 Fresh review correction round
+
+### Independent Fresh finding
+
+- `[FRESH / ❌ NOT_ACCEPTED]` 獨立 read-only reviewer 固定 current HEAD=`fd137d0`，P0=`0`；P1 指出 current provenance 文件仍引用 `50bb2ea`／run `32187430242`，以及 skip contract 只驗總數、未驗 skipped test identity。P2 指出 `smoke-staging.mjs` 找不到 staging bundle 時會 fallback production Worker，以及 CI 的 isolated local-Supabase job 與 hermetic six-gate report 邊界不夠清楚。
+- `[CI / READ-BACK]` reviewer 另確認 current HEAD run `32709459237` success；baseline artifact ID=`9513529447`、provenance artifact ID=`9513529940`，report／manifest exact-match=`PASS`。這只證明既有機制，不能抵銷上述文件與 contract 缺口。
+
+### Exact allowlist
+
+- `apps/join/scripts/verify-release-baseline.mjs`
+- `apps/join/scripts/smoke-staging.mjs`
+- `.github/workflows/join-gates.yml`
+- `README.md`
+- `apps/join/README.md`
+- `docs/squad/LEDGER.md`
+- `docs/squad/HANDOFF.md`
+- `implementation-control-log.md`
+
+### Correction
+
+- skip policy 現在同時驗 expected count=`1` 與 expected file=`scripts/concurrency-harness.test.ts`，並輸出 observed／unexpected skipped files、reason 與 separate CI runtime alternative evidence。
+- staging smoke 移除 production Worker fallback；缺少 `dist/gather_join_staging` 時直接 fail closed。
+- CI `local-supabase` job 標示為獨立 isolated runtime evidence tier；不改變既有 workflow 的 runtime gate，不把它併入 hermetic six-gate report。
+- README／Join README／LEDGER／HANDOFF current sections 已更新至 HEAD=`fd137d0`、run=`32709459237`、artifact IDs=`9513529447`／`9513529940`，舊 `50bb2ea`／`32187430242` 只保留在 historical context。
+
+### Verification
+
+- `[LOCAL / ✅ 已真實驗證]` `pnpm build:staging && pnpm smoke:staging` 通過，實際 imported bundle=`dist/gather_join_staging/index.js`；缺少 staging bundle 的 fallback 已從 source 移除。
+- `[LOCAL / ✅ 已真實驗證]` `FORCE_COLOR=1 pnpm verify:release-baseline` 通過；skip identity read-back 為 `scripts/concurrency-harness.test.ts` count=`1`，unexpected skipped files=`[]`，verdict=`PASS_WITH_EXPECTED_SKIP`。
+- `[STATIC / ✅ 已真實驗證]` `node --check`、`FORCE_COLOR=1 pnpm lint`、workflow YAML parse、control-log validator、`git diff --check` 通過。
+- `[CI / PENDING]` correction commit 尚未取得新 CI 與第二輪 Fresh acceptance；Wave 1 維持 `BLOCKED`。
+
+## 2026-08-24：Phase 1 Fresh review round 2
+
+- `[FRESH / ❌ NOT_ACCEPTED]` 第二輪獨立 reviewer 固定 HEAD=`aa4b423`、run=`32710442549`；skip identity、staging fallback、CI job separation 均判定 CLOSED，唯一 P1 是 current 文件仍把上一個 docs/source snapshot `fd137d0`／run `32709459237` 寫死。
+- `[ROOT CAUSE]` 每次同步 current SHA／run／artifact 後又產生 docs-only commit，靜態文件再次漂移；這不是 app／workflow 行為缺陷，但會阻擋接手者的 provenance read-back。
+- `[CORRECTION]` README、Join README、LEDGER、HANDOFF 改為要求 current HEAD／run／artifact 以 Git／CI／本檔最末 current section read-back；不再把 current values 複製成永久固定值。Wave 0 維持 CLOSED；Wave 1 維持 BLOCKED。
+- `[CI / PENDING]` 本輪 docs provenance correction commit 會觸發新 PR CI；取得新 artifact read-back 後，需在本檔最末 current section 寫入 exact SHA／run／artifact，並交第三輪 Fresh reviewer。
+
+## 2026-08-24：Phase 1 current exact read-back after provenance drift correction
+
+- `[GIT / CURRENT]` source／CI baseline commit=`92e63669f88c3c88ecc96d029d3f5731765b8f12`；其後若有 control-log-only commit，不改變 app／workflow／verifier 行為，current repo HEAD 仍須以 Git read-back 為準。
+- `[CI / ✅ 已真實驗證]` run `32711417527` completed／success；verify job=`35s`、isolated local Supabase runtime gate=`3m10s`，兩者均 success；isolated job 名稱明確標示 separate evidence tier。
+- `[CI / ARTIFACT ✅]` baseline artifact=`gather-join-release-baseline-32711417527`、ID=`9514222609`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32711417527/artifacts/9514222609`；provenance artifact=`gather-join-release-provenance-32711417527`、ID=`9514223170`；下載 read-back manifest `exactMatch=PASS`、mismatches=`[]`。
+- `[CI / REPORT ✅]` report evidenceTier=`CI`、repository／PR head／CI commit SHA=`92e63669f88c3c88ecc96d029d3f5731765b8f12`、run ID=`32711417527`、verdict=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`。
+- `[CI / SKIP CONTRACT ✅]` expected／observed skip count=`1`；expected／observed file=`scripts/concurrency-harness.test.ts` count=`1`；unexpected skipped files=`[]`；reason、alternative evidence 與 separate isolated runtime boundary 均在 report。
+- `[CI / BOUNDARY]` databaseRuntime、stagingSmoke、cloudflareAccess、productionSemantic、deviceUAT 均=`NOT_RUN`；本輪未執行 migration、reset、DB write、Cloudflare、production、device UAT 或 merge。
+- `[FRESH / PENDING]` 第三輪 Fresh reviewer 尚待確認 generic current-doc rule 與上述 exact read-back；Wave 0 維持 CLOSED（evidence-boundary closure），Wave 1 維持 BLOCKED。
+
+## 2026-08-24：Phase 1 final current read-back and independent Fresh acceptance
+
+- `[GIT / CURRENT]` branch=`codex/gather-mvp`；source／CI baseline commit=`f3b66e2691b8cdab0eae2e3d8fa601e993185587`（`f3b66e2`）；後續 control-log-only commit 不改變 app／workflow／verifier 行為，current repo HEAD 仍以 Git read-back 為準。
+- `[CI / ✅ 已真實驗證]` run `32712453729` completed／success；head SHA=`f3b66e2691b8cdab0eae2e3d8fa601e993185587`；verify job 與 `Isolated local Supabase runtime gate (separate evidence tier)` 均 success。verify job 的 release baseline、provenance manifest 與兩個 upload steps 均 success。
+- `[CI / ARTIFACT ✅]` baseline artifact=`gather-join-release-baseline-32712453729`、ID=`9514610842`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32712453729/artifacts/9514610842`；provenance artifact=`gather-join-release-provenance-32712453729`、ID=`9514611594`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32712453729/artifacts/9514611594`；兩者均已下載並解析。
+- `[CI / REPORT ✅]` report evidenceTier=`CI`、report repository=`hjuming/Gather-Taiwan`、PR head／CI commit SHA=`f3b66e2691b8cdab0eae2e3d8fa601e993185587`、run ID=`32712453729`、overall=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`。
+- `[CI / PROVENANCE ✅]` manifest `exactMatch=PASS`、mismatches=`[]`；manifest commit／run 與 baseline artifact name／ID／URL 均 exact-match current run。
+- `[CI / SKIP CONTRACT ✅]` expected／observed skip count=`1`；唯一 expected／observed file=`scripts/concurrency-harness.test.ts` count=`1`；unexpected skipped files=`[]`；database suite、alternative isolated runtime evidence 與其 evidence boundary 均明確分開。
+- `[CI / BOUNDARY]` databaseRuntime、stagingSmoke、cloudflareAccess、productionSemantic、deviceUAT 均=`NOT_RUN`；本輪未執行 migration、remote DB write、Cloudflare route／DNS、production deploy、device UAT 或 merge。既有 isolated local runtime job 的成功不升格為 hermetic report 或 production acceptance。
+- `[FRESH / ✅ ACCEPTED]` 獨立 fresh-context reviewer 以 current working tree、最末 control-log rule 與已下載 baseline／provenance JSON 完成 read-only review：P0=`0`、P1=`0`、P2=`0`；確認 skip identity、staging fail-closed、CI job boundary、current-doc provenance 與 Wave boundary 均符合。此 acceptance 不把歷史 artifact `32711417527` 誤當本次 current CI；本段 current exact read-back 以 `32712453729` 為準。
+- `[WAVE]` Wave 0 維持 `CLOSED（evidence-boundary closure）`；Wave 1 維持 `BLOCKED／未啟動`，未因 Phase 1 baseline 完成而自動解鎖。
+
+## 2026-08-24：Wave 1 final read-back snapshot（superseded by EOF authoritative section）
+
+本節保留本輪 Wave 1 exact read-back；本檔真正 authoritative current section 位於 EOF，請勿以本段取代 EOF。
+
+- `[SCOPE／OWNER]` 使用者已明確授權組長代表執行、派遣獨立 Fresh reviewer，目標為打通 Wave 1 Release baseline；不延伸授權 Wave 2、production、Cloudflare route／DNS、migration、DELETE、reset、rollback、merge 或 production data write。
+- `[GIT / CURRENT]` source／CI baseline commit=`bc85cc2ec8e831555bdd8ad94d8a53cf0fa9759a`（`bc85cc2`）；branch=`codex/gather-mvp`；本輪文件交付 commit 與 source／CI baseline 相同。後續若只做 control-log-only provenance sync，不改變 app／workflow／verifier 行為；current repo HEAD／origin 仍以 Git read-back 為準。
+- `[CI / ✅ 已真實驗證]` run `32717114763` completed／success；URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32717114763`；verify job 與 `Isolated local Supabase runtime gate (separate evidence tier)` 均 success。
+- `[CI / ARTIFACT ✅]` baseline artifact=`gather-join-release-baseline-32717114763`、ID=`9516342782`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32717114763/artifacts/9516342782`；provenance artifact=`gather-join-release-provenance-32717114763`、ID=`9516343343`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32717114763/artifacts/9516343343`；兩份 JSON 均已下載並解析。
+- `[CI / REPORT ✅]` evidenceTier=`CI`；overall=`PASS_WITH_EXPECTED_SKIP`；failedGates=`[]`；report head／CI commit SHA=`bc85cc2ec8e831555bdd8ad94d8a53cf0fa9759a`；expected／observed skip count=`1`，唯一 file=`scripts/concurrency-harness.test.ts`，unexpected=`[]`。
+- `[CI / PROVENANCE ✅]` manifest commit／run／baseline artifact identity exact-match=`PASS`；mismatches=`[]`。report 的 databaseRuntime、stagingSmoke、cloudflareAccess、productionSemantic、deviceUAT 均=`NOT_RUN`；isolated local runtime 不升格為 hermetic report 或 production acceptance。
+- `[LOCAL / ✅ 已真實驗證]` local `pnpm typecheck`、`pnpm lint`、`pnpm test`（179 passed／1 skipped）、`pnpm test:security`（14 passed）、`pnpm build`、`pnpm smoke`（82 audited files）均通過；P2 僅為 Node `20.20.2` 低於 package `>=22` 與約 `593.15 kB` bundle warning，非阻塞。
+- `[FRESH / PENDING]` 本次 README／交接文件與 Wave 2 discovery allowlist 已隨 `bc85cc2` 更新，待獨立 Fresh reviewer 針對最新 current docs、Git 與上述 artifact 完成 read-only acceptance；在此之前不宣稱本輪文件交付 Fresh closure。
+- `[BOUNDARY]` 本輪未重跑既有 phase-aware concurrency one-shot（僅引用既有 `confirmed=1 waitlisted=5`）；未執行 migration、DELETE、reset、rollback、Cloudflare、production write、merge 或 deploy。
+- `[WAVE]` Wave 0=`CLOSED（evidence-boundary closure）`；Wave 1=`ACCEPTED／CLOSED（Release baseline）`；Wave 2=`BLOCKED／未啟動`。Phase 2 organizer confirm／decline／remove API／UI 缺口列為下一波，未在本輪處理。
+
+## 2026-08-24：Wave 2 authorized local migration and 12-case acceptance
+
+本節為本檔 EOF 的 current Wave 2 evidence；上方較早的 Wave 2 `NOT_VERIFIED`／`BLOCKED` 內容保留為歷史快照，不覆寫本節。
+
+- `[SCOPE／OWNER]` 使用者明確授權新增 Wave 2 forward-only migration，並只在 `gather-join-diag-01`（`127.0.0.1:58332`）執行 synthetic 12-case fixture、fixture-owned cleanup 與 residue=`0` read-back。Hard stops：不操作 remote／production、不 reset、不直接 DML `auth.users`、不 merge／deploy。
+- `[MIGRATION / LOCAL]` 新增 `apps/join/supabase/migrations/20260824130743_organizer_online_registration_idempotency.sql`；local catalog read-back latest=`20260824130743`。CLI host-port TLS mapping 失敗後，依明確 local-only 授權以單一 transaction 手動 apply 並補 local migration history；未連 remote／production。
+- `[MIGRATION CONTRACT]` 舊 `organizer_confirm_registration(uuid)`、`organizer_decline_registration(uuid)`、`organizer_remove_registration(uuid,text)` overloads 已移除；新 signatures=`(uuid,text)`、`(uuid,text)`、`(uuid,text,text)`，`authenticated` execute grants read-back；三者均包含 `reg.user_id is null` fail-closed、event lock／sweep、audit／promotion、SHA-256 key hash／request fingerprint、completed replay、mismatch `23505` 與 in-progress `55P03` contract。
+- `[SOURCE / TEST]` API wrappers 改為接收並傳遞 idempotency key；RosterManager 每次 online action 產生 UUID key；API／UI／STATIC contract tests 已同步。新增 `scripts/verify-organizer-registration-wave2.mjs` 與 exact-prefix cleanup helper，package scripts 已登錄。
+- `[LOCAL / 12-CASE PASS]` target=`127.0.0.1:58332`，verifier `caseCount=12`、`result=PASS`。矩陣如下：
+  - `confirm`: anonymous `42501`／pending／audit none／occupied=1；member `42501`／pending／audit none／occupied=1；organizer success／confirmed／audit owner／occupied=1；replay success／confirmed／same-key no extra transition。
+  - `decline`: anonymous `42501`／pending／audit none／occupied=1；member `42501`／pending／audit none／occupied=1；organizer success／declined／audit owner／occupied=1 offered=1；replay success／declined／same-key no extra transition。
+  - `remove`: anonymous `42501`／confirmed／audit none／occupied=1；member `42501`／confirmed／audit none／occupied=1；organizer success／removed_by_organizer／audit owner／occupied=1 offered=1；replay success／removed_by_organizer／same-key no extra transition。
+- `[FIXTURE CLEANUP / PASS]` fixture-owned cleanup 之後 residue read-back：organizers=`0`、events=`0`、registrations=`0`、idempotency=`0`、audit=`0`、outbox=`0`、public member=`0`、auth member=`0`。temporary member 僅經 local Auth Admin API 建立／刪除；未 direct `auth.users` DML。
+- `[LOCAL GATES / PASS]` `pnpm typecheck`、`pnpm lint`、`pnpm test`=`187 passed／1 skipped`、`pnpm test:security`=`14/14`、`pnpm build`、`pnpm smoke`（83 audited files）、兩支 verifier `node --check` 均 exit `0`。Node=`20.20.2` 低於 package engine `>=22`，build 保留約 `594.64 kB` chunk warning；均為已知非阻塞風險。
+- `[NOT_RUN / BOUNDARY]` remote／production、Cloudflare、device、merge、deploy、Fresh 均未執行；本地 evidence 不升格為上述 gates。
+- `[WAVE]` Wave 0=`CLOSED`；Wave 1=`ACCEPTED／CLOSED`；Wave 2=`LOCAL ACCEPTED／Fresh pending`。local evidence 不升格為 remote／production／device acceptance。
+
+## 2026-08-24：Wave 1 Release baseline closure after scope／owner decision
+
+- `[SCOPE／OWNER]` 使用者本輪明確授權組長代表執行、派遣獨立 Fresh reviewer，目標為打通 Wave 1 Release baseline。此授權不延伸至 Wave 2、production、Cloudflare route／DNS、migration、DELETE、reset、rollback、merge 或 production data write。
+- `[GIT]` 本輪 status-sync 前 current branch=`codex/gather-mvp`、HEAD／origin=`e9cc78500618ef601583c34a01d9e729b4ab0731`；後續 docs-only commit 不改變 app／workflow／verifier 行為，current exact identity 仍以 Git／CI／本檔最末 current section read-back 為準。
+- `[CI / ✅ 已真實驗證]` run `32713480306` completed／success；baseline artifact ID=`9514997640`，provenance artifact ID=`9514998273`；baseline report `evidenceTier=CI`、overall=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`。
+- `[CI / PROVENANCE ✅]` report／manifest 的 commit、run、artifact identity exact-match=`PASS`；mismatches=`[]`；expected／observed skip count=`1`，唯一 skipped file=`scripts/concurrency-harness.test.ts`，unexpected=`[]`。
+- `[FRESH / ✅ ACCEPTED]` 獨立 fresh-context reviewer 對 current app／CI／smoke／verifier baseline 回報 `ACCEPTED`；P0=`0`、P1=`0`、P2=`2`（local Node `20.20.2` 低於 package `>=22`、bundle 約 `593.15 kB` warning，均非阻塞）。
+- `[LOCAL / ✅ 已真實驗證]` `pnpm typecheck`、`pnpm lint`、`pnpm test`（179 passed／1 skipped）、`pnpm test:security`（14 passed）、`pnpm build`、`pnpm smoke`（82 audited files）均通過。
+- `[BOUNDARY]` databaseRuntime、stagingSmoke、cloudflareAccess、productionSemantic、deviceUAT 均=`NOT_RUN`；既有 phase-aware concurrency one-shot 僅引用 `confirmed=1 waitlisted=5`，本輪未重跑。未執行 migration、DELETE、reset、rollback、Cloudflare、production write、merge 或 deploy。
+- `[WAVE]` Wave 0=`CLOSED（evidence-boundary closure）`；Wave 1=`ACCEPTED／CLOSED（Release baseline）`；Wave 2=`BLOCKED／未啟動`。Tesla 的 read-only architecture audit 所辨識之 Phase 2 organizer confirm／decline／remove API／UI 缺口列為下一波，未在本輪處理。
+
+## 2026-08-24：Phase 1 final current read-back after acceptance-status sync
+
+- `[GIT / CURRENT]` branch=`codex/gather-mvp`；source／CI baseline commit=`65e6102e1839b229db6383f17ce54bda5127da95`（`65e6102`）；本段之後若有 control-log-only commit，不改變 app／workflow／verifier 行為，current repo HEAD 仍以 Git read-back 為準。
+- `[CI / ✅ 已真實驗證]` run `32713005513` completed／success；head SHA=`65e6102e1839b229db6383f17ce54bda5127da95`；verify job 與 `Isolated local Supabase runtime gate (separate evidence tier)` 均 success。
+- `[CI / ARTIFACT ✅]` baseline artifact=`gather-join-release-baseline-32713005513`、ID=`9514818509`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32713005513/artifacts/9514818509`；provenance artifact=`gather-join-release-provenance-32713005513`、ID=`9514819046`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32713005513/artifacts/9514819046`；兩者均已下載並解析。
+- `[CI / REPORT ✅]` report evidenceTier=`CI`、PR head／CI commit SHA=`65e6102e1839b229db6383f17ce54bda5127da95`、run ID=`32713005513`、overall=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`。
+- `[CI / PROVENANCE ✅]` manifest `exactMatch=PASS`、mismatches=`[]`；manifest commit／run 與 baseline artifact name／ID／URL 均 exact-match current run。
+- `[CI / SKIP CONTRACT ✅]` expected／observed skip count=`1`；唯一 expected／observed file=`scripts/concurrency-harness.test.ts` count=`1`；unexpected skipped files=`[]`；database suite、alternative isolated runtime evidence 與其 evidence boundary 均明確分開。
+- `[CI / BOUNDARY]` databaseRuntime、stagingSmoke、cloudflareAccess、productionSemantic、deviceUAT 均=`NOT_RUN`；本輪未執行 migration、remote DB write、Cloudflare route／DNS、production deploy、device UAT 或 merge。既有 isolated local runtime job 的成功不升格為 hermetic report 或 production acceptance。
+- `[FRESH / ✅ ACCEPTED]` 兩輪獨立 fresh-context reviewer 均對完整 current evidence 回報 P0=`0`、P1=`0`、P2=`0`；本次 status-only 文件同步僅將已完成的 Fresh verdict 從 pending 改為 accepted，未改變 source／workflow／verifier contract。最後一輪 reviewer 亦確認 current HEAD／CI／artifact exact-match 與文件邊界。此段為歷史快照，最新 authoritative current section 以本檔 EOF 為準。
+- `[WAVE]` Wave 0 維持 `CLOSED（evidence-boundary closure）`；Wave 1 維持 `BLOCKED／未啟動`，未因 Phase 1 baseline 完成而自動解鎖。此段為歷史快照，最新 authoritative current section 以本檔 EOF 為準。
+
+## 2026-08-24：Wave 1 final authoritative current read-back
+
+本節為本檔 EOF 的 authoritative current section；上方較早的 status-sync／historical sections 保留追溯，不代表目前波次狀態。
+
+- `[SCOPE／OWNER]` 使用者已明確授權組長代表執行、派遣獨立 Fresh reviewer，目標為整理 Wave 1 成果並交付 Wave 2 啟動包；不延伸授權 Wave 2 施工、production、Cloudflare route／DNS、migration、DELETE、reset、rollback、merge 或 production data write。
+- `[GIT / CURRENT]` source／CI baseline commit=`bc85cc2ec8e831555bdd8ad94d8a53cf0fa9759a`（`bc85cc2`）；branch=`codex/gather-mvp`；本輪 README／交接文件交付與 source／CI baseline 相同。其後的 `bed99d0` 只同步 control-log provenance，不改變 app／workflow／verifier；current HEAD／origin 仍以 Git read-back 為準。
+- `[CI / ✅ 已真實驗證]` run `32717114763` completed／success；URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32717114763`；verify job 與 `Isolated local Supabase runtime gate (separate evidence tier)` 均 success。
+- `[CI / ARTIFACT ✅]` baseline artifact=`gather-join-release-baseline-32717114763`、ID=`9516342782`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32717114763/artifacts/9516342782`；provenance artifact=`gather-join-release-provenance-32717114763`、ID=`9516343343`、URL=`https://github.com/hjuming/Gather-Taiwan/actions/runs/32717114763/artifacts/9516343343`；兩份 JSON 均已下載並解析。
+- `[CI / REPORT ✅]` evidenceTier=`CI`；overall=`PASS_WITH_EXPECTED_SKIP`；failedGates=`[]`；report head／CI commit SHA=`bc85cc2ec8e831555bdd8ad94d8a53cf0fa9759a`；expected／observed skip count=`1`，唯一 file=`scripts/concurrency-harness.test.ts`，unexpected=`[]`。
+- `[CI / PROVENANCE ✅]` manifest commit／run／baseline artifact identity exact-match=`PASS`；mismatches=`[]`。report 的 databaseRuntime、stagingSmoke、cloudflareAccess、productionSemantic、deviceUAT 均=`NOT_RUN`；isolated local runtime 不升格為 hermetic report 或 production acceptance。
+- `[LOCAL / ✅ 已真實驗證]` local `pnpm typecheck`、`pnpm lint`、`pnpm test`（179 passed／1 skipped）、`pnpm test:security`（14 passed）、`pnpm build`、`pnpm smoke`（82 audited files）均通過；P2 僅為 Node `20.20.2` 低於 package `>=22` 與約 `593.15 kB` bundle warning，非阻塞。
+- `[FRESH / ✅ ACCEPTED]` 獨立 Fresh reviewer 已針對最新 current docs、Git 與上述 artifact 完成 read-only acceptance；P0=`0`、P1=`0`、P2=`2`（Node `20.20.2` 低於 package `>=22`、約 `593 kB` bundle warning，非阻塞）。本輪文件交付可關閉；此 acceptance 不升格 CI／HTTP 200／Pages URL 為 production/device acceptance。
+- `[BOUNDARY]` 本輪未重跑既有 phase-aware concurrency one-shot（僅引用既有 `confirmed=1 waitlisted=5`）；未執行 migration、DELETE、reset、rollback、Cloudflare、production write、merge 或 deploy。
+- `[WAVE]` Wave 0=`CLOSED（evidence-boundary closure）`；Wave 1=`ACCEPTED／CLOSED（Release baseline）`；Wave 2=`BLOCKED／未啟動`。Phase 2 organizer confirm／decline／remove API／UI 缺口列為下一波，未在本輪處理。
+
+## 2026-08-24：Wave 2 organizer roster source slice authoritative current section
+
+本節位於 EOF，優先於上方 Wave 0／Wave 1 handoff snapshots；它只記錄本輪 Wave 2 source slice，不把 local source／UI evidence 升格為 live、production 或 Fresh acceptance。
+
+- `[SCOPE／OWNER]` 本輪 objective 明確授權 Phase 2／Wave 2，目標為 organizer 對線上報名者 confirm／decline／remove；日常工程判斷由組長代表使用者裁決。Hard stops 仍有效：不碰 migration、remote／production data、DELETE、reset、rollback、broad cleanup、Cloudflare、secrets、direct `auth.users` DML 或 merge。
+- `[GIT / PRE-SLICE BASELINE]` Wave 2 source slice 施工前 read-back：branch=`codex/gather-mvp`、HEAD=`b6e7278`、origin tracking 同步、working tree clean；fsmonitor IPC 失敗時使用 `git -c core.fsmonitor=false`。這是本 slice 的歷史施工前基線，不是目前 HEAD。
+- `[DISCOVERY]` 原指定 `apps/join/src/components/EventPage.tsx` 不存在；實際 mount point 是 `apps/join/src/pages/EventPage.tsx`，由 `apps/join/src/App.tsx` mount。Migration 已有三個 organizer RPC、organizer admin ACL、event lock、audit actor／before-after、席次 promotion；本輪只讀，不修改 migration／EventPage。
+- `[ALLOWLIST]` `apps/join/src/lib/api.ts`、`apps/join/src/components/RosterManager.tsx`、`apps/join/src/lib/api.test.ts`、`apps/join/src/components/RosterManager.test.tsx`、`apps/join/scripts/organizer-registration-contract.test.ts`、`docs/squad/NEXT-PHASE-PLAN.md`、`docs/squad/LEDGER.md`、`docs/squad/HANDOFF.md`、`implementation-control-log.md`。
+- `[SOURCE]` 已新增三個既有 organizer RPC wrappers；每個 wrapper 先以 read-only `registrations.user_id` preflight 拒絕 manual／不存在 row，再呼叫既有 RPC。RosterManager 對線上 pending row 提供 confirm／decline／remove，對其他 active online row 提供 remove，manual row 維持原 manual RPC；action error 後 reload roster 以處理 stale／replay。此 client preflight 不取代 DB RPC manual-row guard。
+- `[FOCUSED TEST]` API tests 覆蓋三個 RPC name／payload、錯誤透傳與 manual registration 在 RPC 前 fail-closed；RosterManager jsdom tests 覆蓋 pending online actions、confirmed online remove、manual row 不顯示 online actions；STATIC migration contract test 覆蓋 organizer ACL、event lock、audit、promotion 與 replay boundary。
+- `[LOCAL / VERIFICATION]` 本次補強後 `pnpm typecheck`、`pnpm lint`、`pnpm test`=`187 passed／1 skipped`、`pnpm test:security`=`14/14`、`pnpm build`、`pnpm smoke`（83 audited files）均 exit `0`。Build 仍有約 `594.54 kB` chunk warning；pnpm 在 Node `20.20.2` 下提示 package engine `>=22`。
+- `[LOCAL / 12-CASE BLOCKED]` `supabase status` 確認 local service 可用，但只讀 `psql` inventory 顯示目前 port `58322` 沒有本專案 `public.users`／domain schema；補 schema 需要 `reset` 或 migration，均命中本輪 hard stop。故 anonymous／member／organizer／replay 12 cases、audit／seat／cleanup residue=`0` 均維持 `NOT_VERIFIED`，未猜 fixture、未寫 DB。
+- `[IDEMPOTENCY / NOT_VERIFIED]` 既有 organizer RPC 沒有 `p_idempotency_key`／`idempotency_requests` contract；現階段僅能依 source contract 描述 remove replay no-op、confirm／decline replay fail-closed。Strict key-based idempotency、live 12-case matrix、每 case audit actor／seat／replay／cleanup、fixture residue=`0` 與獨立 Fresh verdict 尚未完成；需 migration-specific authorization 才能補 DB contract，本輪不猜測或繞過。
+- `[FRESH / ❌ NOT_ACCEPTED]` `Dewey` 與 `Popper` 以獨立 read-only context review current Wave 2 slice；均確認 source／UI／static contract／local gates 可通過，但 12-case live matrix、audit／seat／cleanup residue、strict idempotency 與 current Fresh acceptance 均 `NOT_VERIFIED`。`Popper` 另指出現有 DB RPC 尚未以 migration contract 排除 manual row（P1）；此屬 migration-specific authorization 邊界，本輪不得補寫。Reviewer 未修改 repo、未寫 remote／production data。
+- `[FRESH / CURRENT CHECKPOINT / ❌ NOT_ACCEPTED]` 最新獨立 reviewer `Mencius` read-only 固定 source／remote checkpoint=`de7f6d0e7b21c870dfcdb329eeb00f51dae9ad18`，working tree clean、`git diff --check` PASS；確認 online-only client preflight 與 UI split 為 STATIC ACCEPTED，但 DB `user_id` guard、strict idempotency、live 12-case、fixture residue=`0` 與 Wave 2 acceptance 均未成立。此為最新獨立審查的 exact checkpoint；後續只允許 docs-only provenance follow-up，不把 review checkpoint 誤寫成 follow-up commit SHA。
+- `[PROVENANCE / BOUNDARY]` `.reports/release-baseline.json` 與舊 CI provenance 不是本輪 current evidence；本輪只採用當前 command read-back。local source/UI pass 不升格為 DB、staging、production、device 或 Fresh acceptance。
+- `[GIT / CURRENT CHECKPOINT]` API online-only preflight、focused test 與 Wave 2 docs correction push 前的 terminal read-back：HEAD／origin=`d9359decebcceacc9a7137eb55c7c8644ad460a8`、working tree clean、遠端差異為空、`diff --check` 通過。這是本次 provenance correction 前的 current checkpoint；correction push 後必須重新 read-back，不能把本行當成 correction commit 的 SHA。
+- `[GIT / PUSH]` source／UI／test／docs implementation commit=`687af93`、control-log cleanup commit=`2695046`、previous push read-back commit=`6e16f23`、confirmation／manual-click test 與 reviewer/provenance correction commit=`8f4c5b8`、online-only preflight 與 docs commit=`d9359de`；上述各 push 與 remote SHA read-back 均成功。最後的 provenance wording follow-up 另行 commit／push，並在 push 後重新執行 status／log／`git ls-remote`／diff read-back；其 current SHA 以該次 terminal read-back 為準。未 merge、未 deploy；未 stage `dist` 或其他未列檔案。
+
+## 2026-08-24：Wave 2 final local current evidence (EOF authoritative)
+
+本節覆蓋上方所有較早的 Wave 2 `BLOCKED`／`NOT_VERIFIED` snapshots；歷史內容保留追溯，不代表目前狀態。
+
+- `[SCOPE／OWNER]` 使用者已明確授權新增 forward-only migration，且只准在 `gather-join-diag-01`（`127.0.0.1:58332`）執行 synthetic 12-case fixture、fixture-owned cleanup 與 residue=`0` read-back；remote／production、reset、direct `auth.users` DML、merge／deploy 全部未執行。
+- `[GIT / LOCAL]` 目前 working tree 為本輪 Wave 2 implementation／verifier／docs 變更；`git diff --check` PASS。Migration history ordered read-back latest=`20260824130743|organizer_online_registration_idempotency`；三個 RPC signatures／authenticated execute／`reg.user_id is null`／`idempotency_requests` guards 均 read-back PASS。
+- `[LOCAL / 12-CASE PASS]` 最終 verifier output：target=`127.0.0.1:58332`、`caseCount=12`、`result=PASS`。confirm／decline／remove 各完成 anonymous `42501`、member `42501`、organizer success、same-key replay success；organizer audit actor=`owner`；decline／remove seat=`occupied=1;offered=1`；replay 無額外 transition。
+- `[FIXTURE CLEANUP / PASS]` final residue：organizers=`0`、events=`0`、registrations=`0`、idempotency=`0`、audit=`0`、outbox=`0`、public_member=`0`、auth_member=`0`。temporary member 僅由 local Auth Admin API 建立／刪除，未直接 DML `auth.users`。
+- `[LOCAL GATES / PASS]` `pnpm typecheck`、`pnpm lint`、`pnpm test`=`187 passed／1 skipped`、`pnpm test:security`=`14/14`、`pnpm build`、`pnpm smoke`=`83 audited files`、兩支 Wave 2 script `node --check` 均 exit `0`。已知風險：Node=`20.20.2` 低於 package `>=22`；bundle 約 `594.64 kB` chunk warning。
+- `[NOT_RUN / BOUNDARY]` remote／production、Cloudflare、device、merge、deploy、Fresh 均 `NOT_RUN`；local PASS 不升格為 remote／production／device acceptance。Wave 0=`CLOSED`；Wave 1=`ACCEPTED／CLOSED`；Wave 2=`LOCAL ACCEPTED／Fresh pending`。
+
+## 2026-08-24：Wave 2 Fresh correction current section (EOF)
+
+- `[FRESH / CORRECTION]` 獨立 reviewer `Goodall` 對 `359ea55` 回報 `NOT_ACCEPTED`（P0=0、P1=3、P2=2）。P1 為 verifier host allowlist 不夠 exact、control log 未逐案保存完整 12-case 欄位、README／LEDGER current wording 矛盾；P2 為 Node engine mismatch 與 bundle warning。
+- `[CORRECTION]` verifier／cleanup helper 現在只接受 DB／Auth API hostname=`127.0.0.1`，DB port=`58332`；README／LEDGER historical/current boundary 已修正。下表把每案的 expected、actual、target status、audit actor、seat、replay、fixture cleanup 逐案保存：
+
+| case | expected | actual | target status | audit actor | seat | replay | fixture cleanup |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| confirm/anonymous | 42501 | 42501 | pending_organizer_confirmation | none | occupied=1; offered=0 | not-applicable | residue=0 |
+| confirm/member | 42501 | 42501 | pending_organizer_confirmation | none | occupied=1; offered=0 | not-applicable | residue=0 |
+| confirm/organizer | success | SUCCESS | confirmed | owner | occupied=1; offered=0 | same-key-success | residue=0 |
+| confirm/replay | success | SUCCESS | confirmed | owner | occupied=1; offered=0 | same-key-success-no-extra-transition | residue=0 |
+| decline/anonymous | 42501 | 42501 | pending_organizer_confirmation | none | occupied=1; offered=0 | not-applicable | residue=0 |
+| decline/member | 42501 | 42501 | pending_organizer_confirmation | none | occupied=1; offered=0 | not-applicable | residue=0 |
+| decline/organizer | success | SUCCESS | declined | owner | occupied=1; offered=1 | same-key-success | residue=0 |
+| decline/replay | success | SUCCESS | declined | owner | occupied=1; offered=1 | same-key-success-no-extra-transition | residue=0 |
+| remove/anonymous | 42501 | 42501 | confirmed | none | occupied=1; offered=0 | not-applicable | residue=0 |
+| remove/member | 42501 | 42501 | confirmed | none | occupied=1; offered=0 | not-applicable | residue=0 |
+| remove/organizer | success | SUCCESS | removed_by_organizer | owner | occupied=1; offered=1 | same-key-success | residue=0 |
+| remove/replay | success | SUCCESS | removed_by_organizer | owner | occupied=1; offered=1 | same-key-success-no-extra-transition | residue=0 |
+
+- `[FRESH / ACCEPTED]` 獨立 Fresh reviewer `Goodall` 已對修正後 `HEAD=3ba4152` 完成 read-only 複核：P0=`0`、P1=`0`、P2=`2`（Node `20.20.2` engine mismatch、bundle warning，均非阻塞）；確認 exact-host boundary、逐案 12-case table、README／LEDGER current boundary、migration contract、187 passed／1 skipped、security 14/14、build／smoke、12-case PASS／residue=0。此為 Wave 2 **local acceptance**，不升格 remote／production／device。
+- `[GIT / FINAL READ-BACK]` branch=`codex/gather-mvp`、HEAD=`3ba4152`、origin tracking 同步、working tree clean、`git diff --check` PASS。
+- `[WAVE]` Wave 0=`CLOSED`；Wave 1=`ACCEPTED／CLOSED`；Wave 2=`LOCAL ACCEPTED／Fresh ACCEPTED`；remote／production／device=`NOT_RUN`。

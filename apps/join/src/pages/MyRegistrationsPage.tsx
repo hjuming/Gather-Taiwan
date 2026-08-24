@@ -3,18 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { cancelRegistration, getMyRegistrations } from "../lib/api";
 import { useSession } from "../lib/useSession";
 import { REGISTRATION_STATUS_LABEL, type EventRow, type RegistrationRow } from "../lib/types";
+import { formatTaipeiDateTimeRange } from "../lib/date-time";
 
 type RegistrationView = "active" | "past";
 
 function formatRegistrationDate(event: EventRow): string {
-  return new Intl.DateTimeFormat("zh-TW", {
-    month: "numeric",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-    timeZone: "Asia/Taipei",
-  }).format(new Date(event.starts_at));
+  return formatTaipeiDateTimeRange(event.starts_at, event.ends_at);
 }
 
 export default function MyRegistrationsPage() {

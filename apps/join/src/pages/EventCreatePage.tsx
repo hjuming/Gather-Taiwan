@@ -1,15 +1,30 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { createEvent, createOrganizer, getMyOrganizers, type OrganizerMembership } from "../lib/api";
+import {
+  createEvent,
+  createOrganizer,
+  getMyOrganizers,
+  updateEventCover,
+  type OrganizerMembership,
+} from "../lib/api";
 import { useSession } from "../lib/useSession";
 import { createEventSlug, createSlug } from "../lib/slug";
-import { getGoogleMapsEmbedUrl } from "../lib/event-links";
+import { DEFAULT_GATHERING_TYPE, resolveCoverImage } from "../lib/gathering-types";
+import { useErrorFocus } from "../lib/useErrorFocus";
+import { removeEventCover, uploadEventCover, validateEventCoverFile } from "../lib/event-covers";
 import DateTimeField from "../components/DateTimeField";
+import GatheringTypeField from "../components/GatheringTypeField";
+import LocationSearchField from "../components/LocationSearchField";
 import {
+  addTaipeiDays,
   dateTimePartsToTaipeiIso,
   dateTimePartsToTimestamp,
+  daysBetween,
+  formatTaipeiDateTimeRange,
   getDefaultEventDateTime,
+  getTaipeiDateTimeParts,
   isValidTime,
+  isFutureDateTime,
   type DateTimeParts,
 } from "../lib/date-time";
 
@@ -25,7 +40,8 @@ export default function EventCreatePage() {
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [description, setDescription] = useState("");
-  const [visibility, setVisibility] = useState<"public" | "unlisted" | "private">("public");
+  // 預設保守：同學會、家族聚餐這類場合多半不想被陌生人搜到，想公開的人自己改。
+  const [visibility, setVisibility] = useState<"public" | "unlisted" | "private">("unlisted");
   const [confirmationMode, setConfirmationMode] = useState<"instant" | "organizer_confirmed">("instant");
   const [startsAt, setStartsAt] = useState<DateTimeParts>(() => getDefaultEventDateTime().startsAt);
   const [endsAt, setEndsAt] = useState<DateTimeParts>(() => getDefaultEventDateTime().endsAt);
@@ -33,14 +49,31 @@ export default function EventCreatePage() {
   const [locationAddress, setLocationAddress] = useState("");
   const [hasCapacity, setHasCapacity] = useState(true);
   const [capacity, setCapacity] = useState(20);
+  const [feeMode, setFeeMode] = useState<"free" | "fixed" | "on_site_split">("free");
   const [feeAmountInput, setFeeAmountInput] = useState("0");
   const [paymentInstructions, setPaymentInstructions] = useState("");
   const [hasMinAge, setHasMinAge] = useState(false);
   const [minAge, setMinAge] = useState(18);
   const [inviteOnly, setInviteOnly] = useState(false);
+  const [gatheringType, setGatheringType] = useState<string>(DEFAULT_GATHERING_TYPE);
+  // null 代表沿用類型預設圖；主辦人自選後才寫入實際路徑。
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverFilePreviewUrl, setCoverFilePreviewUrl] = useState<string | null>(null);
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const errorRef = useErrorFocus(error);
+
+  useEffect(() => {
+    if (!coverFile) {
+      setCoverFilePreviewUrl(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(coverFile);
+    setCoverFilePreviewUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [coverFile]);
 
   useEffect(() => {
     if (!session) return;
@@ -81,6 +114,19 @@ export default function EventCreatePage() {
     }
   }
 
+  /**
+   * 改開始日期時，結束日期跟著移動同樣的天數（沿用原本的時長）。
+   * 不這樣做的話，改了開始日期就會留下「結束早於開始」的組合，
+   * 而右側預覽只顯示開始日期，看不出來哪裡錯。
+   */
+  function handleStartsAtChange(next: DateTimeParts) {
+    const dayShift = daysBetween(startsAt.date, next.date);
+    if (dayShift !== 0) {
+      setEndsAt((previous) => ({ ...previous, date: addTaipeiDays(previous.date, dayShift) }));
+    }
+    setStartsAt(next);
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
@@ -101,15 +147,27 @@ export default function EventCreatePage() {
       setError("請選擇有效的 24 小時制時間");
       return;
     }
+    if (!isFutureDateTime(startsAt)) {
+      setError("新的聚會不能使用過去的開始時間，請改選未來的日期或時間");
+      return;
+    }
     if (dateTimePartsToTimestamp(startsAt) >= dateTimePartsToTimestamp(endsAt)) {
       setError("結束時間必須晚於開始時間");
       return;
     }
 
-    const feeAmount = feeAmountInput === "" ? 0 : Number(feeAmountInput);
-    if (!Number.isSafeInteger(feeAmount) || feeAmount < 0) {
-      setError("費用請填寫 0 或正整數");
+    const feeAmount = feeMode === "fixed" && feeAmountInput !== "" ? Number(feeAmountInput) : 0;
+    if (feeMode === "fixed" && (!Number.isSafeInteger(feeAmount) || feeAmount <= 0)) {
+      setError("固定費用請填寫正整數；現場分攤請改選對應方式");
       return;
+    }
+
+    if (coverFile) {
+      const coverError = await validateEventCoverFile(coverFile);
+      if (coverError) {
+        setError(coverError);
+        return;
+      }
     }
 
     setBusy(true);
@@ -130,10 +188,24 @@ export default function EventCreatePage() {
         locationAddress: locationAddress.trim(),
         capacity: hasCapacity ? capacity : null,
         feeAmount,
+        feeMode,
         paymentInstructions: paymentInstructions.trim(),
         minAge: hasMinAge ? minAge : null,
         inviteOnly,
+        gatheringType,
+        coverImageUrl: coverFile ? null : coverImageUrl,
       });
+      if (coverFile) {
+        let uploadedCoverUrl: string | null = null;
+        try {
+          uploadedCoverUrl = await uploadEventCover(event_.id, coverFile);
+          await updateEventCover(event_.id, uploadedCoverUrl);
+        } catch {
+          if (uploadedCoverUrl) await removeEventCover(uploadedCoverUrl).catch(() => undefined);
+          navigate(`/e/${event_.slug}/edit?coverUpload=failed`, { replace: true });
+          return;
+        }
+      }
       navigate(`/e/${event_.slug}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "建立活動失敗");
@@ -171,8 +243,6 @@ export default function EventCreatePage() {
     );
   }
 
-  const mapEmbedUrl = getGoogleMapsEmbedUrl({ location_name: locationName, location_address: locationAddress });
-
   return (
     <div className="page page--wide create-page">
       <header className="create-header">
@@ -192,7 +262,7 @@ export default function EventCreatePage() {
       </nav>
 
       {error && (
-        <div className="banner banner--error" role="alert">
+        <div className="banner banner--error" role="alert" tabIndex={-1} ref={errorRef}>
           {error}
         </div>
       )}
@@ -222,6 +292,14 @@ export default function EventCreatePage() {
             <label htmlFor="summary">一句話簡介</label>
             <input id="summary" type="text" value={summary} onChange={(event) => setSummary(event.target.value)} />
           </div>
+          <GatheringTypeField
+            gatheringType={gatheringType}
+            coverImageUrl={coverImageUrl}
+            coverFile={coverFile}
+            onTypeChange={setGatheringType}
+            onCoverChange={setCoverImageUrl}
+            onCoverFileChange={setCoverFile}
+          />
           <div className="field">
             <label htmlFor="description">活動說明</label>
             <textarea
@@ -231,35 +309,19 @@ export default function EventCreatePage() {
               placeholder="活動內容、注意事項…"
             />
           </div>
-          <div className="row">
-            <div className="field">
-              <label htmlFor="locationName">地點名稱</label>
-              <input
-                id="locationName"
-                type="text"
-                value={locationName}
-                onChange={(event) => setLocationName(event.target.value)}
-                placeholder="例如：金色三麥 美麗華店"
-                required
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="locationAddress">地址</label>
-              <input
-                id="locationAddress"
-                type="text"
-                value={locationAddress}
-                onChange={(event) => setLocationAddress(event.target.value)}
-              />
-            </div>
-          </div>
+          <LocationSearchField
+            locationName={locationName}
+            locationAddress={locationAddress}
+            onLocationNameChange={setLocationName}
+            onLocationAddressChange={setLocationAddress}
+          />
         </section>
 
         <section id="create-time" className="card stack form-section">
           <h2>什麼時候見面</h2>
-          <p className="hint">台北時間，使用 24 小時制。預設為當日 18:30–21:30。</p>
-          <DateTimeField id="startsAt" label="開始時間" value={startsAt} onChange={setStartsAt} />
-          <DateTimeField id="endsAt" label="結束時間" value={endsAt} onChange={setEndsAt} />
+          <p className="hint">台北時間，使用 24 小時制。預設為今天或明天 18:30–21:30；新聚會不能排在過去。</p>
+          <DateTimeField id="startsAt" label="開始時間" value={startsAt} onChange={handleStartsAtChange} minDate={getTaipeiDateTimeParts().date} />
+          <DateTimeField id="endsAt" label="結束時間" value={endsAt} onChange={setEndsAt} minDate={getTaipeiDateTimeParts().date} />
         </section>
 
         <section id="create-access" className="card stack form-section">
@@ -344,7 +406,24 @@ export default function EventCreatePage() {
         <section id="create-fee" className="card stack form-section">
           <h2>到場方式與費用</h2>
           <div className="field">
-            <label htmlFor="feeAmount">費用（TWD，0 表示免費）</label>
+            <label htmlFor="feeMode">費用方式</label>
+            <select
+              id="feeMode"
+              value={feeMode}
+              onChange={(event) => {
+                const nextMode = event.target.value as typeof feeMode;
+                setFeeMode(nextMode);
+                if (nextMode !== "fixed") setFeeAmountInput("0");
+              }}
+            >
+              <option value="free">免費</option>
+              <option value="fixed">固定費用</option>
+              <option value="on_site_split">現場結算後分攤</option>
+            </select>
+          </div>
+          {feeMode === "fixed" && (
+          <div className="field">
+            <label htmlFor="feeAmount">每人費用（TWD）</label>
             <input
               id="feeAmount"
               type="text"
@@ -354,6 +433,7 @@ export default function EventCreatePage() {
               onChange={(event) => setFeeAmountInput(event.target.value.replace(/[^0-9]/g, ""))}
             />
           </div>
+          )}
           <div className="field">
             <label htmlFor="paymentInstructions">收款說明</label>
             <textarea
@@ -375,25 +455,26 @@ export default function EventCreatePage() {
         <aside className="create-form__aside" aria-label="聚會預覽">
           <div className="create-preview">
             <p className="section-kicker">桌邊先放一張椅子</p>
+            <img
+              className="create-preview__cover"
+              src={coverFilePreviewUrl ?? resolveCoverImage({ cover_image_url: coverImageUrl, gathering_type: gatheringType })}
+              alt=""
+              loading="lazy"
+            />
             <h2>{title.trim() || "新的聚會"}</h2>
             <p>{summary.trim() || "寫下一句，讓大家知道這次為什麼想見面。"}</p>
             <dl>
-              <div><dt>時間</dt><dd>{startsAt.date}・{startsAt.time}–{endsAt.time}</dd></div>
+              {/* 跨日時必須把結束日期寫出來，否則預覽會掩蓋「結束早於開始」這類錯誤。 */}
+              <div>
+                <dt>時間</dt>
+                <dd>
+                  {formatTaipeiDateTimeRange(dateTimePartsToTaipeiIso(startsAt), dateTimePartsToTaipeiIso(endsAt))}
+                </dd>
+              </div>
               <div><dt>地點</dt><dd>{locationName.trim() || "還在等一個地方"}</dd></div>
               <div><dt>席次</dt><dd>{hasCapacity ? `${capacity} 人` : "不限人數"}</dd></div>
-              <div><dt>到場</dt><dd>{Number(feeAmountInput) > 0 ? `NT$ ${feeAmountInput}` : "免費"}</dd></div>
+              <div><dt>到場</dt><dd>{feeMode === "on_site_split" ? "現場結算後分攤" : feeMode === "fixed" ? `NT$ ${feeAmountInput || "0"}` : "免費"}</dd></div>
             </dl>
-            {mapEmbedUrl && (
-              <div className="create-preview__map">
-                <iframe
-                  key={mapEmbedUrl}
-                  src={mapEmbedUrl}
-                  title="活動地點地圖預覽"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-              </div>
-            )}
             <p className="create-preview__note">建立後，這段相聚會有自己的連結，可以送進 LINE 群組。</p>
           </div>
         </aside>
