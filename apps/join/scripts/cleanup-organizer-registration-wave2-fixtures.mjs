@@ -7,10 +7,10 @@ const serviceRoleKey = process.env.GATHER_JOIN_LOCAL_SERVICE_ROLE_KEY;
 if (!databaseUrl || !serviceRoleKey) throw new Error("local database and Auth Admin credentials are required");
 const database = new URL(databaseUrl);
 const api = new URL(apiUrl);
-if (!["127.0.0.1", "localhost", "::1"].includes(database.hostname) || database.port !== "58332") {
+if (database.hostname !== "127.0.0.1" || database.port !== "58332") {
   throw new Error("refusing non-diagnostic database");
 }
-if (!["127.0.0.1", "localhost", "::1"].includes(api.hostname)) throw new Error("refusing non-local Auth Admin API");
+if (api.hostname !== "127.0.0.1") throw new Error("refusing non-local Auth Admin API");
 
 const sql = postgres(databaseUrl, { max: 1 });
 const prefix = "wave2-organizer-idem-";

@@ -14,13 +14,13 @@
 - Independent Fresh（完整 current evidence）：fresh-context reviewer 明確回報 `ACCEPTED`；Wave 0 依此完成 evidence-boundary closure。此 CLOSED 不等於 production semantic/device UAT、Pages source parity、PR merge 或部署核准。
 - Wave 0 safe diagnostic：**ACCEPTED（Fresh LOCAL-code / prior evidence）**。Fallback3 DB runtime 的 concurrency 已完成 phase-aware 根因修正，既有 one-shot 結果維持 `PASS confirmed=1 waitlisted=5`；本輪不重跑。Wave 1 Release baseline 已 `ACCEPTED／CLOSED`；Wave 2 已依 current objective 啟動，僅限 organizer roster closure allowlist。
 
-## 2026-08-24：Wave 2 organizer roster current source slice
+## [HISTORICAL／SUPERSEDED] 2026-08-24：Wave 2 organizer roster source slice
 
 - `[SCOPE／OWNER]` 本輪 objective 明確授權 Phase 2／Wave 2，目標為 organizer 對線上報名者完成 confirm／decline／remove；不延伸至 migration、remote／production data、Cloudflare、secrets、reset、DELETE、rollback、broad cleanup 或 merge。
 - `[DISCOVERY]` 指定的 `apps/join/src/components/EventPage.tsx` 不存在；實際 mount point 是 `apps/join/src/pages/EventPage.tsx`，由 `apps/join/src/App.tsx` mount。既有 seat-engine RPC、organizer admin ACL、event lock、audit actor／before-after 與席次 promotion contract 均已 read-only 確認。
 - `[SOURCE]` 已完成 `api.ts` 三個 organizer wrapper 與 online-only `user_id` preflight；`RosterManager.tsx` 對線上 pending row 顯示 confirm／decline／remove，對其他 active online row 顯示 remove，manual row 仍走 manual RPC；stale／replay error 後會重新載入名單。
-- `[TEST]` focused API／UI tests 與 `scripts/organizer-registration-contract.test.ts` STATIC migration contract test 已加入；API test 另確認 manual registration 在 RPC 前 fail-closed。目前只證明 wrapper／mount／action routing、錯誤回傳與 source contract，尚未證明 live 12 cases、fixture residue=`0` 或 Fresh acceptance。
-- `[IDEMPOTENCY / NOT_VERIFIED]` 既有 organizer RPC 沒有 `p_idempotency_key`／`idempotency_requests` contract；現階段僅保留 remove no-op 與 confirm／decline fail-closed replay 語意。migration-specific authorization 未取得，禁止自行修改 migration。
+- `[HISTORICAL]` focused API／UI tests 與 STATIC contract test 已加入；當時只證明 source contract，尚未證明 live 12 cases、fixture residue=`0` 或 Fresh acceptance。後續 local closure section 已 supersede 本段。
+- `[HISTORICAL]` 當時既有 organizer RPC 沒有 `p_idempotency_key`／`idempotency_requests` contract；後續已取得 migration authorization 並完成 local forward-only migration，詳見下方 local closure section。
 
 ## 2026-08-24：Wave 2 local closure after explicit migration authorization
 

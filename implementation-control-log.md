@@ -2460,3 +2460,25 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[FIXTURE CLEANUP / PASS]` final residue：organizers=`0`、events=`0`、registrations=`0`、idempotency=`0`、audit=`0`、outbox=`0`、public_member=`0`、auth_member=`0`。temporary member 僅由 local Auth Admin API 建立／刪除，未直接 DML `auth.users`。
 - `[LOCAL GATES / PASS]` `pnpm typecheck`、`pnpm lint`、`pnpm test`=`187 passed／1 skipped`、`pnpm test:security`=`14/14`、`pnpm build`、`pnpm smoke`=`83 audited files`、兩支 Wave 2 script `node --check` 均 exit `0`。已知風險：Node=`20.20.2` 低於 package `>=22`；bundle 約 `594.64 kB` chunk warning。
 - `[NOT_RUN / BOUNDARY]` remote／production、Cloudflare、device、merge、deploy、Fresh 均 `NOT_RUN`；local PASS 不升格為 remote／production／device acceptance。Wave 0=`CLOSED`；Wave 1=`ACCEPTED／CLOSED`；Wave 2=`LOCAL ACCEPTED／Fresh pending`。
+
+## 2026-08-24：Wave 2 Fresh correction current section (EOF)
+
+- `[FRESH / CORRECTION]` 獨立 reviewer `Goodall` 對 `359ea55` 回報 `NOT_ACCEPTED`（P0=0、P1=3、P2=2）。P1 為 verifier host allowlist 不夠 exact、control log 未逐案保存完整 12-case 欄位、README／LEDGER current wording 矛盾；P2 為 Node engine mismatch 與 bundle warning。
+- `[CORRECTION]` verifier／cleanup helper 現在只接受 DB／Auth API hostname=`127.0.0.1`，DB port=`58332`；README／LEDGER historical/current boundary 已修正。下表把每案的 expected、actual、target status、audit actor、seat、replay、fixture cleanup 逐案保存：
+
+| case | expected | actual | target status | audit actor | seat | replay | fixture cleanup |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| confirm/anonymous | 42501 | 42501 | pending_organizer_confirmation | none | occupied=1; offered=0 | not-applicable | residue=0 |
+| confirm/member | 42501 | 42501 | pending_organizer_confirmation | none | occupied=1; offered=0 | not-applicable | residue=0 |
+| confirm/organizer | success | SUCCESS | confirmed | owner | occupied=1; offered=0 | same-key-success | residue=0 |
+| confirm/replay | success | SUCCESS | confirmed | owner | occupied=1; offered=0 | same-key-success-no-extra-transition | residue=0 |
+| decline/anonymous | 42501 | 42501 | pending_organizer_confirmation | none | occupied=1; offered=0 | not-applicable | residue=0 |
+| decline/member | 42501 | 42501 | pending_organizer_confirmation | none | occupied=1; offered=0 | not-applicable | residue=0 |
+| decline/organizer | success | SUCCESS | declined | owner | occupied=1; offered=1 | same-key-success | residue=0 |
+| decline/replay | success | SUCCESS | declined | owner | occupied=1; offered=1 | same-key-success-no-extra-transition | residue=0 |
+| remove/anonymous | 42501 | 42501 | confirmed | none | occupied=1; offered=0 | not-applicable | residue=0 |
+| remove/member | 42501 | 42501 | confirmed | none | occupied=1; offered=0 | not-applicable | residue=0 |
+| remove/organizer | success | SUCCESS | removed_by_organizer | owner | occupied=1; offered=1 | same-key-success | residue=0 |
+| remove/replay | success | SUCCESS | removed_by_organizer | owner | occupied=1; offered=1 | same-key-success-no-extra-transition | residue=0 |
+
+- `[FRESH / PENDING]` Fresh correction is prepared; independent reviewer re-run is required before Wave 2 can be marked Fresh accepted. Remote／production／device remain `NOT_RUN`.

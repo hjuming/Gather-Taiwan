@@ -17,14 +17,13 @@ const databaseUrl = process.env.GATHER_JOIN_TEST_DATABASE_URL;
 if (!databaseUrl) throw new Error("GATHER_JOIN_TEST_DATABASE_URL is required");
 
 const parsedDatabaseUrl = new URL(databaseUrl);
-const localHosts = new Set(["127.0.0.1", "localhost", "::1"]);
-if (!localHosts.has(parsedDatabaseUrl.hostname) || parsedDatabaseUrl.port !== "58332") {
+if (parsedDatabaseUrl.hostname !== "127.0.0.1" || parsedDatabaseUrl.port !== "58332") {
   throw new Error("Refusing a non-local or non-diagnostic Wave 2 verifier database");
 }
 
 const localApiUrl = process.env.GATHER_JOIN_LOCAL_API_URL ?? "http://127.0.0.1:58331";
 const parsedApiUrl = new URL(localApiUrl);
-if (!localHosts.has(parsedApiUrl.hostname)) {
+if (parsedApiUrl.hostname !== "127.0.0.1") {
   throw new Error("Refusing a non-local Auth Admin API");
 }
 const localServiceRoleKey = process.env.GATHER_JOIN_LOCAL_SERVICE_ROLE_KEY;
