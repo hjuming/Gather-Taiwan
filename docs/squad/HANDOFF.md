@@ -2,7 +2,7 @@
 
 日期：2026-08-24
 來源：Codex／`codex/gather-mvp`
-交接性質：Wave 0 final current-evidence closeout＋Phase 1 release baseline addendum；source/runtime fixed point=`83a38e8`，current repo HEAD／Phase 1 exact CI identity 每次以 Git／CI／control log read-back 為準。固定點 read-back 時 working tree clean；Phase 1 已建立 app／CI／smoke／verifier provenance baseline。Supabase current read-only connector 已恢復並完成 catalog／function／ACL／RLS／aggregate／zero-residue read-back；GitHub／CI／staging／production public endpoints 亦已重核。Wave 0 維持 CLOSED（evidence-boundary closure）；Phase 1 Fresh reviewer 本輪回報 `NOT_ACCEPTED` 並已列出 correction；Wave 1 維持 BLOCKED／未啟動。
+交接性質：Wave 0 final current-evidence closeout＋Phase 1 release baseline addendum；source/runtime fixed point=`83a38e8`，current repo HEAD／Phase 1 exact CI identity 每次以 Git／CI／control log read-back 為準。固定點 read-back 時 working tree clean；Phase 1 已建立 app／CI／smoke／verifier provenance baseline。Supabase current read-only connector 已恢復並完成 catalog／function／ACL／RLS／aggregate／zero-residue read-back；GitHub／CI／staging／production public endpoints 亦已重核。Wave 0 維持 CLOSED（evidence-boundary closure）；Phase 1 corrections 已完成，第三輪獨立 Fresh reviewer 尚待回報；Wave 1 維持 BLOCKED／未啟動。
 
 ## 2026-08-24 current closeout evidence（authoritative）
 
@@ -23,7 +23,7 @@
 - current HEAD／origin、run、baseline artifact、provenance artifact 以 control log 最末 current section exact read-back 為準；baseline report 與 provenance manifest 均須完成上傳。
 - manifest `exactMatch=PASS`、mismatches=`[]`；report verdict=`PASS_WITH_EXPECTED_SKIP`。
 - report 明確標示 DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT=`NOT_RUN`；isolated local Supabase job 是獨立 CI runtime gate，不是 hermetic report 的替代品。
-- Phase 1 Fresh reviewer 回報 `NOT_ACCEPTED`，待完成 skip identity、staging fallback、current provenance 文件與 CI boundary 修正後再交第二輪 Fresh；Wave 1 維持 `BLOCKED`。
+- Phase 1 skip identity、staging fallback、current provenance 文件與 CI boundary corrections 已完成；第三輪獨立 Fresh acceptance 以 control log 最末 current section 為準，尚待回報；Wave 1 維持 `BLOCKED`。
 
 ## 後續維護邊界
 

@@ -30,7 +30,7 @@
 
 - REMOTE：Supabase catalog=33；指定 migrations present；functions／ACL=9/9；source-aligned RLS=15/15 enabled＋forced；aggregate=0；non-null orphan refs=0。
 - LOCAL／ISOLATED LOCAL：既有 gate evidence 保留；phase-aware concurrency 只引用既有 confirmed=1 waitlisted=5，本次禁止重跑。
-- CI：PR #1 仍 open、draft、未 merge；current HEAD 對應 Gather Join Gates run 32187430242 success。
+- CI：PR #1 仍 open、draft、未 merge；current HEAD／Gather Join Gates run／artifact exact-match 以 `implementation-control-log.md` 最末 current section 的 read-back 為準。
 - STAGING：workers.dev homepage=200；無 Access assertion 的 POST /__dev/session=403。
 - PRODUCTION：/ 與 /app/ 為 200；POST /app/__dev/session=404。這不是 production semantic／device UAT。
 - PAGES：deployment URL 可回 200，但 source／control-plane metadata=NOT_VERIFIED。

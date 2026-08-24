@@ -19,7 +19,7 @@
 - `[CI]` current repo／origin HEAD、Gather Join Gates run、PR head checkout 與 report evidenceTier=`CI` 均須以 control log 最末 current section read-back 為準。
 - `[CI / ARTIFACT]` baseline／provenance artifact 均須下載 read-back manifest `exactMatch=PASS`、mismatches=`[]`；baseline verdict=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`。
 - `[BOUNDARY]` DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT 均為 `NOT_RUN`；既有 isolated local runtime job 是獨立 evidence tier，不得與 hermetic six-gate report 混用。
-- `[FRESH]` Phase 1 reviewer 回報 `NOT_ACCEPTED`：skip identity contract、staging smoke fallback、current provenance 文件與 CI job boundary 需修正；Wave 0 維持既有 evidence-boundary `CLOSED`，Wave 1 維持 `BLOCKED`。
+- `[FRESH]` Phase 1 verifier／staging／provenance／CI boundary corrections 已完成；第三輪獨立 Fresh review 以 control log 最末 current section 為準，尚待回報；Wave 0 維持既有 evidence-boundary `CLOSED`，Wave 1 維持 `BLOCKED`。
 
 ## [HISTORICAL／SUPERSEDED] 2026-08-17～2026-08-18 supporting snapshots
 
@@ -44,14 +44,14 @@
 
 本節是本輪 current read-back 與獨立 Fresh verdict 的權威摘要；下方較早日期的 `BLOCKED`／`pending` 內容均為歷史快照，不覆寫本節。
 
-- `[LOCAL / ISOLATED LOCAL / prior]` source/runtime fixed point=`83a38e8`；Wave 0 evidence snapshot repo HEAD／origin=`50bb2ea`。Phase 1 current baseline／docs HEAD=`fd137d0` 不改變 source/runtime fixed point；既有 phase-aware concurrency verifier 僅引用 `confirmed=1 waitlisted=5`，本輪未重跑。
+- `[LOCAL / ISOLATED LOCAL / prior]` source/runtime fixed point=`83a38e8`；Wave 0 evidence snapshot 是 prior handoff evidence，Phase 1 current baseline／docs exact values 以 control log 最末 read-back 為準，不改變 source/runtime fixed point；既有 phase-aware concurrency verifier 僅引用 `confirmed=1 waitlisted=5`，本輪未重跑。
 - `[REMOTE / FRESH]` Supabase target ref=`anklbpkyesdmsubyfcna`；migration catalog=`33`，`20260815060000` 與 `20260818121055` present；9/9 指定 functions present、`SECURITY DEFINER`、固定 `search_path`；function ACL 9/9 exact；source-aligned 15/15 tables RLS enabled＋forced；aggregate over-limit=`0`；non-null orphan references=`0`。19 筆 audit rows 的 `event_id` 為 NULL，非 orphan reference。Advisors：security 54（INFO 4／WARN 50）、performance 21（INFO 11／WARN 10），列為 residual debt。
-- `[CI / WAVE0 HANDOFF]` PR #1 head=`50bb2ea`；Gather Join Gates run `32187430242` completed／success。PR 仍 open、draft、未 merge；PR body 對整個 PR 的 docs-only 描述與 99 files 變更範圍有 provenance ambiguity，未在本輪修改外部 PR。
-- `[CI / PHASE1 CURRENT]` current head=`fd137d0`；Gather Join Gates run `32709459237` completed／success；baseline／provenance artifacts exact-match PASS。Phase 1 Fresh reviewer 本輪 `NOT_ACCEPTED`，修正進行中。
+- `[CI / WAVE0 HANDOFF]` prior Wave 0 CI evidence 已完成並保留於 historical control-log entries；PR 仍 open、draft、未 merge。PR body 對整個 PR 的 docs-only 描述與變更範圍有 provenance ambiguity，未在本輪修改外部 PR。
+- `[CI / PHASE1 CURRENT]` current head、Gather Join Gates run、baseline／provenance artifact exact values 以 control log 最末 current section 為準；manifest 必須 exact-match PASS。Phase 1 Fresh 第三輪 review pending。
 - `[STAGING]` `https://gather-join-staging.hjuming.workers.dev/` homepage=`200`；POST `/__dev/session`（無 Access assertion）=`403`、`{"message":"Forbidden"}`。
 - `[PRODUCTION]` `https://gather.wedopr.com/`=`200`；`/app/`=`200`；POST `/app/__dev/session`=`404`、`{"error":"not_found"}`。這不是 production semantic／device UAT。
 - `[PAGES / NOT_VERIFIED]` deployment URL `https://f4febb0d.neo-rechao.pages.dev/`=`200`；Pages source／control-plane metadata 本輪未取得。Canonical `staging.join.gather.wedopr.com` DNS 未解析，維持 `UNVERIFIED`。
-- `[FRESH]` 獨立 fresh-context reviewer 對完整 current evidence 明確回報 `ACCEPTED`。因此 **Wave 0：CLOSED（evidence-boundary closure）**；**Wave 1：BLOCKED／未啟動**。
+- `[FRESH]` Phase 1 corrections 已完成；第三輪獨立 Fresh review 尚待回報。Wave 0 維持 **CLOSED（evidence-boundary closure）**；Wave 1 維持 **BLOCKED／未啟動**。
 - `[NEXT]` 下一階段的 proposed scope、目標與驗收順序已寫入 [`docs/squad/NEXT-PHASE-PLAN.md`](./NEXT-PHASE-PLAN.md)；接手提示詞已更新至 [`docs/squad/NEXT-TEAM-KICKOFF.md`](./NEXT-TEAM-KICKOFF.md)。這些是規劃文件，不是 Wave 1 開工授權。
 
 ## [HISTORICAL／SUPERSEDED] 2026-08-19：current fixed-point and read-only evidence sync
