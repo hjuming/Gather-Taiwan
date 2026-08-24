@@ -2,7 +2,7 @@
 
 ## Current engineering handoff（2026-08-24）
 
-`apps/join` 的 Wave 0 manual roster evidence-boundary closure 已完成，準備移交下一工程團隊。source/runtime fixed point=`83a38e8`；current HEAD／origin 每次交接都必須以 Git read-back 為準，Phase 1 exact SHA／run／artifact 以 `implementation-control-log.md` 最末 current section 為準；Wave 0=`CLOSED`、Wave 1=`BLOCKED／未啟動`。
+`apps/join` 的 Wave 0 manual roster evidence-boundary closure 與 Wave 1 Release baseline 已完成。source/runtime fixed point=`83a38e8`；current HEAD／origin 每次交接都必須以 Git read-back 為準，Phase 1 exact SHA／run／artifact 以 `implementation-control-log.md` 最末 current section 為準；Wave 0=`CLOSED`、Wave 1=`ACCEPTED／CLOSED`、Wave 2 尚未啟動。
 
 - `[REMOTE]` Supabase catalog=`33`；指定 migrations present；functions／ACL=`9/9`；source-aligned RLS=`15/15` enabled＋forced；aggregate=`0`；non-null orphan refs=`0`。
 - `[CI]` PR #1 仍 open、draft、未 merge；Phase 1 baseline／provenance artifact exact-match PASS，current SHA／run／artifact URL 以 control log 最末 current section read-back 為準。
@@ -17,7 +17,7 @@
 
 - `verify-release-baseline` 在 CI report 中標記 evidenceTier=`CI`，六 gate verdict=`PASS_WITH_EXPECTED_SKIP`，DB skip identity contract 預期為 `scripts/concurrency-harness.test.ts`。
 - baseline artifact 與 provenance manifest 的 commit／run／artifact URL exact-match=`PASS`；current exact values 以 control log 最末 current section read-back 為準，避免 docs-only commit 造成過期 snapshot。
-- DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT 均維持 `NOT_RUN`；verifier／staging／provenance corrections 已完成，第三輪獨立 Fresh acceptance 已回報 `ACCEPTED`，完整 exact read-back 以 control log 最末 current section 為準；不得解除 Wave 1。
+- DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT 均維持 `NOT_RUN`；verifier／staging／provenance corrections 已完成，獨立 Fresh acceptance 已回報 `ACCEPTED`，完整 exact read-back 以 control log 最末 current section 為準；Wave 1 已關閉，Wave 2 尚未啟動。
 
 ## [HISTORICAL／SUPERSEDED] Current engineering handoff（2026-08-18）
 

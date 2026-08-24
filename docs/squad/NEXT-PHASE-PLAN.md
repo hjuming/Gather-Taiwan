@@ -3,7 +3,7 @@
 日期：2026-08-24
 適用 branch：`codex/gather-mvp`
 source/runtime evidence fixed point：`83a38e8`
-目前狀態：Wave 0 **CLOSED（evidence-boundary closure）**；Wave 1 **BLOCKED／未啟動**
+目前狀態：Wave 0 **CLOSED（evidence-boundary closure）**；Wave 1 **ACCEPTED／CLOSED（Release baseline）**；Wave 2 **BLOCKED／未啟動**
 
 ## 計劃原則
 
@@ -24,7 +24,7 @@ source/runtime evidence fixed point：`83a38e8`
 - `pnpm typecheck`、`pnpm lint`、`pnpm test`、`pnpm test:security`、`pnpm build`、`pnpm smoke` 形成單一 gate report。
 - 補 hermetic staging／CI contract，明確標記 DB suite skip、未接 Cloudflare Access、未跑 device UAT 的狀態。
 - 建立 source/runtime fixed point、PR head、CI run、deployment URL／source metadata 的 provenance read-back。
-- 由獨立 Fresh reviewer 接受後，才可解除 Wave 1 blocked。
+- 由獨立 Fresh reviewer 接受後，Wave 1 Release baseline 可解除 blocked；current Fresh 已接受，Wave 1 已關閉。
 - 量化門檻：6 個本地 gate 均 exit `0`；非預期 skip=`0`；每個 skip 必須有原因、環境與替代證據；CI run、commit SHA、artifact URL 三者 exact match。
 
 ### Phase 2｜Organizer roster closure（對應 Wave 2）
@@ -83,7 +83,7 @@ source/runtime evidence fixed point：`83a38e8`
 
 ## 建議執行順序
 
-1. MING 確認 Phase 1 scope 與 owner；Wave 1 維持 BLOCKED。
+1. Phase 1 scope／owner 已由本輪組長指示確認；Wave 1 Release baseline 已接受。下一步如要進入 Wave 2，仍須另行確認 Phase 2 scope 與 owner。
 2. 新團隊建立乾淨 session，讀 `NEXT-TEAM-KICKOFF.md`、本計劃、SSOT、DEVELOPMENT、MAINTENANCE 與 control log。
 3. 完成 read-only baseline 與 gate report；任何 connector／owner／secret blocker 立即記錄並停止該 slice。
 4. 只對明確 allowlist 開發與測試；交 Fresh reviewer；更新 LEDGER／HANDOFF／control log。

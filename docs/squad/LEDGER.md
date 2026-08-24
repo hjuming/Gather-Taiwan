@@ -12,14 +12,14 @@
 - GitHub／CI：**PASS（Phase 1 PR #1；exact current run／HEAD／artifacts 以 control log 最末 current section 為準）**；baseline／provenance artifacts exact-match PASS；PR #1 目前仍 open、draft、未 merge。Remote DB：**current read-only PASS（2026-08-24）**；catalog=`33`，指定 migrations `20260815060000`／`20260818121055` present，functions／ACL=`9/9`，source-aligned RLS=`15/15` enabled＋forced，aggregate=`0`，non-null orphan refs=`0`。Advisors 保留 current residual lints（security 54、performance 21），不隱藏、不在本輪修復。
 - Public runtime read-back（2026-08-24）：staging homepage=`200`、無 Access assertion 的 POST `/__dev/session`=`403`；production `/`=`200`、`/app/`=`200`、`/app/__dev/session`=`404`。Canonical `staging.join.gather.wedopr.com` DNS 仍 `UNVERIFIED`；Pages deployment URL `https://f4febb0d.neo-rechao.pages.dev/`=`200`，source metadata `NOT_VERIFIED`。
 - Independent Fresh（完整 current evidence）：fresh-context reviewer 明確回報 `ACCEPTED`；Wave 0 依此完成 evidence-boundary closure。此 CLOSED 不等於 production semantic/device UAT、Pages source parity、PR merge 或部署核准。
-- Wave 0 safe diagnostic：**ACCEPTED（Fresh LOCAL-code / prior evidence）**。Fallback3 DB runtime 的 concurrency 已完成 phase-aware 根因修正，既有 one-shot 結果維持 `PASS confirmed=1 waitlisted=5`；本輪不重跑。Wave 1 維持 `BLOCKED`、未啟動。
+- Wave 0 safe diagnostic：**ACCEPTED（Fresh LOCAL-code / prior evidence）**。Fallback3 DB runtime 的 concurrency 已完成 phase-aware 根因修正，既有 one-shot 結果維持 `PASS confirmed=1 waitlisted=5`；本輪不重跑。Wave 1 Release baseline 已 `ACCEPTED／CLOSED`；Wave 2 尚未啟動。
 
 ## 2026-08-24：Phase 1 release baseline current read-back
 
 - `[CI]` current repo／origin HEAD、Gather Join Gates run、PR head checkout 與 report evidenceTier=`CI` 均須以 control log 最末 current section read-back 為準。
 - `[CI / ARTIFACT]` baseline／provenance artifact 均須下載 read-back manifest `exactMatch=PASS`、mismatches=`[]`；baseline verdict=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`。
 - `[BOUNDARY]` DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT 均為 `NOT_RUN`；既有 isolated local runtime job 是獨立 evidence tier，不得與 hermetic six-gate report 混用。
-- `[FRESH]` Phase 1 verifier／staging／provenance／CI boundary corrections 已完成；第三輪獨立 Fresh review 已回報 `ACCEPTED`，完整 exact read-back 以 control log 最末 current section 為準；Wave 0 維持既有 evidence-boundary `CLOSED`，Wave 1 維持 `BLOCKED`。
+- `[FRESH]` Phase 1 verifier／staging／provenance／CI boundary corrections 已完成；獨立 Fresh review 已回報 `ACCEPTED`，完整 exact read-back 以 control log 最末 current section 為準；Wave 0 維持 evidence-boundary `CLOSED`，Wave 1 Release baseline 為 `ACCEPTED／CLOSED`。
 
 ## [HISTORICAL／SUPERSEDED] 2026-08-17～2026-08-18 supporting snapshots
 
@@ -51,7 +51,7 @@
 - `[STAGING]` `https://gather-join-staging.hjuming.workers.dev/` homepage=`200`；POST `/__dev/session`（無 Access assertion）=`403`、`{"message":"Forbidden"}`。
 - `[PRODUCTION]` `https://gather.wedopr.com/`=`200`；`/app/`=`200`；POST `/app/__dev/session`=`404`、`{"error":"not_found"}`。這不是 production semantic／device UAT。
 - `[PAGES / NOT_VERIFIED]` deployment URL `https://f4febb0d.neo-rechao.pages.dev/`=`200`；Pages source／control-plane metadata 本輪未取得。Canonical `staging.join.gather.wedopr.com` DNS 未解析，維持 `UNVERIFIED`。
-- `[FRESH]` Phase 1 corrections 已完成；第三輪獨立 Fresh review 已 `ACCEPTED`。Wave 0 維持 **CLOSED（evidence-boundary closure）**；Wave 1 維持 **BLOCKED／未啟動**。
+- `[FRESH]` Phase 1 corrections 已完成；獨立 Fresh review 已 `ACCEPTED`。Wave 0 維持 **CLOSED（evidence-boundary closure）**；Wave 1 Release baseline 為 **ACCEPTED／CLOSED**。
 - `[NEXT]` 下一階段的 proposed scope、目標與驗收順序已寫入 [`docs/squad/NEXT-PHASE-PLAN.md`](./NEXT-PHASE-PLAN.md)；接手提示詞已更新至 [`docs/squad/NEXT-TEAM-KICKOFF.md`](./NEXT-TEAM-KICKOFF.md)。這些是規劃文件，不是 Wave 1 開工授權。
 
 ## [HISTORICAL／SUPERSEDED] 2026-08-19：current fixed-point and read-only evidence sync

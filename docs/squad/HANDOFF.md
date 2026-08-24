@@ -2,7 +2,7 @@
 
 日期：2026-08-24
 來源：Codex／`codex/gather-mvp`
-交接性質：Wave 0 final current-evidence closeout＋Phase 1 release baseline addendum；source/runtime fixed point=`83a38e8`，current repo HEAD／Phase 1 exact CI identity 每次以 Git／CI／control log read-back 為準。固定點 read-back 時 working tree clean；Phase 1 已建立 app／CI／smoke／verifier provenance baseline。Supabase current read-only connector 已恢復並完成 catalog／function／ACL／RLS／aggregate／zero-residue read-back；GitHub／CI／staging／production public endpoints 亦已重核。Wave 0 維持 CLOSED（evidence-boundary closure）；Phase 1 corrections 已完成，第三輪獨立 Fresh reviewer 已回報 `ACCEPTED`；Wave 1 維持 BLOCKED／未啟動。
+交接性質：Wave 0 final current-evidence closeout＋Phase 1 release baseline addendum；source/runtime fixed point=`83a38e8`，current repo HEAD／Phase 1 exact CI identity 每次以 Git／CI／control log read-back 為準。固定點 read-back 時 working tree clean；Phase 1 已建立 app／CI／smoke／verifier provenance baseline。Supabase current read-only connector 已恢復並完成 catalog／function／ACL／RLS／aggregate／zero-residue read-back；GitHub／CI／staging／production public endpoints 亦已重核。Wave 0 維持 CLOSED（evidence-boundary closure）；Phase 1 corrections 已完成，獨立 Fresh reviewer 已回報 `ACCEPTED`；Wave 1 Release baseline 為 `ACCEPTED／CLOSED`，Wave 2 尚未啟動。
 
 ## 2026-08-24 current closeout evidence（authoritative）
 
@@ -14,20 +14,20 @@
 - `[STAGING]` workers.dev homepage=`200`；無 Access assertion 的 POST `/__dev/session`=`403`、`{"message":"Forbidden"}`。
 - `[PRODUCTION]` `https://gather.wedopr.com/`=`200`；`/app/`=`200`；POST `/app/__dev/session`=`404`、`{"error":"not_found"}`。這不是 production semantic／device UAT。
 - `[PAGES / NOT_VERIFIED]` deployment URL `https://f4febb0d.neo-rechao.pages.dev/`=`200`；Pages source／control-plane metadata 本輪未取得。Canonical `staging.join.gather.wedopr.com` DNS 未解析，維持 `UNVERIFIED`。
-- `[FRESH]` 獨立 fresh-context reviewer 對完整 current evidence 明確回報 `ACCEPTED`。因此 **Wave 0：CLOSED（evidence-boundary closure）**；**Wave 1：BLOCKED／未啟動**。
+- `[FRESH]` 獨立 fresh-context reviewer 對完整 current evidence 明確回報 `ACCEPTED`。因此 **Wave 0：CLOSED（evidence-boundary closure）**；**Wave 1：ACCEPTED／CLOSED（Release baseline）**；**Wave 2：BLOCKED／未啟動**。
 - `[BOUNDARY]` 本輪未修改 source、migration、test、package、workflow；未執行 remote migration、DELETE、reset、rollback、broad cleanup；未修改 Cloudflare route／DNS／custom domain；未 merge PR、未宣稱 production semantic/device PASS。
-- `[NEXT]` 下一階段提案與可量化驗收目標見 [`NEXT-PHASE-PLAN.md`](./NEXT-PHASE-PLAN.md)；可直接貼上的開發啟動提示詞見 [`NEXT-TEAM-KICKOFF.md`](./NEXT-TEAM-KICKOFF.md)。兩者均不自動解除 Wave 1 BLOCKED。
+- `[NEXT]` 下一階段提案與可量化驗收目標見 [`NEXT-PHASE-PLAN.md`](./NEXT-PHASE-PLAN.md)；可直接貼上的開發啟動提示詞見 [`NEXT-TEAM-KICKOFF.md`](./NEXT-TEAM-KICKOFF.md)。兩者均不自動解除 Wave 2 BLOCKED。
 
 ## Phase 1 release baseline current read-back（2026-08-24）
 
 - current HEAD／origin、run、baseline artifact、provenance artifact 以 control log 最末 current section exact read-back 為準；baseline report 與 provenance manifest 均須完成上傳。
 - manifest `exactMatch=PASS`、mismatches=`[]`；report verdict=`PASS_WITH_EXPECTED_SKIP`。
 - report 明確標示 DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT=`NOT_RUN`；isolated local Supabase job 是獨立 CI runtime gate，不是 hermetic report 的替代品。
-- Phase 1 skip identity、staging fallback、current provenance 文件與 CI boundary corrections 已完成；第三輪獨立 Fresh acceptance 已回報 `ACCEPTED`，完整 exact read-back 以 control log 最末 current section 為準；Wave 1 維持 `BLOCKED`。
+- Phase 1 skip identity、staging fallback、current provenance 文件與 CI boundary corrections 已完成；獨立 Fresh acceptance 已回報 `ACCEPTED`，完整 exact read-back 以 control log 最末 current section 為準；Wave 1 Release baseline 已 `ACCEPTED／CLOSED`，Wave 2 尚未啟動。
 
 ## 後續維護邊界
 
-Wave 0 已完成本輪 evidence-boundary closure；後續若要處理 Pages source parity、canonical staging DNS、production semantic/device UAT、advisor technical debt 或 PR body provenance，必須另開明確 scope。Wave 1 目前不得開始。
+Wave 0 已完成本輪 evidence-boundary closure；Wave 1 Release baseline 已接受並關閉。後續若要處理 Pages source parity、canonical staging DNS、production semantic/device UAT、advisor technical debt、PR body provenance 或 Wave 2 線上報名者功能，必須另開明確 scope；Wave 2 目前不得開始。
 
 ## [HISTORICAL／SUPERSEDED] 目前狀態 snapshots（2026-08-18～2026-08-21）
 

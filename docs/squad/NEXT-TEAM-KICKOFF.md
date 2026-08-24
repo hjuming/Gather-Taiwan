@@ -1,6 +1,6 @@
 # 下一工程團隊啟動提示詞
 
-用途：把下列提示詞完整貼給下一個工程團隊或乾淨 session。它是 Wave 0 完成後的接棒入口，不是 Wave 1 自動開工授權。
+用途：把下列提示詞完整貼給下一個工程團隊或乾淨 session。它是 Wave 1 Release baseline 完成後的接棒入口，不是 Wave 2 自動開工授權。
 
 ## 可直接複製的啟動提示詞
 
@@ -24,7 +24,7 @@
 - source/runtime evidence fixed point：83a38e8
 - current repo／origin HEAD：先以 git read-back 為準；不要 reset，也不要覆蓋其他使用者的 working-tree 修改。
 - Wave 0：CLOSED（evidence-boundary closure）
-- Wave 1：BLOCKED／未啟動；先取得本階段明確 scope 與 owner 決策，禁止自行跨波次開工。
+- Wave 1：ACCEPTED／CLOSED（Release baseline）；Wave 2 仍 BLOCKED／未啟動，需另取得 Phase 2 scope 與 owner 決策，禁止自行跨波次開工。
 
 ## 已完成成果與證據邊界
 
@@ -38,7 +38,7 @@
 
 ## 下一階段建議順序
 
-1. Phase 1／Wave 1：建立 hermetic app／CI／smoke／verifier baseline 與 provenance report。
+1. Phase 1／Wave 1：已完成 hermetic app／CI／smoke／verifier baseline 與 provenance report，Fresh 已接受。
 2. Phase 2／Wave 2：完成 organizer 對線上報名者的 confirm／decline／remove API、UI、RLS、ACL、audit 與 idempotency 閉環。
 3. Phase 3／Wave 3：完成 LINE failure matrix、private entry、Cloudflare Access staging／AUTH_RATE_LIMITER 與依賴安全 triage。
 4. Phase 4–6：依 `docs/squad/NEXT-PHASE-PLAN.md` 依序處理通知/outbox、event_fields／隱私、Pilot／device／role UAT。
@@ -90,4 +90,4 @@ pnpm smoke
 
 ## 證據層級提醒
 
-`STATIC`、`LOCAL`、`ISOLATED LOCAL`、`CI`、`STAGING`、`PRODUCTION`、`DEVICE`、`FRESH`、`NOT_VERIFIED` 不可互相替代。Wave 0 CLOSED 不會自動解鎖 Wave 1；任何新 slice 都要重新建立 current evidence。
+`STATIC`、`LOCAL`、`ISOLATED LOCAL`、`CI`、`STAGING`、`PRODUCTION`、`DEVICE`、`FRESH`、`NOT_VERIFIED` 不可互相替代。Wave 1 CLOSED 不會自動解鎖 Wave 2；任何新 slice 都要重新建立 current evidence。

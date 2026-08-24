@@ -2361,6 +2361,17 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[FRESH / ✅ ACCEPTED]` 獨立 fresh-context reviewer 以 current working tree、最末 control-log rule 與已下載 baseline／provenance JSON 完成 read-only review：P0=`0`、P1=`0`、P2=`0`；確認 skip identity、staging fail-closed、CI job boundary、current-doc provenance 與 Wave boundary 均符合。此 acceptance 不把歷史 artifact `32711417527` 誤當本次 current CI；本段 current exact read-back 以 `32712453729` 為準。
 - `[WAVE]` Wave 0 維持 `CLOSED（evidence-boundary closure）`；Wave 1 維持 `BLOCKED／未啟動`，未因 Phase 1 baseline 完成而自動解鎖。
 
+## 2026-08-24：Wave 1 Release baseline closure after scope／owner decision
+
+- `[SCOPE／OWNER]` 使用者本輪明確授權組長代表執行、派遣獨立 Fresh reviewer，目標為打通 Wave 1 Release baseline。此授權不延伸至 Wave 2、production、Cloudflare route／DNS、migration、DELETE、reset、rollback、merge 或 production data write。
+- `[GIT]` 本輪 status-sync 前 current branch=`codex/gather-mvp`、HEAD／origin=`e9cc78500618ef601583c34a01d9e729b4ab0731`；後續 docs-only commit 不改變 app／workflow／verifier 行為，current exact identity 仍以 Git／CI／本檔最末 current section read-back 為準。
+- `[CI / ✅ 已真實驗證]` run `32713480306` completed／success；baseline artifact ID=`9514997640`，provenance artifact ID=`9514998273`；baseline report `evidenceTier=CI`、overall=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`。
+- `[CI / PROVENANCE ✅]` report／manifest 的 commit、run、artifact identity exact-match=`PASS`；mismatches=`[]`；expected／observed skip count=`1`，唯一 skipped file=`scripts/concurrency-harness.test.ts`，unexpected=`[]`。
+- `[FRESH / ✅ ACCEPTED]` 獨立 fresh-context reviewer 對 current app／CI／smoke／verifier baseline 回報 `ACCEPTED`；P0=`0`、P1=`0`、P2=`2`（local Node `20.20.2` 低於 package `>=22`、bundle 約 `593.15 kB` warning，均非阻塞）。
+- `[LOCAL / ✅ 已真實驗證]` `pnpm typecheck`、`pnpm lint`、`pnpm test`（179 passed／1 skipped）、`pnpm test:security`（14 passed）、`pnpm build`、`pnpm smoke`（82 audited files）均通過。
+- `[BOUNDARY]` databaseRuntime、stagingSmoke、cloudflareAccess、productionSemantic、deviceUAT 均=`NOT_RUN`；既有 phase-aware concurrency one-shot 僅引用 `confirmed=1 waitlisted=5`，本輪未重跑。未執行 migration、DELETE、reset、rollback、Cloudflare、production write、merge 或 deploy。
+- `[WAVE]` Wave 0=`CLOSED（evidence-boundary closure）`；Wave 1=`ACCEPTED／CLOSED（Release baseline）`；Wave 2=`BLOCKED／未啟動`。Tesla 的 read-only architecture audit 所辨識之 Phase 2 organizer confirm／decline／remove API／UI 缺口列為下一波，未在本輪處理。
+
 ## 2026-08-24：Phase 1 final current read-back after acceptance-status sync
 
 - `[GIT / CURRENT]` branch=`codex/gather-mvp`；source／CI baseline commit=`65e6102e1839b229db6383f17ce54bda5127da95`（`65e6102`）；本段之後若有 control-log-only commit，不改變 app／workflow／verifier 行為，current repo HEAD 仍以 Git read-back 為準。

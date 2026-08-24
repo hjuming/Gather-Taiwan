@@ -40,14 +40,14 @@
 | `PAGES` | deployment URL `https://f4febb0d.neo-rechao.pages.dev/` `200` | source／control-plane metadata `NOT_VERIFIED` |
 | `FRESH` | 完整 current evidence 明確 `ACCEPTED` | Wave 0 CLOSED 不等於 merge、deploy 或 production feature PASS |
 
-目前波次：**Wave 0：CLOSED（evidence-boundary closure）**；**Wave 1：BLOCKED／未啟動**。下一階段提案見 [`docs/squad/NEXT-PHASE-PLAN.md`](./docs/squad/NEXT-PHASE-PLAN.md)，可直接貼上的開發啟動提示詞見 [`docs/squad/NEXT-TEAM-KICKOFF.md`](./docs/squad/NEXT-TEAM-KICKOFF.md)。
+目前波次：**Wave 0：CLOSED（evidence-boundary closure）**；**Wave 1：ACCEPTED／CLOSED（Release baseline）**；Wave 2 尚未啟動。下一階段提案見 [`docs/squad/NEXT-PHASE-PLAN.md`](./docs/squad/NEXT-PHASE-PLAN.md)，可直接貼上的開發啟動提示詞見 [`docs/squad/NEXT-TEAM-KICKOFF.md`](./docs/squad/NEXT-TEAM-KICKOFF.md)。
 
 ### Phase 1 release baseline current read-back（2026-08-24）
 
 - CI report evidenceTier=`CI`、verdict=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`；current HEAD／PR head SHA、run 與兩個 artifact URL 以 control log 最末 current section read-back 為準。
 - baseline／provenance artifacts 均須未過期，manifest `exactMatch=PASS`、mismatches=`[]`；不要將本段複製成固定的未來 HEAD。
 - DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT 均明確 `NOT_RUN`；這些不是 production／device acceptance。
-- Phase 1 verifier／staging／provenance corrections 已完成；第三輪獨立 Fresh acceptance 已回報 `ACCEPTED`，完整 exact read-back 以 control log 最末 current section 為準；Wave 1 維持 `BLOCKED`。
+- Phase 1 verifier／staging／provenance corrections 已完成；獨立 Fresh acceptance 已回報 `ACCEPTED`，完整 exact read-back 以 control log 最末 current section 為準；Wave 1 已 `ACCEPTED／CLOSED`，Wave 2 尚未啟動。
 
 接手順序：先讀 `NEXT-TEAM-KICKOFF.md`、`NEXT-PHASE-PLAN.md`、`LEDGER.md`、`HANDOFF.md`、`implementation-control-log.md`，再讀 `apps/join/docs/SSOT.md`、`DEVELOPMENT.md`、`MAINTENANCE.md`，最後重新固定 Git 狀態。未取得新的 action-specific authorization 前，不執行 migration、DELETE、reset、rollback、broad cleanup、Cloudflare route／DNS／custom domain 變更或 production data 操作。
 
