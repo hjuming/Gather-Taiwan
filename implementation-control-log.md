@@ -2211,3 +2211,9 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - 本次 handoff package exact allowlist（八份）：`README.md`、`apps/join/README.md`、`docs/squad/CHARTER.md`、`docs/squad/HANDOFF.md`、`docs/squad/LEDGER.md`、`docs/squad/NEXT-TEAM-KICKOFF.md`、`docs/squad/NEXT-PHASE-PLAN.md`、`implementation-control-log.md`。
 - rollback 僅限上述八份文件的本次 docs diff；不得回復、覆蓋或刪除其他 working-tree 修改，尤其不得碰 source、migration、test、package、workflow、DB、Cloudflare route／DNS／custom domain。
 - 若 push 後需回復，使用一個可追溯的反向 docs commit，並重新執行 `git diff --check`、control-log validator、`git status -sb` 與 remote commit read-back；不使用 reset 或 broad cleanup。
+
+## 2026-08-24：handoff package push read-back
+
+- `[GIT / PUSH]` docs-only handoff package commit=`07325da88181e74894bcb6007a4ddd848ada3eec`，由 `50bb2ea` 推送至 `origin/codex/gather-mvp` 成功。
+- `[REMOTE / READ-BACK]` `git ls-remote origin refs/heads/codex/gather-mvp` 回傳同一 SHA=`07325da88181e74894bcb6007a4ddd848ada3eec`。
+- `[LOCAL]` push 後 `git status -sb`：`codex/gather-mvp...origin/codex/gather-mvp`，working tree clean；未 merge PR、未 deploy、未修改 source／migration／test／package／workflow。
