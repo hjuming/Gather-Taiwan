@@ -28,7 +28,7 @@
 
 ## Current engineering handoff（2026-08-24）
 
-本專案目前已完成 Wave 0 manual roster 的 evidence-boundary closure，並準備移交下一個工程團隊。source/runtime evidence fixed point 是 `83a38e8`；current repo／origin HEAD 每次交接都必須以 Git read-back 為準，Phase 1 exact SHA／run／artifact 以 `implementation-control-log.md` 最末 current section 為準。不能把 Git push、CI、公開 HTTP 200 或 Pages deployment URL 誤寫成 production feature acceptance。
+本專案目前已完成 Wave 0 manual roster 的 evidence-boundary closure 與 Wave 1 Release baseline，準備移交 Wave 2 前的工程團隊。source/runtime evidence fixed point 是 `83a38e8`；current repo／origin HEAD 每次交接都必須以 Git read-back 為準，Phase 1 exact SHA／run／artifact 以 `implementation-control-log.md` 最末 current section 為準。不能把 Git push、CI、公開 HTTP 200 或 Pages deployment URL 誤寫成 production feature acceptance。
 
 | Evidence tier | Current result | Boundary |
 | --- | --- | --- |
@@ -40,16 +40,23 @@
 | `PAGES` | deployment URL `https://f4febb0d.neo-rechao.pages.dev/` `200` | source／control-plane metadata `NOT_VERIFIED` |
 | `FRESH` | 完整 current evidence 明確 `ACCEPTED` | Wave 0 CLOSED 不等於 merge、deploy 或 production feature PASS |
 
-目前波次：**Wave 0：CLOSED（evidence-boundary closure）**；**Wave 1：ACCEPTED／CLOSED（Release baseline）**；Wave 2 尚未啟動。下一階段提案見 [`docs/squad/NEXT-PHASE-PLAN.md`](./docs/squad/NEXT-PHASE-PLAN.md)，可直接貼上的開發啟動提示詞見 [`docs/squad/NEXT-TEAM-KICKOFF.md`](./docs/squad/NEXT-TEAM-KICKOFF.md)。
+目前波次：**Wave 0：CLOSED（evidence-boundary closure）**；**Wave 1：ACCEPTED／CLOSED（Release baseline）**；**Wave 2：BLOCKED／未啟動**。下一階段提案見 [`docs/squad/NEXT-PHASE-PLAN.md`](./docs/squad/NEXT-PHASE-PLAN.md)，可直接貼上的開發啟動提示詞見 [`docs/squad/NEXT-TEAM-KICKOFF.md`](./docs/squad/NEXT-TEAM-KICKOFF.md)。
 
 ### Phase 1 release baseline current read-back（2026-08-24）
 
 - CI report evidenceTier=`CI`、verdict=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`；current HEAD／PR head SHA、run 與兩個 artifact URL 以 control log 最末 current section read-back 為準。
 - baseline／provenance artifacts 均須未過期，manifest `exactMatch=PASS`、mismatches=`[]`；不要將本段複製成固定的未來 HEAD。
 - DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT 均明確 `NOT_RUN`；這些不是 production／device acceptance。
-- Phase 1 verifier／staging／provenance corrections 已完成；獨立 Fresh acceptance 已回報 `ACCEPTED`，完整 exact read-back 以 control log 最末 current section 為準；Wave 1 已 `ACCEPTED／CLOSED`，Wave 2 尚未啟動。
+- Phase 1 verifier／staging／provenance corrections 已完成；獨立 Fresh acceptance 已回報 `ACCEPTED`，完整 exact read-back 以 control log 最末 current section 為準；Wave 1 已 `ACCEPTED／CLOSED`，Wave 2=`BLOCKED／未啟動`。
 
-接手順序：先讀 `NEXT-TEAM-KICKOFF.md`、`NEXT-PHASE-PLAN.md`、`LEDGER.md`、`HANDOFF.md`、`implementation-control-log.md`，再讀 `apps/join/docs/SSOT.md`、`DEVELOPMENT.md`、`MAINTENANCE.md`，最後重新固定 Git 狀態。未取得新的 action-specific authorization 前，不執行 migration、DELETE、reset、rollback、broad cleanup、Cloudflare route／DNS／custom domain 變更或 production data 操作。
+### 開發成果與目前進度（current）
+
+- 已完成：Wave 0 manual roster evidence-boundary closure；Wave 1 hermetic app／CI／smoke／verifier baseline、skip identity contract、staging fail-closed、CI provenance exact-match 與 Fresh acceptance。
+- 已保留但不重跑：既有 phase-aware concurrency one-shot `confirmed=1 waitlisted=5`；本輪沒有新增 migration、DB write、Cloudflare route／DNS 或 production deploy。
+- 下一個開發缺口：Wave 2 organizer 對線上報名者的 confirm／decline／remove。既有 Supabase RPC／RLS／audit 基礎已存在，但 app 端 `apps/join/src/lib/api.ts` wrappers、`apps/join/src/components/RosterManager.tsx` 操作 UI 與 focused frontend tests 尚未閉環。
+- 尚未驗收：canonical staging DNS／Access、Pages source parity、production semantic、device／role UAT、PR merge，以及 advisors security `54`／performance `21` triage。
+
+接手順序：先讀 `NEXT-TEAM-KICKOFF.md`、`NEXT-PHASE-PLAN.md`、`LEDGER.md`、`HANDOFF.md`、`implementation-control-log.md`，再讀 `apps/join/docs/SSOT.md`、`DEVELOPMENT.md`、`MAINTENANCE.md`，最後重新固定 Git 狀態。Wave 2 施工前先做 read-only code discovery，取得明確 scope／owner 與 exact allowlist；未取得新的 action-specific authorization 前，不執行 migration、DELETE、reset、rollback、broad cleanup、Cloudflare route／DNS／custom domain 變更或 production data 操作。
 
 ## [HISTORICAL／SUPERSEDED] Current engineering handoff（2026-08-18）
 

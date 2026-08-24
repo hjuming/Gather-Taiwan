@@ -39,7 +39,7 @@
 ## 下一階段建議順序
 
 1. Phase 1／Wave 1：已完成 hermetic app／CI／smoke／verifier baseline 與 provenance report，Fresh 已接受。
-2. Phase 2／Wave 2：完成 organizer 對線上報名者的 confirm／decline／remove API、UI、RLS、ACL、audit 與 idempotency 閉環。
+2. Phase 2／Wave 2：先做 read-only code discovery，再完成 organizer 對線上報名者的 confirm／decline／remove API、UI、RLS、ACL、audit 與 idempotency 閉環。已知 app 缺口為 `apps/join/src/lib/api.ts` wrappers、`apps/join/src/components/RosterManager.tsx` 操作 UI 與 focused frontend tests；migration／Cloudflare／production data 不預先列入 allowlist。
 3. Phase 3／Wave 3：完成 LINE failure matrix、private entry、Cloudflare Access staging／AUTH_RATE_LIMITER 與依賴安全 triage。
 4. Phase 4–6：依 `docs/squad/NEXT-PHASE-PLAN.md` 依序處理通知/outbox、event_fields／隱私、Pilot／device／role UAT。
 
@@ -47,6 +47,7 @@
 
 - 先提交 read-only baseline，列出 fixed point、working tree、目標環境、evidence tier 與 rollback path。
 - 施工前要有明確的 slice allowlist；只修改必要 source／test／docs，禁止 broad refactor。
+- Wave 2 的第一個 slice 只能是 read-only discovery／contract map；完成後由 owner 確認 exact source／test／docs allowlist，才可施工。
 - 每個 slice 都要有 focused verification、read-back 與獨立 Fresh reviewer；施工者不得自我宣稱 acceptance。
 - 若 connector、owner、secret、DNS、Cloudflare Access 或 production data 操作受阻，標示 BLOCKED／NOT_VERIFIED，停止該 slice，不猜 credential、不繞路。
 

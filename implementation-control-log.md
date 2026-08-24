@@ -2361,9 +2361,9 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[FRESH / ✅ ACCEPTED]` 獨立 fresh-context reviewer 以 current working tree、最末 control-log rule 與已下載 baseline／provenance JSON 完成 read-only review：P0=`0`、P1=`0`、P2=`0`；確認 skip identity、staging fail-closed、CI job boundary、current-doc provenance 與 Wave boundary 均符合。此 acceptance 不把歷史 artifact `32711417527` 誤當本次 current CI；本段 current exact read-back 以 `32712453729` 為準。
 - `[WAVE]` Wave 0 維持 `CLOSED（evidence-boundary closure）`；Wave 1 維持 `BLOCKED／未啟動`，未因 Phase 1 baseline 完成而自動解鎖。
 
-## 2026-08-24：Wave 1 final authoritative current read-back
+## 2026-08-24：Wave 1 final read-back snapshot（superseded by EOF authoritative section）
 
-本節為本檔 EOF 的 authoritative current section；上方較早的 status-sync／historical sections 保留追溯，不代表目前波次狀態。
+本節保留本輪 Wave 1 exact read-back；本檔真正 authoritative current section 位於 EOF，請勿以本段取代 EOF。
 
 - `[SCOPE／OWNER]` 使用者已明確授權組長代表執行、派遣獨立 Fresh reviewer，目標為打通 Wave 1 Release baseline；不延伸授權 Wave 2、production、Cloudflare route／DNS、migration、DELETE、reset、rollback、merge 或 production data write。
 - `[GIT / CURRENT]` source／CI baseline commit=`e4dfcd04a447af393a411797d6fece71548da763`（`e4dfcd0`）；branch=`codex/gather-mvp`。本節只做 control-log-only provenance closure，不改變 app／workflow／verifier 行為；current repo HEAD／origin 仍以 Git read-back 為準。

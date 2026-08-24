@@ -2,7 +2,7 @@
 
 ## Current engineering handoff（2026-08-24）
 
-`apps/join` 的 Wave 0 manual roster evidence-boundary closure 與 Wave 1 Release baseline 已完成。source/runtime fixed point=`83a38e8`；current HEAD／origin 每次交接都必須以 Git read-back 為準，Phase 1 exact SHA／run／artifact 以 `implementation-control-log.md` 最末 current section 為準；Wave 0=`CLOSED`、Wave 1=`ACCEPTED／CLOSED`、Wave 2 尚未啟動。
+`apps/join` 的 Wave 0 manual roster evidence-boundary closure 與 Wave 1 Release baseline 已完成。source/runtime fixed point=`83a38e8`；current HEAD／origin 每次交接都必須以 Git read-back 為準，Phase 1 exact SHA／run／artifact 以 `implementation-control-log.md` 最末 current section 為準；Wave 0=`CLOSED`、Wave 1=`ACCEPTED／CLOSED`、Wave 2=`BLOCKED／未啟動`。
 
 - `[REMOTE]` Supabase catalog=`33`；指定 migrations present；functions／ACL=`9/9`；source-aligned RLS=`15/15` enabled＋forced；aggregate=`0`；non-null orphan refs=`0`。
 - `[CI]` PR #1 仍 open、draft、未 merge；Phase 1 baseline／provenance artifact exact-match PASS，current SHA／run／artifact URL 以 control log 最末 current section read-back 為準。
@@ -17,7 +17,13 @@
 
 - `verify-release-baseline` 在 CI report 中標記 evidenceTier=`CI`，六 gate verdict=`PASS_WITH_EXPECTED_SKIP`，DB skip identity contract 預期為 `scripts/concurrency-harness.test.ts`。
 - baseline artifact 與 provenance manifest 的 commit／run／artifact URL exact-match=`PASS`；current exact values 以 control log 最末 current section read-back 為準，避免 docs-only commit 造成過期 snapshot。
-- DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT 均維持 `NOT_RUN`；verifier／staging／provenance corrections 已完成，獨立 Fresh acceptance 已回報 `ACCEPTED`，完整 exact read-back 以 control log 最末 current section 為準；Wave 1 已關閉，Wave 2 尚未啟動。
+- DB runtime、staging smoke、Cloudflare Access、production semantic、device UAT 均維持 `NOT_RUN`；verifier／staging／provenance corrections 已完成，獨立 Fresh acceptance 已回報 `ACCEPTED`，完整 exact read-back 以 control log 最末 current section 為準；Wave 1 已關閉，Wave 2=`BLOCKED／未啟動`。
+
+### 開發成果與下一階段缺口（current）
+
+- Wave 1 已完成：hermetic release baseline、CI skip identity、staging smoke fail-closed、provenance manifest exact-match 與 Fresh acceptance。
+- Wave 2 尚未施工：資料庫既有 organizer confirm／decline／remove RPC 與安全邊界可供對照，但 `src/lib/api.ts` 尚缺線上報名者 wrappers，`src/components/RosterManager.tsx` 尚缺對線上報名者的操作 UI，亦尚缺 focused frontend tests。
+- Wave 2 開工前只允許先做 read-only code discovery；初步候選 allowlist 為上述 API／UI／測試檔，migration、Cloudflare、production data 與 concurrency verifier 不在本輪自動授權內。
 
 ## [HISTORICAL／SUPERSEDED] Current engineering handoff（2026-08-18）
 

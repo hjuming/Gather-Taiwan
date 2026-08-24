@@ -2,10 +2,11 @@
 
 ## Current maintenance boundary（2026-08-24）
 
-- Wave 0：`CLOSED（evidence-boundary closure）`；Wave 1：`BLOCKED／未啟動`。
+- Wave 0：`CLOSED（evidence-boundary closure）`；Wave 1：`ACCEPTED／CLOSED（Release baseline）`；Wave 2：`BLOCKED／未啟動`。
 - 本地 release baseline 使用 `pnpm verify:release-baseline`；報告中的 DB suite `NOT_RUN` 不得升格為 remote／production evidence。
 - `apps/join/.reports/` 是 ignored 的本地／CI artifact 目錄；不得提交 secrets、database URL、service-role key 或個資。
 - Pages source metadata、canonical staging DNS、production semantic/device UAT、PR merge 與 Cloudflare route／DNS 仍需各自 read-back；未查證即維持 `NOT_VERIFIED`。
+- Wave 2 開工前先固定 branch／HEAD／working tree／evidence tier 與 rollback path；不得把既有 manual participant 操作當成線上報名者 confirm／decline／remove 閉環。
 
 ## [HISTORICAL／SUPERSEDED] Wave 0 handoff boundary（2026-08-18）
 

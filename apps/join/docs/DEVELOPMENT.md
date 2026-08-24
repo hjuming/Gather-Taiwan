@@ -2,11 +2,12 @@
 
 ## Phase 1 release baseline（2026-08-24）
 
-- Current Wave 0：`CLOSED（evidence-boundary closure）`；Wave 1：`BLOCKED／未啟動`。
+- Current Wave 0：`CLOSED（evidence-boundary closure）`；Wave 1：`ACCEPTED／CLOSED（Release baseline）`；Wave 2：`BLOCKED／未啟動`。
 - `pnpm verify:release-baseline` 依序執行 `typecheck`、`lint`、`test`、`test:security`、`build`、`smoke`，寫出 `.reports/release-baseline.json`。
 - 這個 hermetic baseline 會移除 `GATHER_JOIN_TEST_DATABASE_URL`，因此 DB suite 是預期的 `NOT_RUN`，不代表 migration、Supabase 或 concurrency PASS。
 - 報告同時記錄 branch、HEAD、upstream、working tree、diff check、CI metadata、deployment/source metadata 與各 evidence boundary；缺少外部資料時維持 `NOT_VERIFIED`／`NOT_RUN`。
 - CI 會固定 checkout PR head SHA，並以 `.reports/release-baseline-provenance.json` 綁定 baseline report artifact、commit SHA 與 CI run URL；manifest 的 `exactMatch` 必須為 `PASS`。
+- 下一個開發波次是 Wave 2 organizer roster closure；先做 read-only code discovery，再由 owner 凍結 source／test／docs exact allowlist。既有 RPC／RLS 基礎不代表 app API／UI／測試已完成。
 
 ## [HISTORICAL／SUPERSEDED] Wave 0 closeout handoff（2026-08-18）
 

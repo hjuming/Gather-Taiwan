@@ -7,7 +7,7 @@ source/runtime evidence fixed point：`83a38e8`
 
 ## 計劃原則
 
-- 本文件是下一階段的提案與目標，不是 Wave 1 開工授權。
+- 本文件是下一階段的提案與目標，不是 Wave 2 開工授權。
 - 每一階段都要先固定 HEAD、working tree、環境與 evidence tier，再施工、驗證、交 Fresh reviewer。
 - `LOCAL`、`ISOLATED LOCAL`、`CI`、`STAGING`、`PRODUCTION`、`DEVICE`、`FRESH` 不可互相替代。
 - 未取得 action-specific authorization 前，不執行 migration、DELETE、reset、rollback、broad cleanup、Cloudflare route／DNS／custom domain 變更或 production data 操作。
@@ -30,6 +30,8 @@ source/runtime evidence fixed point：`83a38e8`
 ### Phase 2｜Organizer roster closure（對應 Wave 2）
 
 目標：完成主辦人對線上報名者的 confirm／decline／remove 閉環，與既有 manual roster capacity／FIFO 不變量一致。
+
+目前 read-only 技術盤點：既有 migration 已有 `organizer_confirm_registration`、`organizer_decline_registration`、`organizer_remove_registration` RPC 與其 RLS／ACL／audit 基礎；目前 app 缺口集中在 `apps/join/src/lib/api.ts` wrappers、`apps/join/src/components/RosterManager.tsx` 線上報名者操作 UI 與 focused frontend tests。這只是 discovery evidence，不是 Wave 2 開工授權。
 
 驗收目標：
 
