@@ -141,6 +141,11 @@ export default function RosterManager({ eventId, capacity }: { eventId: string; 
     }
   }
 
+  async function handleOnlineRemove(row: RegistrationRow) {
+    if (!window.confirm("確定要從名單移除這位參加者嗎？")) return;
+    await handleOnlineAction(row, organizerRemoveRegistration, "移除失敗");
+  }
+
   const activeRoster = roster.filter((row) => ACTIVE_STATUSES.includes(row.status));
   const stats = useMemo(() => {
     const seats = (rows: RegistrationRow[]) => rows.reduce((total, row) => total + Math.max(1, row.seats || 1), 0);
@@ -250,7 +255,7 @@ export default function RosterManager({ eventId, capacity }: { eventId: string; 
                       <button
                         type="button"
                         className="btn-text"
-                        onClick={() => handleOnlineAction(row, organizerRemoveRegistration, "移除失敗")}
+                        onClick={() => handleOnlineRemove(row)}
                         disabled={busy}
                       >
                         移除

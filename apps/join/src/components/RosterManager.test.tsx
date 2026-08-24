@@ -97,6 +97,18 @@ describe("online registration organizer actions", () => {
       await Promise.resolve();
     });
     expect(organizerConfirmRegistration).toHaveBeenCalledWith(baseRegistration.id);
+
+    await act(async () => {
+      findButton(container, "婉拒報名").click();
+      await Promise.resolve();
+    });
+    expect(organizerDeclineRegistration).toHaveBeenCalledWith(baseRegistration.id);
+
+    await act(async () => {
+      findButton(container, "移除").click();
+      await Promise.resolve();
+    });
+    expect(organizerRemoveRegistration).toHaveBeenCalledWith(baseRegistration.id);
   });
 
   it("keeps remove available for confirmed online registrations but hides pending-only actions", async () => {
@@ -124,6 +136,11 @@ describe("online registration organizer actions", () => {
 
     expect(container.textContent).not.toContain("確認報名");
     expect(container.textContent).not.toContain("婉拒報名");
+    await act(async () => {
+      findButton(container, "移除").click();
+      await Promise.resolve();
+    });
+    expect(organizerRemoveManualParticipant).toHaveBeenCalledWith("manual-1");
     expect(organizerConfirmRegistration).not.toHaveBeenCalled();
     expect(organizerDeclineRegistration).not.toHaveBeenCalled();
   });
