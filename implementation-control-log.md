@@ -2292,7 +2292,10 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - baseline report upload 後，`write-ci-provenance.mjs` 產生並上傳第二個 provenance artifact，將 baseline artifact name／id／URL、commit SHA、CI run 與 report HEAD 做 exact-match；mismatch 時 manifest 失敗。
 - 本 correction 仍不執行 migration、DB write、Cloudflare route／DNS、production deploy、merge、device UAT 或 Fresh acceptance；rollback 僅限本 allowlist 的本次 diff。
 
-### Verification still required
+### Verification read-back
 
-- `[LOCAL / NOT_RUN]` CI-only artifact URL exact-match manifest 需由新 GitHub Actions run 取得真實 artifact output 後驗證；local runner 只驗證 report schema／boundary 欄位。
-- `[CI / PENDING]` 新 workflow head-checkout、CI evidence tier、兩個 artifact 與 manifest `exactMatch=PASS` 尚待新 HEAD run read-back。
+- `[LOCAL / ✅ 已真實驗證]` local runner 的六個 gate、boundary 欄位、`node --check`、lint、workflow YAML parse 與 control-log validator 通過；CI manifest 以 synthetic artifact metadata 模擬時 `exactMatch=PASS`。
+- `[CI / ✅ 已真實驗證]` run `32709041460`、head SHA=`a5ec0c278db97417fd32b9185048234db08617a0`：PR head checkout 成功；baseline artifact=`gather-join-release-baseline-32709041460`、artifact ID=`9513384371`；provenance manifest artifact=`gather-join-release-provenance-32709041460`、artifact ID=`9513385191`；下載 read-back 的 manifest `exactMatch=PASS`、mismatches=`[]`。
+- `[CI / ✅ 已真實驗證]` baseline artifact read-back：evidenceTier=`CI`、report HEAD／CI commit SHA 均為 `a5ec0c278db97417fd32b9185048234db08617a0`、run ID=`32709041460`、verdict=`PASS_WITH_EXPECTED_SKIP`、failedGates=`[]`、expected skip contract=`PASS`。
+- `[CI / ⚠️ 邊界]` `GITHUB_SHA` 保留 PR merge trigger SHA=`ea90d1691d2565e105d668bb9840d49676c23ed5`；release identity 明確使用 PR head SHA，兩者差異已保留於 report，不混用。
+- `[FRESH / NOT_RUN]` 獨立 Fresh reviewer 尚未執行；因此本 correction 完成 baseline／CI provenance，但不解除 Wave 1。
