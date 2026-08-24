@@ -2264,3 +2264,5 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[CORRECTION]` parser 先移除 ANSI escape sequence，再判定 expected skip；未改變六個 gate、DB suite 或外部操作邊界。
 - `[LOCAL / ✅ 已真實驗證]` `FORCE_COLOR=1 pnpm verify:release-baseline` 通過，確認彩色 Vitest summary 可被解析；六個 gate exit `0`、observed skip=`1`、verdict=`PASS_WITH_EXPECTED_SKIP`。
 - `[LOCAL / ✅ 已真實驗證]` parser 改以 `String.fromCharCode(27)` 組合 ANSI pattern，通過 `FORCE_COLOR=1 pnpm lint`；避免 `no-control-regex` 對 literal escape 的誤判。
+- `[CI / ✅ 已真實驗證]` 修正後 run `32707975139`、head SHA=`086842ba75c6b9cd4c1ffd1bd1ea180993c07302`：`verify` success（36s，release baseline gates 與 report artifact 均完成）；`local-supabase` success（3m29s，isolated local project、既有 reset probe／PostgreSQL concurrency harness 與 finally stop 均完成）。
+- `[CI / ⚠️ 邊界]` GitHub Actions annotation 顯示 action runtime 的 Node.js 20 deprecation warning；未影響本輪 job success。此 CI 結果仍不等於 staging、production、device 或 Fresh acceptance。
