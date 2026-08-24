@@ -2481,4 +2481,6 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 | remove/organizer | success | SUCCESS | removed_by_organizer | owner | occupied=1; offered=1 | same-key-success | residue=0 |
 | remove/replay | success | SUCCESS | removed_by_organizer | owner | occupied=1; offered=1 | same-key-success-no-extra-transition | residue=0 |
 
-- `[FRESH / PENDING]` Fresh correction is prepared; independent reviewer re-run is required before Wave 2 can be marked Fresh accepted. Remote／production／device remain `NOT_RUN`.
+- `[FRESH / ACCEPTED]` 獨立 Fresh reviewer `Goodall` 已對修正後 `HEAD=3ba4152` 完成 read-only 複核：P0=`0`、P1=`0`、P2=`2`（Node `20.20.2` engine mismatch、bundle warning，均非阻塞）；確認 exact-host boundary、逐案 12-case table、README／LEDGER current boundary、migration contract、187 passed／1 skipped、security 14/14、build／smoke、12-case PASS／residue=0。此為 Wave 2 **local acceptance**，不升格 remote／production／device。
+- `[GIT / FINAL READ-BACK]` branch=`codex/gather-mvp`、HEAD=`3ba4152`、origin tracking 同步、working tree clean、`git diff --check` PASS。
+- `[WAVE]` Wave 0=`CLOSED`；Wave 1=`ACCEPTED／CLOSED`；Wave 2=`LOCAL ACCEPTED／Fresh ACCEPTED`；remote／production／device=`NOT_RUN`。

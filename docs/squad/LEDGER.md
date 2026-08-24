@@ -6,7 +6,7 @@
 - 初始 branch：`codex/gather-mvp`
 - 初始 HEAD：`83a38e8`
 - source/runtime evidence fixed point：branch=`codex/gather-mvp`、commit=`83a38e8`；Wave 0 handoff evidence snapshot HEAD=`50bb2ea` 的提交均未修改 app source、migration、test、package 或 workflow。Phase 1 current HEAD、CI run 與 artifact exact values 每次以 Git／CI／control log read-back 為準，固定點時確認 working tree clean、local HEAD 與 tracking ref 相同。
-- 目前 Wave：**Wave 2｜Organizer roster closure（local source／migration／12-case PASS；Fresh pending；remote／production NOT_RUN）**；Wave 0 `CLOSED`、Wave 1 `ACCEPTED／CLOSED`
+- 目前 Wave：**Wave 2｜Organizer roster closure（local source／migration／12-case PASS；Fresh ACCEPTED for local closure；remote／production NOT_RUN）**；Wave 0 `CLOSED`、Wave 1 `ACCEPTED／CLOSED`
 - Atlas fixed point：**done／evidence closure complete**；本輪 Node runtime=`20.20.2`、pnpm=`10.33.2`，package engine 要求 Node `>=22`。
 - Atlas production evidence：**prior PRODUCTION read-back**；Worker version `e0fcc0c2-c834-480b-b9d3-424783e20b19`、route `gather.wedopr.com/app/*`、production assets／headers read-back PASS；本輪只重新核對公開 HTTP，不升格 deployment source。
 - GitHub／CI：**PASS（Phase 1 PR #1；exact current run／HEAD／artifacts 以 control log 最末 current section 為準）**；baseline／provenance artifacts exact-match PASS；PR #1 目前仍 open、draft、未 merge。Remote DB：**current read-only PASS（2026-08-24）**；catalog=`33`，指定 migrations `20260815060000`／`20260818121055` present，functions／ACL=`9/9`，source-aligned RLS=`15/15` enabled＋forced，aggregate=`0`，non-null orphan refs=`0`。Advisors 保留 current residual lints（security 54、performance 21），不隱藏、不在本輪修復。
@@ -28,7 +28,7 @@
 - `[MIGRATION / LOCAL]` 新增 `apps/join/supabase/migrations/20260824130743_organizer_online_registration_idempotency.sql`；local catalog read-back=`20260824130743`。舊三個 overloads 已移除；新 signatures 分別為 `(uuid,text)`、`(uuid,text)`、`(uuid,text,text)`，僅 `authenticated` execute；三者均有 `reg.user_id is null` fail-closed guard、event lock／sweep、audit／promotion 與 `idempotency_requests` key hash／fingerprint／replay contract。
 - `[LOCAL / 12-CASE PASS]` `scripts/verify-organizer-registration-wave2.mjs`：`caseCount=12`、`result=PASS`；anonymous/member 三 action 均 `42501` 且 target／audit／idempotency 不變；organizer 三 action success 並 audit actor=`owner`；same-key replay success 且無額外 transition；decline/remove seat read-back=`occupied=1; offered=1`；final residue organizers/events/registrations/idempotency/audit/outbox/public_member/auth_member 全為 `0`。
 - `[FIXTURE BOUNDARY]` temporary member 僅透過 local Auth Admin API 建立／刪除；public identity projection 與本次 organizer/event/registration/audit/outbox/idempotency rows 均為 fixture-owned cleanup；未執行 direct `auth.users` DML。CLI host-port TLS mapping 不通，migration 依已授權 local-only fallback 單一 transaction apply，未連 remote／production。
-- `[FRESH / PENDING]` 本地 evidence 已 PASS；獨立 Wave 2 Fresh review 尚未執行，不能將 local PASS 升格為 remote／production／device acceptance。
+- `[FRESH / ACCEPTED]` 獨立 reviewer `Goodall` 已接受 Wave 2 local closure（P0=0、P1=0、P2=2）；此 verdict 不升格為 remote／production／device acceptance。
 
 ## 2026-08-24：Phase 1 release baseline current read-back
 

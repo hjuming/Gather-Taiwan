@@ -14,7 +14,7 @@
 - `[STAGING]` workers.dev homepage=`200`；無 Access assertion 的 POST `/__dev/session`=`403`、`{"message":"Forbidden"}`。
 - `[PRODUCTION]` `https://gather.wedopr.com/`=`200`；`/app/`=`200`；POST `/app/__dev/session`=`404`、`{"error":"not_found"}`。這不是 production semantic／device UAT。
 - `[PAGES / NOT_VERIFIED]` deployment URL `https://f4febb0d.neo-rechao.pages.dev/`=`200`；Pages source／control-plane metadata 本輪未取得。Canonical `staging.join.gather.wedopr.com` DNS 未解析，維持 `UNVERIFIED`。
-- `[FRESH]` Wave 0／Phase 1 的既有獨立 fresh-context reviewer 明確回報 `ACCEPTED`；本輪 Wave 2 已取得 local 12-case PASS，但尚未交新的獨立 Wave 2 Fresh review。因此 **Wave 0：CLOSED（evidence-boundary closure）**；**Wave 1：ACCEPTED／CLOSED（Release baseline）**；**Wave 2：LOCAL ACCEPTED／Fresh pending（remote／production NOT_RUN）**。
+- `[FRESH]` Wave 0／Phase 1 的既有獨立 fresh-context reviewer 明確回報 `ACCEPTED`；本輪 Wave 2 獨立 reviewer `Goodall` 亦回報 `ACCEPTED`（P0=0、P1=0、P2=2），範圍僅為 local closure。因此 **Wave 0：CLOSED（evidence-boundary closure）**；**Wave 1：ACCEPTED／CLOSED（Release baseline）**；**Wave 2：LOCAL ACCEPTED／Fresh ACCEPTED（remote／production NOT_RUN）**。
 - `[BOUNDARY]` 本輪未修改 source、migration、test、package、workflow；未執行 remote migration、DELETE、reset、rollback、broad cleanup；未修改 Cloudflare route／DNS／custom domain；未 merge PR、未宣稱 production semantic/device PASS。
 - `[NEXT]` 下一階段提案與可量化驗收目標見 [`NEXT-PHASE-PLAN.md`](./NEXT-PHASE-PLAN.md)；本輪 objective 已明確啟動 Wave 2 source／UI slice。可直接貼上的開發啟動提示詞仍保留於 [`NEXT-TEAM-KICKOFF.md`](./NEXT-TEAM-KICKOFF.md)，但 live acceptance 仍須另建 current evidence。
 
