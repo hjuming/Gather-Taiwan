@@ -2376,6 +2376,54 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[BOUNDARY]` 本輪未重跑既有 phase-aware concurrency one-shot（僅引用既有 `confirmed=1 waitlisted=5`）；未執行 migration、DELETE、reset、rollback、Cloudflare、production write、merge 或 deploy。
 - `[WAVE]` Wave 0=`CLOSED（evidence-boundary closure）`；Wave 1=`ACCEPTED／CLOSED（Release baseline）`；Wave 2=`BLOCKED／未啟動`。Phase 2 organizer confirm／decline／remove API／UI 缺口列為下一波，未在本輪處理。
 
+## 2026-08-24：Wave 2 organizer roster source slice authoritative current section
+
+本節位於 EOF，優先於上方 Wave 0／Wave 1 handoff snapshots；它只記錄本輪 Wave 2 source slice，不把 local source／UI evidence 升格為 live、production 或 Fresh acceptance。
+
+- `[SCOPE／OWNER]` 本輪 objective 明確授權 Phase 2／Wave 2，目標為 organizer 對線上報名者 confirm／decline／remove；日常工程判斷由組長代表使用者裁決。Hard stops 仍有效：不碰 migration、remote／production data、DELETE、reset、rollback、broad cleanup、Cloudflare、secrets、direct `auth.users` DML 或 merge。
+- `[GIT / BASELINE]` 施工前 read-back：branch=`codex/gather-mvp`、HEAD=`b6e7278`、origin tracking 同步、working tree clean；fsmonitor IPC 失敗時使用 `git -c core.fsmonitor=false`。
+- `[DISCOVERY]` 原指定 `apps/join/src/components/EventPage.tsx` 不存在；實際 mount point 是 `apps/join/src/pages/EventPage.tsx`，由 `apps/join/src/App.tsx` mount。Migration 已有三個 organizer RPC、organizer admin ACL、event lock、audit actor／before-after、席次 promotion；本輪只讀，不修改 migration／EventPage。
+- `[ALLOWLIST]` `apps/join/src/lib/api.ts`、`apps/join/src/components/RosterManager.tsx`、`apps/join/src/lib/api.test.ts`、`apps/join/src/components/RosterManager.test.tsx`、`apps/join/scripts/organizer-registration-contract.test.ts`、`docs/squad/NEXT-PHASE-PLAN.md`、`docs/squad/LEDGER.md`、`docs/squad/HANDOFF.md`、`implementation-control-log.md`。
+- `[SOURCE]` 已新增三個既有 organizer RPC wrappers；RosterManager 對線上 pending row 提供 confirm／decline／remove，對其他 active online row 提供 remove，manual row 維持原 manual RPC；action error 後 reload roster 以處理 stale／replay。
+- `[FOCUSED TEST]` API tests 覆蓋三個 RPC name／payload 與錯誤透傳；RosterManager jsdom tests 覆蓋 pending online actions、confirmed online remove、manual row 不顯示 online actions；STATIC migration contract test 覆蓋 organizer ACL、event lock、audit、promotion 與 replay boundary。
+- `[IDEMPOTENCY / NOT_VERIFIED]` 既有 organizer RPC 沒有 `p_idempotency_key`／`idempotency_requests` contract；現階段僅能依 source contract 描述 remove replay no-op、confirm／decline replay fail-closed。Strict key-based idempotency、live 12-case matrix、每 case audit actor／seat／replay／cleanup、fixture residue=`0` 與獨立 Fresh verdict 尚未完成；需 migration-specific authorization 才能補 DB contract，本輪不猜測或繞過。
+- `[LOCAL / VERIFICATION]` apps/join 本輪 `pnpm typecheck`、`pnpm lint`、`pnpm test`=`186 passed／1 skipped`、`pnpm test:security`=`14/14`、`pnpm build`、`pnpm smoke`（83 audited files）均 exit `0`。Build 仍有既有約 `594 kB` chunk warning；pnpm 在 Node `20.20.2` 下提示 package engine `>=22`。
+- `[LOCAL / 12-CASE BLOCKED]` `supabase status` 確認 local service 可用，但只讀 `psql` inventory 顯示目前 port `58322` 沒有本專案 `public.users`／domain schema；補 schema 需要 `reset` 或 migration，均命中本輪 hard stop。故 anonymous／member／organizer／replay 12 cases、audit／seat／cleanup residue=`0` 均維持 `NOT_VERIFIED`，未猜 fixture、未寫 DB。
+- `[GIT / CURRENT WORKTREE]` source／test／docs diff 仍待本輪 explicit allowlist staged；未 stage `dist` 或其他未列檔案，未 push／merge／deploy。
+
+## 2026-08-24：Wave 2 organizer roster source slice current control section
+
+### Scope／owner／fixed point
+
+- `[SCOPE／OWNER]` 本輪 objective 即為 Phase 2／Wave 2 scope 與 owner 授權：完成 organizer 對線上報名者的 confirm／decline／remove 閉環；組長直接裁決 allowlist 內的日常工程判斷。
+- `[GIT / BASELINE]` read-only fixed point：branch=`codex/gather-mvp`；HEAD=`b6e7278`；tracking ref=`origin/codex/gather-mvp`；working tree 在施工前 clean。Git status 使用 `git -c core.fsmonitor=false`，因預設 fsmonitor IPC 曾回 unspecified error。
+- `[HARD STOP]` 本輪不執行 migration、remote／production data、DELETE、reset、rollback、broad cleanup、Cloudflare route／DNS／custom domain、secrets、direct `auth.users` DML 或 merge。
+
+### Discovery and contract
+
+- `[DISCOVERY / PATH CORRECTION]` prompt 指定的 `apps/join/src/components/EventPage.tsx` 不存在；實際檔案為 `apps/join/src/pages/EventPage.tsx`，並由 `apps/join/src/App.tsx` mount。該 path correction 是 discovery read-only 修正，不是 broad scope。
+- `[DB CONTRACT / LOCAL SOURCE]` `20260805210000_p1_06_08_seat_engine.sql` 已有 `organizer_confirm_registration(uuid)`、`organizer_decline_registration(uuid)`、`organizer_remove_registration(uuid,text default null)`；三者均為 `SECURITY DEFINER`、authenticated execute、organizer admin gate、event lock、audit actor／before-after 與席次 promotion contract。
+- `[IDEMPOTENCY / NOT_VERIFIED]` 三個 organizer RPC 沒有 `p_idempotency_key`／`idempotency_requests` contract。現有 replay 行為僅能描述為：remove 對已非 active 狀態 no-op；confirm／decline 對已處理狀態 fail-closed。migration-specific authorization 未取得，禁止本輪自行改 migration；strict key-based idempotency、live replay read-back 維持 `NOT_VERIFIED`。
+
+### Frozen implementation allowlist
+
+- `apps/join/src/lib/api.ts`
+- `apps/join/src/components/RosterManager.tsx`
+- `apps/join/src/lib/api.test.ts`
+- `apps/join/src/components/RosterManager.test.tsx`
+- `docs/squad/NEXT-PHASE-PLAN.md`
+- `docs/squad/LEDGER.md`
+- `docs/squad/HANDOFF.md`
+- `implementation-control-log.md`
+
+`apps/join/src/pages/EventPage.tsx` 與 `apps/join/supabase/migrations/20260805210000_p1_06_08_seat_engine.sql` 僅做 discovery read，不修改；未做 broad refactor。
+
+### Source／test progress
+
+- `[SOURCE]` `api.ts` 新增三個既有 RPC wrappers；`RosterManager.tsx` 對 `user_id IS NOT NULL` 的線上報名者提供 pending confirm／decline、active remove，manual participant 仍使用原 manual RPC；action error 後重新 load roster 以處理 stale／replay。
+- `[FOCUSED TEST]` `api.test.ts` 覆蓋三個 RPC name／payload 與錯誤透傳；`RosterManager.test.tsx` 覆蓋線上 pending action、confirmed remove、manual row 不顯示 online actions。
+- `[BOUNDARY]` source／focused tests 不等於 live 12-case acceptance；尚未產生 synthetic fixture matrix、每 case audit actor／seat／replay／cleanup read-back、fixture residue=`0` 或獨立 Fresh verdict。
+
 ## 2026-08-24：Wave 1 Release baseline closure after scope／owner decision
 
 - `[SCOPE／OWNER]` 使用者本輪明確授權組長代表執行、派遣獨立 Fresh reviewer，目標為打通 Wave 1 Release baseline。此授權不延伸至 Wave 2、production、Cloudflare route／DNS、migration、DELETE、reset、rollback、merge 或 production data write。
@@ -2413,3 +2461,30 @@ P1-04／P1-05／P1-06／P1-08／P1-07／P1-09／P1-13 全數完成——資料�
 - `[FRESH / ✅ ACCEPTED]` 獨立 Fresh reviewer 已針對最新 current docs、Git 與上述 artifact 完成 read-only acceptance；P0=`0`、P1=`0`、P2=`2`（Node `20.20.2` 低於 package `>=22`、約 `593 kB` bundle warning，非阻塞）。本輪文件交付可關閉；此 acceptance 不升格 CI／HTTP 200／Pages URL 為 production/device acceptance。
 - `[BOUNDARY]` 本輪未重跑既有 phase-aware concurrency one-shot（僅引用既有 `confirmed=1 waitlisted=5`）；未執行 migration、DELETE、reset、rollback、Cloudflare、production write、merge 或 deploy。
 - `[WAVE]` Wave 0=`CLOSED（evidence-boundary closure）`；Wave 1=`ACCEPTED／CLOSED（Release baseline）`；Wave 2=`BLOCKED／未啟動`。Phase 2 organizer confirm／decline／remove API／UI 缺口列為下一波，未在本輪處理。
+
+## 2026-08-24：Wave 2 organizer roster source slice authoritative current section
+
+本節位於 EOF，優先於上方 Wave 0／Wave 1 handoff snapshots；它只記錄本輪 Wave 2 source slice，不把 local source／UI evidence 升格為 live、production 或 Fresh acceptance。
+
+- `[SCOPE／OWNER]` 本輪 objective 明確授權 Phase 2／Wave 2，目標為 organizer 對線上報名者 confirm／decline／remove；日常工程判斷由組長代表使用者裁決。Hard stops 仍有效：不碰 migration、remote／production data、DELETE、reset、rollback、broad cleanup、Cloudflare、secrets、direct `auth.users` DML 或 merge。
+- `[GIT / BASELINE]` 施工前 read-back：branch=`codex/gather-mvp`、HEAD=`b6e7278`、origin tracking 同步、working tree clean；fsmonitor IPC 失敗時使用 `git -c core.fsmonitor=false`。
+- `[DISCOVERY]` 原指定 `apps/join/src/components/EventPage.tsx` 不存在；實際 mount point 是 `apps/join/src/pages/EventPage.tsx`，由 `apps/join/src/App.tsx` mount。Migration 已有三個 organizer RPC、organizer admin ACL、event lock、audit actor／before-after、席次 promotion；本輪只讀，不修改 migration／EventPage。
+- `[ALLOWLIST]` `apps/join/src/lib/api.ts`、`apps/join/src/components/RosterManager.tsx`、`apps/join/src/lib/api.test.ts`、`apps/join/src/components/RosterManager.test.tsx`、`apps/join/scripts/organizer-registration-contract.test.ts`、`docs/squad/NEXT-PHASE-PLAN.md`、`docs/squad/LEDGER.md`、`docs/squad/HANDOFF.md`、`implementation-control-log.md`。
+- `[SOURCE]` 已新增三個既有 organizer RPC wrappers；RosterManager 對線上 pending row 提供 confirm／decline／remove，對其他 active online row 提供 remove，manual row 維持原 manual RPC；action error 後 reload roster 以處理 stale／replay。
+- `[FOCUSED TEST]` API tests 覆蓋三個 RPC name／payload 與錯誤透傳；RosterManager jsdom tests 覆蓋 pending online actions、confirmed online remove、manual row 不顯示 online actions；STATIC migration contract test 覆蓋 organizer ACL、event lock、audit、promotion 與 replay boundary。
+- `[LOCAL / VERIFICATION]` `pnpm typecheck`、`pnpm lint`、`pnpm test`=`186 passed／1 skipped`、`pnpm test:security`=`14/14`、`pnpm build`、`pnpm smoke`（83 audited files）均 exit `0`。Build 仍有既有約 `594 kB` chunk warning；pnpm 在 Node `20.20.2` 下提示 package engine `>=22`。
+- `[LOCAL / 12-CASE BLOCKED]` `supabase status` 確認 local service 可用，但只讀 `psql` inventory 顯示目前 port `58322` 沒有本專案 `public.users`／domain schema；補 schema 需要 `reset` 或 migration，均命中本輪 hard stop。故 anonymous／member／organizer／replay 12 cases、audit／seat／cleanup residue=`0` 均維持 `NOT_VERIFIED`，未猜 fixture、未寫 DB。
+- `[IDEMPOTENCY / NOT_VERIFIED]` 既有 organizer RPC 沒有 `p_idempotency_key`／`idempotency_requests` contract；現階段僅能依 source contract 描述 remove replay no-op、confirm／decline replay fail-closed。Strict key-based idempotency、live 12-case matrix、每 case audit actor／seat／replay／cleanup、fixture residue=`0` 與獨立 Fresh verdict 尚未完成；需 migration-specific authorization 才能補 DB contract，本輪不猜測或繞過。
+- `[GIT / CURRENT WORKTREE]` source／test／docs diff 仍待本輪 explicit allowlist staged；未 stage `dist` 或其他未列檔案，未 push／merge／deploy。
+
+## 2026-08-24：Wave 2 organizer roster source slice authoritative current section
+
+本節位於 EOF，優先於上方 Wave 0／Wave 1 handoff snapshots；它只記錄本輪 Wave 2 source slice，不把 local source／UI evidence 升格為 live、production 或 Fresh acceptance。
+
+- `[SCOPE／OWNER]` 本輪 objective 明確授權 Phase 2／Wave 2，目標為 organizer 對線上報名者 confirm／decline／remove；日常工程判斷由組長代表使用者裁決。Hard stops 仍有效：不碰 migration、remote／production data、DELETE、reset、rollback、broad cleanup、Cloudflare、secrets、direct `auth.users` DML 或 merge。
+- `[GIT / BASELINE]` 施工前 read-back：branch=`codex/gather-mvp`、HEAD=`b6e7278`、origin tracking 同步、working tree clean；fsmonitor IPC 失敗時使用 `git -c core.fsmonitor=false`。
+- `[DISCOVERY]` 原指定 `apps/join/src/components/EventPage.tsx` 不存在；實際 mount point 是 `apps/join/src/pages/EventPage.tsx`，由 `apps/join/src/App.tsx` mount。Migration 已有三個 organizer RPC、organizer admin ACL、event lock、audit actor／before-after、席次 promotion；本輪只讀，不修改 migration／EventPage。
+- `[ALLOWLIST]` `apps/join/src/lib/api.ts`、`apps/join/src/components/RosterManager.tsx`、`apps/join/src/lib/api.test.ts`、`apps/join/src/components/RosterManager.test.tsx`、`docs/squad/NEXT-PHASE-PLAN.md`、`docs/squad/LEDGER.md`、`docs/squad/HANDOFF.md`、`implementation-control-log.md`。
+- `[SOURCE]` 已新增三個既有 organizer RPC wrappers；RosterManager 對線上 pending row 提供 confirm／decline／remove，對其他 active online row 提供 remove，manual row 維持原 manual RPC；action error 後 reload roster 以處理 stale／replay。
+- `[FOCUSED TEST]` API tests 覆蓋三個 RPC name／payload 與錯誤透傳；RosterManager jsdom tests 覆蓋 pending online actions、confirmed online remove、manual row 不顯示 online actions。
+- `[IDEMPOTENCY / NOT_VERIFIED]` 既有 organizer RPC 沒有 `p_idempotency_key`／`idempotency_requests` contract；現階段僅能依 source contract 描述 remove replay no-op、confirm／decline replay fail-closed。Strict key-based idempotency、live 12-case matrix、每 case audit actor／seat／replay／cleanup、fixture residue=`0` 與獨立 Fresh verdict 尚未完成；需 migration-specific authorization 才能補 DB contract，本輪不猜測或繞過。

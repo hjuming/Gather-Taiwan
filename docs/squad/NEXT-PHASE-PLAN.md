@@ -3,11 +3,11 @@
 日期：2026-08-24
 適用 branch：`codex/gather-mvp`
 source/runtime evidence fixed point：`83a38e8`
-目前狀態：Wave 0 **CLOSED（evidence-boundary closure）**；Wave 1 **ACCEPTED／CLOSED（Release baseline）**；Wave 2 **BLOCKED／未啟動**
+目前狀態：Wave 0 **CLOSED（evidence-boundary closure）**；Wave 1 **ACCEPTED／CLOSED（Release baseline）**；Wave 2 **IN PROGRESS（source／UI slice；live 12-case acceptance pending）**
 
 ## 計劃原則
 
-- 本文件是下一階段的提案與目標，不是 Wave 2 開工授權。
+- 本文件保留 Phase 2 的驗收目標；本輪 objective 已提供 Wave 2 scope 與 owner 授權，施工仍受下方 hard stops 與 current control-log allowlist 約束。
 - 每一階段都要先固定 HEAD、working tree、環境與 evidence tier，再施工、驗證、交 Fresh reviewer。
 - `LOCAL`、`ISOLATED LOCAL`、`CI`、`STAGING`、`PRODUCTION`、`DEVICE`、`FRESH` 不可互相替代。
 - 未取得 action-specific authorization 前，不執行 migration、DELETE、reset、rollback、broad cleanup、Cloudflare route／DNS／custom domain 變更或 production data 操作。
@@ -31,7 +31,9 @@ source/runtime evidence fixed point：`83a38e8`
 
 目標：完成主辦人對線上報名者的 confirm／decline／remove 閉環，與既有 manual roster capacity／FIFO 不變量一致。
 
-目前 read-only 技術盤點：既有 migration 已有 `organizer_confirm_registration`、`organizer_decline_registration`、`organizer_remove_registration` RPC 與其 RLS／ACL／audit 基礎；目前 app 缺口集中在 `apps/join/src/lib/api.ts` wrappers、`apps/join/src/components/RosterManager.tsx` 線上報名者操作 UI 與 focused frontend tests。第一個 discovery slice 的 exact read-only allowlist 為：上述兩個 app 檔、`apps/join/src/components/EventPage.tsx` 與 `apps/join/supabase/migrations/20260805210000_p1_06_08_seat_engine.sql`；施工 source／test／docs allowlist 仍須由 owner 在 discovery 後另行凍結，這不是 Wave 2 開工授權。
+目前 read-only 技術盤點：既有 migration 已有 `organizer_confirm_registration`、`organizer_decline_registration`、`organizer_remove_registration` RPC 與其 RLS／ACL／audit 基礎；目前 app 缺口集中在 `apps/join/src/lib/api.ts` wrappers、`apps/join/src/components/RosterManager.tsx` 線上報名者操作 UI 與 focused frontend tests。實際 page mount point 是 `apps/join/src/pages/EventPage.tsx`（原 discovery prompt 的 `src/components/EventPage.tsx` 不存在）；施工 source／test／docs allowlist 與 current evidence 以 control log 為準。
+
+Wave 2 current source slice：三個 API wrapper、RosterManager 線上報名者 confirm／decline／remove UI、API contract tests、RosterManager focused UI tests 與 STATIC migration contract test 已完成。既有 RPC 的 replay 是 state-machine boundary（remove 已非 active 時 no-op；confirm／decline 已處理時 fail-closed），但沒有 `p_idempotency_key`／`idempotency_requests` 參數；strict key-based idempotency、12-case local fixture read-back 與 Fresh verdict 仍未完成／未驗證。migration-specific authorization 未取得，因此 migration 不在本輪 allowlist。
 
 驗收目標：
 
@@ -85,7 +87,7 @@ source/runtime evidence fixed point：`83a38e8`
 
 ## 建議執行順序
 
-1. Phase 1 scope／owner 已由本輪組長指示確認；Wave 1 Release baseline 已接受。下一步如要進入 Wave 2，仍須另行確認 Phase 2 scope 與 owner。
+1. Phase 1 scope／owner 已由本輪組長指示確認；Wave 1 Release baseline 已接受。本輪 objective 已另行確認 Phase 2 scope 與 owner，Wave 2 source／UI slice 已啟動；strict idempotency／live 12-case／Fresh 仍是後續 gates。
 2. 新團隊建立乾淨 session，讀 `NEXT-TEAM-KICKOFF.md`、本計劃、SSOT、DEVELOPMENT、MAINTENANCE 與 control log。
 3. 完成 read-only baseline 與 gate report；任何 connector／owner／secret blocker 立即記錄並停止該 slice。
 4. 只對明確 allowlist 開發與測試；交 Fresh reviewer；更新 LEDGER／HANDOFF／control log。

@@ -16,6 +16,9 @@ vi.mock("./supabase", () => ({
 
 import {
   canSafelyRemoveNewEventCoverAfterUpdateFailure,
+  organizerConfirmRegistration,
+  organizerDeclineRegistration,
+  organizerRemoveRegistration,
   updateEvent,
   updateEventCapacitySettings,
   type UpdateEventInput,
@@ -140,5 +143,33 @@ describe("event update persistence", () => {
 
     expect((failure as Error).message).toContain("活動基本資料已儲存，但容量設定未更新");
     expect(canSafelyRemoveNewEventCoverAfterUpdateFailure(failure)).toBe(false);
+  });
+});
+
+describe("organizer online registration actions", () => {
+  it("calls the existing organizer RPC contract without using manual-participant RPCs", async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: null });
+
+    await organizerConfirmRegistration("registration-confirm");
+    await organizerDeclineRegistration("registration-decline");
+    await organizerRemoveRegistration("registration-remove");
+
+    expect(mocks.rpc).toHaveBeenNthCalledWith(1, "organizer_confirm_registration", {
+      p_registration_id: "registration-confirm",
+    });
+    expect(mocks.rpc).toHaveBeenNthCalledWith(2, "organizer_decline_registration", {
+      p_registration_id: "registration-decline",
+    });
+    expect(mocks.rpc).toHaveBeenNthCalledWith(3, "organizer_remove_registration", {
+      p_registration_id: "registration-remove",
+    });
+    expect(mocks.rpc.mock.calls.map(([name]) => name)).not.toContain("organizer_edit_manual_participant");
+  });
+
+  it("propagates organizer RPC errors so stale or unauthorized actions remain visible", async () => {
+    const error = new Error("registration is not pending confirmation");
+    mocks.rpc.mockResolvedValue({ data: null, error });
+
+    await expect(organizerConfirmRegistration("registration-stale")).rejects.toThrow(error);
   });
 });

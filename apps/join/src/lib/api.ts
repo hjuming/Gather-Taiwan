@@ -196,6 +196,27 @@ export async function getEventRoster(eventId: string): Promise<RegistrationRow[]
   return (data as RegistrationRow[]) ?? [];
 }
 
+export async function organizerConfirmRegistration(registrationId: string): Promise<void> {
+  const { error } = await supabase.rpc("organizer_confirm_registration", {
+    p_registration_id: registrationId,
+  });
+  if (error) throw error;
+}
+
+export async function organizerDeclineRegistration(registrationId: string): Promise<void> {
+  const { error } = await supabase.rpc("organizer_decline_registration", {
+    p_registration_id: registrationId,
+  });
+  if (error) throw error;
+}
+
+export async function organizerRemoveRegistration(registrationId: string): Promise<void> {
+  const { error } = await supabase.rpc("organizer_remove_registration", {
+    p_registration_id: registrationId,
+  });
+  if (error) throw error;
+}
+
 export async function organizerAddManualParticipant(
   eventId: string,
   displayName: string,
