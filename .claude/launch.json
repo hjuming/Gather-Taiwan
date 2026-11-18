@@ -12,6 +12,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "8791"],
       "port": 8791
+    },
+    {
+      "name": "gather-app-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8792", "--directory", "/tmp/gather-app-preview"],
+      "port": 8792
     }
   ]
 }

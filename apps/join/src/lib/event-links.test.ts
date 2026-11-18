@@ -40,14 +40,19 @@ describe("event sharing links", () => {
       },
       "https://gather.wedopr.com/app/e/welcome",
     );
-    expect(text).toContain("2026年8月10日 18:30 - 21:30");
-    expect(text).toContain("18:30");
-    expect(text).toContain("21:30");
-    expect(text).toContain("費用：NT$ 1000");
-    expect(text).toContain("人數上限：30 人");
-    expect(text).toContain("地點：金色三麥");
-    expect(text).toContain("地址：台北市中山區");
-    expect(text).toContain("想參加，請點此連結：\nhttps://gather.wedopr.com/app/e/welcome");
+    expect(text).toBe([
+      "來聚一場～迎新晚會",
+      "相招來聚會",
+      "",
+      "📅 2026-08-10（一）18:30–21:30",
+      "📍 金色三麥",
+      "台北市中山區",
+      "💰 NT$ 1000",
+      "👥 30 人",
+      "",
+      "確認出席狀況",
+      "https://gather.wedopr.com/app/e/welcome",
+    ].join("\n"));
     expect(text).not.toContain("**");
     expect(text).not.toContain("[金色三麥]");
     expect(text).not.toContain("google.com/maps");

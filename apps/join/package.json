@@ -25,13 +25,21 @@
     "verify:p1-05": "bash scripts/verify-p1-05.sh",
     "verify:p1-06-08": "bash scripts/verify-p1-06-08.sh",
     "verify:p1-06-08:concurrency": "node scripts/verify-p1-06-08-concurrency.mjs",
+    "verify:canonical-hardening": "node scripts/verify-canonical-hardening.mjs",
     "verify:p1-07": "bash scripts/verify-p1-07.sh",
     "verify:p1-09-13": "bash scripts/verify-p1-09-13.sh",
     "verify:p1-11": "bash scripts/verify-p1-11.sh",
+    "verify:manual-roster:capacity": "GATHER_JOIN_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:58322/postgres node scripts/verify-manual-roster-capacity.mjs",
+    "verify:wave2:organizer-registration": "node scripts/verify-organizer-registration-wave2.mjs",
+    "cleanup:wave2:organizer-registration": "node scripts/cleanup-organizer-registration-wave2-fixtures.mjs",
+    "verify:manual-roster:concurrency": "GATHER_JOIN_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:58322/postgres node scripts/verify-manual-roster-concurrency.mjs",
+    "verify:guest-invitations": "GATHER_JOIN_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:58322/postgres node scripts/verify-guest-invitations.mjs",
     "concurrency": "GATHER_JOIN_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:58322/postgres vitest run scripts/concurrency-harness.test.ts",
     "test:p1-01": "pnpm reset && pnpm verify && pnpm reset && pnpm verify && pnpm concurrency",
     "smoke": "node scripts/smoke.mjs",
-    "smoke:staging": "node scripts/smoke-staging.mjs"
+    "smoke:staging": "node scripts/smoke-staging.mjs",
+    "verify:release-baseline": "node scripts/verify-release-baseline.mjs",
+    "verify:ci-provenance": "node scripts/write-ci-provenance.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.1",

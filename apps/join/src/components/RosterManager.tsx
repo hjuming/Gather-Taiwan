@@ -2,8 +2,11 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   getEventRoster,
   organizerAddManualParticipant,
+  organizerConfirmRegistration,
+  organizerDeclineRegistration,
   organizerEditManualParticipant,
   organizerRemoveManualParticipant,
+  organizerRemoveRegistration,
 } from "../lib/api";
 import { REGISTRATION_STATUS_LABEL, type RegistrationRow } from "../lib/types";
 
@@ -118,6 +121,32 @@ export default function RosterManager({ eventId, capacity }: { eventId: string; 
     }
   }
 
+  async function handleOnlineAction(
+    row: RegistrationRow,
+    action: (registrationId: string, idempotencyKey: string) => Promise<void>,
+    fallbackMessage: string,
+  ) {
+    setError(null);
+    setBusy(true);
+    const idempotencyKey = crypto.randomUUID();
+    try {
+      await action(row.id, idempotencyKey);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : fallbackMessage);
+      // A rejected replay or stale action must reconcile the visible roster
+      // before the organizer tries again.
+      await load();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleOnlineRemove(row: RegistrationRow) {
+    if (!window.confirm("確定要從名單移除這位參加者嗎？")) return;
+    await handleOnlineAction(row, organizerRemoveRegistration, "移除失敗");
+  }
+
   const activeRoster = roster.filter((row) => ACTIVE_STATUSES.includes(row.status));
   const stats = useMemo(() => {
     const seats = (rows: RegistrationRow[]) => rows.reduce((total, row) => total + Math.max(1, row.seats || 1), 0);
@@ -200,6 +229,38 @@ export default function RosterManager({ eventId, capacity }: { eventId: string; 
                       </select>
                       <button type="button" className="btn-text" onClick={() => startEdit(row)}>編輯</button>
                       <button type="button" className="btn-text" onClick={() => handleRemove(row)}>移除</button>
+                    </div>
+                  )}
+                  {!isManual && (
+                    <div className="actions roster-entry__actions">
+                      {row.status === "pending_organizer_confirmation" && (
+                        <>
+                          <button
+                            type="button"
+                            className="btn-secondary"
+                            onClick={() => handleOnlineAction(row, organizerConfirmRegistration, "確認報名失敗")}
+                            disabled={busy}
+                          >
+                            確認報名
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-text"
+                            onClick={() => handleOnlineAction(row, organizerDeclineRegistration, "婉拒報名失敗")}
+                            disabled={busy}
+                          >
+                            婉拒報名
+                          </button>
+                        </>
+                      )}
+                      <button
+                        type="button"
+                        className="btn-text"
+                        onClick={() => handleOnlineRemove(row)}
+                        disabled={busy}
+                      >
+                        移除
+                      </button>
                     </div>
                   )}
                 </>

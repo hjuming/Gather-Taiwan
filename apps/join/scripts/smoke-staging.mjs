@@ -29,9 +29,9 @@ for (const { file, marker } of requiredSourceFiles) {
 
 const buildFiles = filesIn(distDirectory);
 const stagingWorkerBundle = buildFiles.find((path) => path.includes("staging") && path.endsWith("index.js"))
-  || buildFiles.find((path) => path.endsWith(".js") && path.includes("gather_join"));
+  || null;
 if (!stagingWorkerBundle) {
-  throw new Error("Staging Worker bundle is missing.");
+  throw new Error("Staging Worker bundle is missing; production Worker fallback is forbidden.");
 }
 
 const { default: builtStagingWorker } = await import(pathToFileURL(stagingWorkerBundle).href);
