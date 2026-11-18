@@ -2,6 +2,32 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
+<!-- WEDO roll-up Google Tag Manager -->
+<script>
+(function(w,d,s,l,i){
+  try{
+    var h=w.location.hostname.trim().toLowerCase().replace(/\.$/,'');
+    if (h!=='gather.wedopr.com' || w.navigator.webdriver===true) return;
+  }catch(_){return;}
+  w[l]=w[l]||[];
+  if (w.__WEDO_ROLLUP_GTM__) return;
+  w.__WEDO_ROLLUP_GTM__=true;
+  w[l].push({
+    event:'wedo_rollup_context',
+    rollup_property:'WEDOPR',
+    project_name:'聚場台灣',
+    project_host:w.location.hostname,
+    project_scope:'project',
+    page_path:w.location.pathname+w.location.search,
+    page_location:w.location.href
+  });
+  w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});
+  var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
+  j.async=true;
+  j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
+  f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-TNM3J7XS');
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
   // iPadOS「要求桌面版網站」可能回報桌面 viewport；用觸控能力補足導覽判定。
